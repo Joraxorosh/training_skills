@@ -1,0 +1,799 @@
+{
+  "topics": [
+    {"id": "linux", "title": "Linux и Bash"},
+    {"id": "git", "title": "Git"},
+    {"id": "networking", "title": "Сети (TCP/IP, DNS, HTTP, TLS)"},
+    {"id": "docker", "title": "Docker"},
+    {"id": "kubernetes", "title": "Kubernetes"}
+  ],
+  "questions": [
+    {
+      "id": "devops-linux-001",
+      "topic": "linux",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какая команда выводит абсолютный путь текущего рабочего каталога?",
+      "options": ["whoami", "pwd", "cd ~", "ls -d"],
+      "correct": [1],
+      "explanation": "pwd (print working directory) печатает текущий каталог. whoami выводит имя пользователя, cd ~ переходит в домашний каталог, ls -d . выводит лишь «.»."
+    },
+    {
+      "id": "devops-linux-002",
+      "topic": "linux",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие права получит файл после выполнения команды?",
+      "code": "chmod 754 script.sh",
+      "options": ["rwxr-xr--", "rwxr-x-w-", "rwxrw-r--", "rw-r-xr--"],
+      "correct": [0],
+      "explanation": "7 = rwx (владелец), 5 = r-x (группа), 4 = r-- (остальные). Остальные варианты соответствуют другим восьмеричным значениям (752, 764, 654)."
+    },
+    {
+      "id": "devops-linux-003",
+      "topic": "linux",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает конструкция 2>&1 в конце команды?",
+      "code": "./backup.sh > backup.log 2>&1",
+      "options": [
+        "Перенаправляет stdout в поток stderr",
+        "Запускает команду в фоновом режиме",
+        "Направляет stderr туда же, куда указывает stdout",
+        "Записывает stderr в отдельный файл с именем 1"
+      ],
+      "correct": [2],
+      "explanation": "2>&1 дублирует дескриптор 2 (stderr) на дескриптор 1 (stdout), поэтому и ошибки попадут в backup.log. Запись в файл «1» была бы 2>1, а фон — это &."
+    },
+    {
+      "id": "devops-linux-004",
+      "topic": "linux",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какое значение содержит переменная $? сразу после успешно завершившейся команды?",
+      "options": ["255", "1", "-1", "0"],
+      "correct": [3],
+      "explanation": "В Unix код возврата 0 означает успех, любое ненулевое значение (1–255) — ошибку. Отрицательных кодов возврата в $? не бывает."
+    },
+    {
+      "id": "devops-linux-005",
+      "topic": "linux",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой сигнал отправляет команда kill PID, если сигнал не указан явно?",
+      "options": ["SIGKILL (9)", "SIGHUP (1)", "SIGTERM (15)", "SIGINT (2)"],
+      "correct": [2],
+      "explanation": "По умолчанию kill отправляет SIGTERM, который процесс может перехватить и корректно завершиться. SIGKILL нужно указывать явно (kill -9), SIGINT посылается по Ctrl+C."
+    },
+    {
+      "id": "devops-linux-006",
+      "topic": "linux",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какая команда найдёт все файлы размером больше 100 МБ, начиная с корня?",
+      "options": [
+        "find / -type f -size +100M",
+        "find / -type f -size 100M+",
+        "ls -lS / | head",
+        "du -h --max-size=100M /"
+      ],
+      "correct": [0],
+      "explanation": "У find знак «+» перед размером означает «больше». Синтаксис 100M+ неверен, ls -lS / не обходит подкаталоги рекурсивно, а у du нет опции --max-size."
+    },
+    {
+      "id": "devops-linux-007",
+      "topic": "linux",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие команды позволяют следить за появлением новых строк в лог-файле в реальном времени?",
+      "options": ["tail -f app.log", "less +F app.log", "cat -f app.log", "tail -F app.log", "head -f app.log"],
+      "correct": [0, 1, 3],
+      "explanation": "tail -f и tail -F (к тому же переоткрывает файл после ротации) показывают новые строки, less +F включает режим follow. У cat и head нет режима слежения."
+    },
+    {
+      "id": "devops-linux-008",
+      "topic": "linux",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какое утверждение о жёстких (hard) и символьных (symbolic) ссылках верно?",
+      "options": [
+        "Символьная ссылка имеет тот же inode, что и исходный файл",
+        "Жёсткая ссылка сохраняет доступ к данным после удаления исходного имени",
+        "Жёсткую ссылку на каталог можно создать обычной командой ln",
+        "Символьная ссылка не может указывать на файл в другой файловой системе"
+      ],
+      "correct": [1],
+      "explanation": "Жёсткая ссылка — ещё одно имя для того же inode; данные удаляются, только когда счётчик ссылок станет 0. У symlink свой inode, и она может указывать куда угодно, в том числе на другую ФС. Жёсткие ссылки на каталоги ln не создаёт."
+    },
+    {
+      "id": "devops-linux-009",
+      "topic": "linux",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет этот фрагмент bash?",
+      "code": "set -o pipefail\nfalse | true\necho $?",
+      "options": ["0", "1", "127", "Ошибку синтаксиса"],
+      "correct": [1],
+      "explanation": "С pipefail код возврата конвейера равен коду последней (самой правой) упавшей команды, здесь false → 1. Без pipefail было бы 0 — код последней команды true."
+    },
+    {
+      "id": "devops-linux-010",
+      "topic": "linux",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что показывают три числа load average в выводе uptime на Linux?",
+      "code": "10:15:01 up 12 days,  3 users,  load average: 2.10, 1.75, 1.20",
+      "options": [
+        "Процент загрузки CPU за последние 1, 5 и 15 минут",
+        "Объём занятой оперативной памяти в ГБ за 1, 5 и 15 минут",
+        "Количество активных сессий пользователей за 1, 5 и 15 минут",
+        "Среднее число задач, ждущих CPU или в состоянии D, за 1, 5 и 15 минут"
+      ],
+      "correct": [3],
+      "explanation": "Load average — экспоненциально сглаженное среднее числа задач в состояниях R и D. Это не процент: его сравнивают с числом ядер CPU."
+    },
+    {
+      "id": "devops-linux-011",
+      "topic": "linux",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "df показывает, что раздел заполнен на 100%, а du по тому же разделу — гораздо меньше. Какая причина наиболее вероятна?",
+      "options": [
+        "Закончились inode на файловой системе",
+        "du не учитывает скрытые файлы (начинающиеся с точки)",
+        "Удалённый файл всё ещё открыт процессом, и место не освобождено",
+        "Файловая система смонтирована в режиме read-only"
+      ],
+      "correct": [2],
+      "explanation": "Пока процесс держит открытый дескриптор удалённого файла, блоки остаются занятыми: df их видит, а du — нет, потому что имени файла уже нет. Такие файлы находит lsof +L1. Нехватка inode видна через df -i, а не в процентах по блокам; du скрытые файлы учитывает."
+    },
+    {
+      "id": "devops-linux-012",
+      "topic": "linux",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о процессах-зомби верны?",
+      "options": [
+        "Зомби — процесс, который завершился, но родитель ещё не прочитал его статус через wait()",
+        "Зомби можно убрать командой kill -9 PID_зомби",
+        "Зомби не потребляет CPU и память, кроме записи в таблице процессов",
+        "Если завершить родителя, зомби «усыновит» init (или subreaper), который вызовет wait() и уберёт его",
+        "В выводе ps зомби имеет состояние D"
+      ],
+      "correct": [0, 2, 3],
+      "explanation": "Зомби уже мёртв, поэтому сигналы, включая SIGKILL, на него не действуют: убирает его только wait() родителя или нового родителя (init). В ps у зомби состояние Z, а D — это непрерываемый сон."
+    },
+
+    {
+      "id": "devops-git-001",
+      "topic": "git",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие команды создают новую ветку feature и сразу переключаются на неё?",
+      "options": ["git checkout -b feature", "git branch feature", "git switch -c feature", "git branch -m feature"],
+      "correct": [0, 2],
+      "explanation": "git checkout -b и git switch -c создают ветку и переключаются на неё. git branch feature только создаёт ветку без переключения, git branch -m переименовывает текущую ветку."
+    },
+    {
+      "id": "devops-git-002",
+      "topic": "git",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какая команда показывает изменения в рабочей директории, которые ещё не добавлены в индекс?",
+      "options": ["git diff --staged", "git log -p", "git diff", "git show"],
+      "correct": [2],
+      "explanation": "git diff без аргументов сравнивает рабочую директорию с индексом. --staged показывает изменения, уже добавленные в индекс, а git log -p и git show выводят изменения из коммитов."
+    },
+    {
+      "id": "devops-git-003",
+      "topic": "git",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает команда git add <file>?",
+      "options": [
+        "Сразу создаёт новый коммит, содержащий этот файл",
+        "Отправляет файл в удалённый репозиторий",
+        "Создаёт пустой файл и начинает его отслеживать",
+        "Добавляет текущее состояние файла в индекс (staging area)"
+      ],
+      "correct": [3],
+      "explanation": "git add помещает снимок изменений в индекс, но коммит создаётся отдельно через git commit, а отправка в удалённый репозиторий — через git push."
+    },
+    {
+      "id": "devops-git-004",
+      "topic": "git",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем git fetch отличается от git pull?",
+      "options": [
+        "fetch только скачивает изменения, а pull ещё и вливает их в текущую ветку",
+        "fetch отправляет локальные коммиты на сервер, а pull их скачивает",
+        "fetch скачивает только теги, а pull — только коммиты веток",
+        "Это синонимы: обе команды делают одно и то же"
+      ],
+      "correct": [0],
+      "explanation": "git pull = git fetch + git merge (или rebase, если так настроено). Сам fetch лишь скачивает объекты и обновляет remote-tracking ветки (origin/*), но не меняет ни текущую ветку, ни рабочую директорию."
+    },
+    {
+      "id": "devops-git-005",
+      "topic": "git",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое HEAD в Git?",
+      "options": [
+        "Ссылка на самый первый (корневой) коммит репозитория",
+        "Указатель на текущую ветку (или коммит в состоянии detached HEAD)",
+        "Последний коммит ветки по умолчанию в удалённом репозитории",
+        "Другое название ветки по умолчанию (main или master)"
+      ],
+      "correct": [1],
+      "explanation": "HEAD указывает на то, что сейчас извлечено: обычно на ветку, а в состоянии detached — прямо на коммит. Последний коммит на сервере обозначается origin/<branch>."
+    },
+    {
+      "id": "devops-git-006",
+      "topic": "git",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Файл config.env уже закоммичен в репозиторий. Затем его добавили в .gitignore. Что произойдёт?",
+      "options": [
+        "Git автоматически удалит файл из репозитория при следующем коммите",
+        "Git перестанет замечать изменения файла сразу после сохранения .gitignore",
+        "Файл останется отслеживаемым, пока не выполнить git rm --cached и коммит",
+        "Git выдаст ошибку о конфликте с .gitignore при следующем коммите"
+      ],
+      "correct": [2],
+      "explanation": ".gitignore влияет только на неотслеживаемые файлы. Уже отслеживаемый файл нужно убрать из индекса через git rm --cached; он останется на диске, но из истории никуда не пропадёт."
+    },
+    {
+      "id": "devops-git-007",
+      "topic": "git",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что сделает команда git reset --soft HEAD~1?",
+      "options": [
+        "Удалит последний коммит вместе со всеми его изменениями",
+        "Создаст новый коммит, отменяющий изменения последнего",
+        "Отменит последний коммит, изменения останутся в рабочей директории, но не в индексе",
+        "Отменит последний коммит, изменения останутся в индексе (staged)"
+      ],
+      "correct": [3],
+      "explanation": "--soft двигает только указатель ветки, индекс и рабочая директория не меняются. --mixed (по умолчанию) ещё и сбрасывает индекс, --hard удаляет изменения, а новый отменяющий коммит создаёт git revert."
+    },
+    {
+      "id": "devops-git-008",
+      "topic": "git",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как безопаснее всего отменить коммит, который уже запушен в общую ветку, с которой работают другие?",
+      "options": [
+        "git reset --hard <sha>~1 и затем git push --force",
+        "git revert <sha> и git push",
+        "git commit --amend и git push",
+        "git checkout <sha> и git push"
+      ],
+      "correct": [1],
+      "explanation": "git revert создаёт новый коммит, отменяющий изменения, и не переписывает историю. reset с force push и amend меняют историю и ломают её у коллег, а checkout ничего не отменяет."
+    },
+    {
+      "id": "devops-git-009",
+      "topic": "git",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Вы находитесь на ветке feature. Что сделает команда git rebase main?",
+      "options": [
+        "Создаст merge-коммит, объединяющий историю main и feature",
+        "Перенесёт коммиты main в конец ветки feature, сохранив их хеши",
+        "Заново применит коммиты feature поверх main, создав коммиты с новыми хешами",
+        "Переместит указатель main на последний коммит feature"
+      ],
+      "correct": [2],
+      "explanation": "rebase переигрывает уникальные коммиты текущей ветки поверх целевой, поэтому история становится линейной, а у коммитов меняются хеши. Merge-коммит создаёт git merge."
+    },
+    {
+      "id": "devops-git-010",
+      "topic": "git",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "После git reset --hard потерялся нужный коммит. Какие команды помогут его найти?",
+      "options": ["git reflog", "git clean -fd", "git fsck --lost-found", "git gc --prune=now"],
+      "correct": [0, 2],
+      "explanation": "reflog хранит историю перемещений HEAD и веток, а fsck находит недостижимые (dangling) объекты. git clean удаляет неотслеживаемые файлы, а gc --prune=now, наоборот, может окончательно удалить недостижимые коммиты."
+    },
+    {
+      "id": "devops-git-011",
+      "topic": "git",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "В каком случае git merge feature (без дополнительных флагов) выполнит fast-forward?",
+      "options": [
+        "Когда при слиянии веток не возникает конфликтов",
+        "Когда в текущей ветке нет своих коммитов после ответвления feature",
+        "Когда в ветке feature ровно один новый коммит",
+        "Всегда, если feature была создана из текущей ветки"
+      ],
+      "correct": [1],
+      "explanation": "Fast-forward возможен, только если указатель текущей ветки можно просто сдвинуть вперёд до feature. Отсутствия конфликтов для этого мало, а если в текущей ветке появились новые коммиты, создаётся merge-коммит, даже если feature была из неё создана."
+    },
+    {
+      "id": "devops-git-012",
+      "topic": "git",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Чем git push --force-with-lease отличается от git push --force?",
+      "options": [
+        "Отклоняет push, если ветка на сервере не совпадает с вашей remote-tracking ссылкой",
+        "Перезаписывает удалённую ветку, но сохраняет копию старой в отдельной ветке",
+        "Разрешён только для защищённых (protected) веток репозитория",
+        "Автоматически выполняет rebase на удалённую ветку перед push"
+      ],
+      "correct": [0],
+      "explanation": "--force-with-lease перезаписывает ветку, только если на сервере она указывает на тот коммит, который вы ожидаете, поэтому чужие коммиты случайно не затрутся. Резервных копий эта опция не создаёт и rebase не выполняет."
+    },
+
+    {
+      "id": "devops-networking-001",
+      "topic": "networking",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой стандартный порт использует DNS?",
+      "options": ["67", "53", "123", "161"],
+      "correct": [1],
+      "explanation": "DNS работает на порту 53 (UDP, а для больших ответов и zone transfer — TCP). 67 — DHCP-сервер, 123 — NTP, 161 — SNMP."
+    },
+    {
+      "id": "devops-networking-002",
+      "topic": "networking",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой HTTP-код вернёт сервер, если пользователь аутентифицирован, но у него нет прав на ресурс?",
+      "options": ["401 Unauthorized", "500 Internal Server Error", "404 Not Found", "403 Forbidden"],
+      "correct": [3],
+      "explanation": "403 означает, что сервер понял, кто вы, но доступ запрещён. 401 возвращается, когда аутентификации нет или она неверна, а 404 и 500 означают «ресурс не найден» и ошибку сервера."
+    },
+    {
+      "id": "devops-networking-003",
+      "topic": "networking",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой протокол транспортного уровня устанавливает соединение и гарантирует упорядоченную доставку данных?",
+      "options": ["UDP", "ICMP", "TCP", "ARP"],
+      "correct": [2],
+      "explanation": "TCP устанавливает соединение, подтверждает доставку, повторно передаёт потерянные сегменты и соблюдает порядок. UDP работает без соединения, ICMP — служебный протокол сетевого уровня, ARP сопоставляет IP-адреса с MAC."
+    },
+    {
+      "id": "devops-networking-004",
+      "topic": "networking",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какая DNS-запись сопоставляет доменное имя с IPv6-адресом?",
+      "options": ["MX", "CNAME", "A", "AAAA"],
+      "correct": [3],
+      "explanation": "AAAA хранит IPv6-адрес, A — IPv4. CNAME — псевдоним на другое имя, MX указывает почтовый сервер."
+    },
+    {
+      "id": "devops-networking-005",
+      "topic": "networking",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько адресов для хостов доступно в подсети 192.168.1.0/24?",
+      "options": ["256", "254", "255", "252"],
+      "correct": [1],
+      "explanation": "В /24 256 адресов, из них адрес сети (.0) и широковещательный (.255) хостам не назначаются, остаётся 254."
+    },
+    {
+      "id": "devops-networking-006",
+      "topic": "networking",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В каком порядке передаются сегменты при установке TCP-соединения (three-way handshake)?",
+      "options": ["SYN → ACK → SYN-ACK", "SYN-ACK → SYN → ACK", "SYN → SYN-ACK → ACK", "SYN → FIN → ACK"],
+      "correct": [2],
+      "explanation": "Клиент отправляет SYN, сервер отвечает SYN-ACK, клиент подтверждает ACK. FIN используется при закрытии соединения, а не при его установке."
+    },
+    {
+      "id": "devops-networking-007",
+      "topic": "networking",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Nginx в роли reverse proxy возвращает клиенту 504 Gateway Timeout. Что это обычно означает?",
+      "options": [
+        "Upstream не ответил за отведённое время (например, proxy_read_timeout)",
+        "Upstream вернул некорректный ответ или соединение с ним было отклонено",
+        "Клиент слишком долго отправлял тело запроса серверу",
+        "У Nginx закончились свободные worker-процессы"
+      ],
+      "correct": [0],
+      "explanation": "504 означает, что прокси не дождался ответа от upstream. Невалидный ответ или отказ в соединении обычно дают 502 Bad Gateway, а медленный клиент — 408 Request Timeout."
+    },
+    {
+      "id": "devops-networking-008",
+      "topic": "networking",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие диапазоны относятся к частным (private) IPv4-адресам по RFC 1918?",
+      "options": ["10.0.0.0/8", "100.64.0.0/10", "172.16.0.0/12", "169.254.0.0/16", "192.168.0.0/16"],
+      "correct": [0, 2, 4],
+      "explanation": "RFC 1918 определяет три диапазона: 10/8, 172.16/12 и 192.168/16. 100.64.0.0/10 — Shared Address Space для CGNAT (RFC 6598), 169.254.0.0/16 — link-local адреса."
+    },
+    {
+      "id": "devops-networking-009",
+      "topic": "networking",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем нужно расширение SNI (Server Name Indication) в TLS?",
+      "options": [
+        "Чтобы шифровать DNS-запросы клиента к резолверу",
+        "Чтобы сервер мог проверить сертификат клиента",
+        "Чтобы ускорить handshake за счёт повторного использования сессии",
+        "Чтобы сервер на одном IP выбрал сертификат по имени хоста"
+      ],
+      "correct": [3],
+      "explanation": "Клиент передаёт имя хоста в ClientHello, поэтому SNI позволяет держать много HTTPS-сайтов с разными сертификатами на одном IP и порту. Проверка клиента — это mTLS, повторное использование сессии — session resumption, а DNS SNI не шифрует."
+    },
+    {
+      "id": "devops-networking-010",
+      "topic": "networking",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какая команда curl отправит HEAD-запрос и выведет только заголовки ответа?",
+      "options": [
+        "curl -O https://example.com",
+        "curl -L https://example.com",
+        "curl -I https://example.com",
+        "curl -d '' https://example.com"
+      ],
+      "correct": [2],
+      "explanation": "-I (--head) отправляет HEAD-запрос и печатает заголовки. -O сохраняет ответ в файл, -L следует за редиректами, -d отправляет POST с телом."
+    },
+    {
+      "id": "devops-networking-011",
+      "topic": "networking",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какая сторона TCP-соединения переходит в состояние TIME_WAIT?",
+      "options": [
+        "Всегда сервер",
+        "Сторона, которая первой отправила FIN (выполняет активное закрытие)",
+        "Сторона, которая первой получила FIN (пассивное закрытие)",
+        "Всегда клиент"
+      ],
+      "correct": [1],
+      "explanation": "В TIME_WAIT (на 2×MSL) переходит сторона, начавшая закрытие, — клиент это или сервер, не важно. Пассивная сторона проходит CLOSE_WAIT и LAST_ACK. Поэтому серверы, сами закрывающие много соединений, копят TIME_WAIT."
+    },
+    {
+      "id": "devops-networking-012",
+      "topic": "networking",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о TLS 1.3 верны?",
+      "options": [
+        "Клиент проверяет цепочку сертификатов сервера до доверенного корневого CA",
+        "Сеансовый ключ генерирует клиент и передаёт его серверу, зашифровав открытым RSA-ключом сервера",
+        "Клиент проверяет, что имя хоста совпадает с одним из значений SAN в сертификате",
+        "Полный handshake занимает 1 RTT",
+        "Сертификат сервера передаётся в открытом (незашифрованном) виде"
+      ],
+      "correct": [0, 2, 3],
+      "explanation": "В TLS 1.3 обмен ключами идёт только через (EC)DHE: RSA key transport убран, полный handshake занимает 1 RTT. Сообщение Certificate уже зашифровано handshake-ключами. Клиент по-прежнему проверяет цепочку доверия и имя хоста."
+    },
+
+    {
+      "id": "devops-docker-001",
+      "topic": "docker",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем образ (image) отличается от контейнера (container)?",
+      "options": [
+        "Образ — это запущенный процесс, а контейнер — файл на диске",
+        "Это одно и то же, просто разные названия в CLI",
+        "Образ — неизменяемый шаблон из слоёв, контейнер — его запущенный экземпляр",
+        "Контейнер можно хранить в registry, а образ — только локально"
+      ],
+      "correct": [2],
+      "explanation": "Образ — read-only набор слоёв, из которого запускается контейнер: поверх образа добавляется тонкий writable-слой. В registry хранятся образы, а не контейнеры."
+    },
+    {
+      "id": "devops-docker-002",
+      "topic": "docker",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как вывести список всех контейнеров, включая остановленные?",
+      "options": ["docker images -a", "docker ps", "docker ls", "docker ps -a"],
+      "correct": [3],
+      "explanation": "docker ps без флагов показывает только запущенные контейнеры, а -a (--all) — все. docker images выводит образы, команды docker ls не существует (есть docker container ls)."
+    },
+    {
+      "id": "devops-docker-003",
+      "topic": "docker",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает флаг -p в этой команде?",
+      "code": "docker run -d -p 8080:80 nginx",
+      "options": [
+        "Порт 8080 хоста пробрасывается на порт 80 контейнера",
+        "Порт 80 хоста пробрасывается на порт 8080 контейнера",
+        "Контейнер будет слушать оба порта, 80 и 8080",
+        "Открывается диапазон портов 80–8080"
+      ],
+      "correct": [0],
+      "explanation": "Формат -p HOST:CONTAINER: запросы на порт 8080 хоста уходят на порт 80 внутри контейнера, где слушает nginx."
+    },
+    {
+      "id": "devops-docker-004",
+      "topic": "docker",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какая инструкция Dockerfile умеет автоматически распаковывать локальный tar-архив в образ?",
+      "options": ["COPY", "VOLUME", "ADD", "WORKDIR"],
+      "correct": [2],
+      "explanation": "ADD распаковывает локальные tar-архивы (и умеет скачивать файлы по URL). COPY просто копирует файлы, поэтому его и советуют использовать, когда эти возможности не нужны."
+    },
+    {
+      "id": "devops-docker-005",
+      "topic": "docker",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как смотреть логи контейнера web в реальном времени?",
+      "options": ["docker logs -f web", "docker inspect web", "docker events web", "docker top web"],
+      "correct": [0],
+      "explanation": "docker logs -f (--follow) выводит stdout/stderr контейнера и ждёт новых строк. inspect показывает конфигурацию, events — события демона, top — процессы контейнера."
+    },
+    {
+      "id": "devops-docker-006",
+      "topic": "docker",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Образ собран из этого Dockerfile. Какая команда выполнится внутри контейнера при запуске docker run myimg google.com?",
+      "code": "FROM alpine\nENTRYPOINT [\"ping\"]\nCMD [\"localhost\"]",
+      "options": ["ping localhost", "google.com", "ping localhost google.com", "ping google.com"],
+      "correct": [3],
+      "explanation": "CMD задаёт аргументы по умолчанию для ENTRYPOINT, а аргументы из docker run их заменяют. Получается ping google.com. Сам ENTRYPOINT заменяется только флагом --entrypoint."
+    },
+    {
+      "id": "devops-docker-007",
+      "topic": "docker",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем в этом Dockerfile сначала копируют package*.json, а исходники — только после npm ci?",
+      "code": "COPY package*.json ./\nRUN npm ci\nCOPY . .",
+      "options": [
+        "Иначе npm ci не найдёт package.json в рабочем каталоге",
+        "Чтобы слой с npm ci брался из кеша, пока не меняются package*.json",
+        "Чтобы исходный код не попал в итоговый образ приложения",
+        "Так требует синтаксис Dockerfile: COPY . . должна быть последней инструкцией"
+      ],
+      "correct": [1],
+      "explanation": "Кеш слоя инвалидируется, если меняются файлы, скопированные в него или в предыдущие слои. Пока package*.json не менялся, дорогой npm ci берётся из кеша. Синтаксических требований к порядку COPY нет."
+    },
+    {
+      "id": "devops-docker-008",
+      "topic": "docker",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие практики действительно уменьшают размер итогового образа?",
+      "options": [
+        "Multi-stage build: в финальный образ копируются только артефакты сборки",
+        "Удаление ненужных файлов отдельной инструкцией RUN rm -rf в конце Dockerfile",
+        "Установка пакетов и очистка кеша пакетного менеджера в одной инструкции RUN",
+        "Базовые образы slim, alpine или distroless",
+        "Указание EXPOSE для всех используемых портов"
+      ],
+      "correct": [0, 2, 3],
+      "explanation": "Файлы, удалённые в отдельном слое, остаются в предыдущих слоях, и образ не уменьшается. Поэтому очищать кеш нужно в той же инструкции RUN. EXPOSE — это лишь метаданные."
+    },
+    {
+      "id": "devops-docker-009",
+      "topic": "docker",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем named volume отличается от bind mount?",
+      "options": [
+        "Bind mount хранится внутри образа, а named volume — на хосте",
+        "Named volume можно подключить только к одному контейнеру за раз",
+        "Named volume управляется Docker, а bind mount монтирует произвольный путь хоста",
+        "Данные named volume удаляются автоматически вместе с контейнером"
+      ],
+      "correct": [2],
+      "explanation": "Named volume — объект Docker (обычно в /var/lib/docker/volumes), который переживает удаление контейнера и может быть подключён к нескольким контейнерам; удаляется он явно через docker volume rm (docker rm -v и docker volume prune по умолчанию затрагивают только анонимные тома). Bind mount — это просто каталог или файл хоста. В образ не попадает ни то, ни другое."
+    },
+    {
+      "id": "devops-docker-010",
+      "topic": "docker",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В docker-compose.yml сервис app имеет depends_on: [db] в короткой форме. Что это гарантирует?",
+      "options": [
+        "db будет запущен раньше app, но не обязательно готов принимать подключения",
+        "app запустится только когда база данных готова принимать соединения",
+        "app и db окажутся в одной сети, иначе они друг друга не увидят",
+        "При падении db контейнер app будет автоматически перезапущен"
+      ],
+      "correct": [0],
+      "explanation": "Короткая форма depends_on задаёт только порядок запуска. Чтобы ждать готовности, нужна длинная форма с condition: service_healthy и healthcheck у db. Общая сеть в Compose создаётся по умолчанию и от depends_on не зависит."
+    },
+    {
+      "id": "devops-docker-011",
+      "topic": "docker",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Контейнер с таким Dockerfile при docker stop каждый раз останавливается ровно через 10 секунд, и приложение не успевает корректно завершиться. Почему?",
+      "code": "FROM node:22-alpine\nCOPY . /app\nCMD node /app/server.js",
+      "options": [
+        "Node.js в принципе не умеет обрабатывать сигналы внутри контейнеров",
+        "При shell-форме CMD PID 1 — это /bin/sh -c, который не передаёт SIGTERM в node",
+        "docker stop всегда сразу отправляет SIGKILL, без SIGTERM",
+        "В Alpine-образах сигнал SIGTERM не поддерживается ядром"
+      ],
+      "correct": [1],
+      "explanation": "docker stop посылает SIGTERM процессу PID 1 и через 10 секунд (по умолчанию) — SIGKILL. В shell-форме команда запускается через /bin/sh -c, и сигнал получает оболочка, которая не пересылает его приложению (некоторые оболочки в простых случаях делают exec, но полагаться на это нельзя). Помогает exec-форма CMD [\"node\", \"/app/server.js\"] или init вроде tini (--init)."
+    },
+    {
+      "id": "devops-docker-012",
+      "topic": "docker",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие механизмы ядра Linux Docker использует для изоляции и ограничения контейнеров на Linux-хосте?",
+      "options": [
+        "Namespaces (pid, net, mnt, uts, ipc, user)",
+        "Аппаратная виртуализация: каждый контейнер получает свой гипервизор и ядро",
+        "cgroups для ограничения CPU, памяти и I/O",
+        "Linux capabilities и seccomp-профили",
+        "Каждый контейнер запускается как отдельный unit systemd-nspawn"
+      ],
+      "correct": [0, 2, 3],
+      "explanation": "Контейнеры Docker используют общее ядро хоста. Изоляцию дают namespaces, ограничение ресурсов — cgroups, а привилегии урезаются через capabilities и seccomp. Гипервизор используют microVM-рантаймы (Kata, Firecracker), а не стандартный runc. systemd-nspawn — отдельный инструмент."
+    },
+
+    {
+      "id": "devops-kubernetes-001",
+      "topic": "kubernetes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой минимальный объект Kubernetes можно развернуть и запланировать на ноду?",
+      "options": ["Container", "Node", "Deployment", "Pod"],
+      "correct": [3],
+      "explanation": "Pod — минимальная единица планирования: один или несколько контейнеров с общей сетью и томами. Отдельный контейнер Kubernetes не планирует, а Deployment управляет подами через ReplicaSet."
+    },
+    {
+      "id": "devops-kubernetes-002",
+      "topic": "kubernetes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как посмотреть поды в namespace kube-system?",
+      "options": [
+        "kubectl get pods --namespace=kube-system",
+        "kubectl get pods kube-system",
+        "kubectl describe namespace kube-system",
+        "kubectl get ns kube-system --pods"
+      ],
+      "correct": [0],
+      "explanation": "Namespace задаётся флагом -n или --namespace. В варианте kubectl get pods kube-system «kube-system» воспринимается как имя пода, а describe namespace показывает свойства самого namespace."
+    },
+    {
+      "id": "devops-kubernetes-003",
+      "topic": "kubernetes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой тип Service открывает сервис на статическом порту каждой ноды кластера?",
+      "options": ["ClusterIP", "NodePort", "ExternalName", "Headless (clusterIP: None)"],
+      "correct": [1],
+      "explanation": "NodePort выделяет порт (по умолчанию из диапазона 30000–32767) на каждой ноде. ClusterIP доступен только внутри кластера, ExternalName — это CNAME на внешнее имя, а headless-сервис не получает виртуальный IP."
+    },
+    {
+      "id": "devops-kubernetes-004",
+      "topic": "kubernetes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Где Kubernetes хранит состояние кластера (все объекты API)?",
+      "options": ["kube-scheduler", "kubelet", "etcd", "CoreDNS"],
+      "correct": [2],
+      "explanation": "etcd — распределённое key-value хранилище, из которого kube-apiserver читает и в которое записывает все объекты. Scheduler назначает поды на ноды, kubelet управляет подами на ноде, CoreDNS отвечает за DNS внутри кластера."
+    },
+    {
+      "id": "devops-kubernetes-005",
+      "topic": "kubernetes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой компонент на каждой ноде запускает контейнеры подов через container runtime и сообщает об их состоянии?",
+      "options": ["kubelet", "kube-proxy", "kube-controller-manager", "kube-apiserver"],
+      "correct": [0],
+      "explanation": "kubelet получает спецификации подов от API-сервера и через CRI запускает контейнеры. kube-proxy настраивает сетевые правила для Service, а controller-manager и apiserver входят в control plane."
+    },
+    {
+      "id": "devops-kubernetes-006",
+      "topic": "kubernetes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Под web находится в статусе CrashLoopBackOff. Как посмотреть логи предыдущего, уже упавшего экземпляра контейнера?",
+      "options": [
+        "kubectl describe pod web --logs",
+        "kubectl get events --pod web",
+        "kubectl logs web --previous",
+        "kubectl exec web -- cat /var/log/last.log"
+      ],
+      "correct": [2],
+      "explanation": "kubectl logs --previous (-p) показывает логи последнего завершившегося экземпляра контейнера. exec в падающий контейнер обычно не работает, а у describe и get events нет таких флагов."
+    },
+    {
+      "id": "devops-kubernetes-007",
+      "topic": "kubernetes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что происходит, когда у работающего контейнера начинает проваливаться readinessProbe (а livenessProbe проходит)?",
+      "options": [
+        "kubelet перезапускает контейнер с нарастающей задержкой",
+        "Под перестаёт получать трафик от Service, но не перезапускается",
+        "Под удаляется, и Deployment сразу создаёт вместо него новый",
+        "Под вытесняется и переносится scheduler-ом на другую ноду"
+      ],
+      "correct": [1],
+      "explanation": "Readiness определяет, можно ли слать трафик на под: при провале под просто убирается из EndpointSlice. Перезапуск контейнера вызывает провал livenessProbe."
+    },
+    {
+      "id": "devops-kubernetes-008",
+      "topic": "kubernetes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой контроллер даёт подам стабильные имена (db-0, db-1, ...) и отдельный PersistentVolumeClaim каждому через volumeClaimTemplates?",
+      "options": ["Deployment", "DaemonSet", "StatefulSet", "ReplicaSet"],
+      "correct": [2],
+      "explanation": "StatefulSet сохраняет за подами порядковые имена, сетевую идентичность (через headless Service) и PVC. Поды Deployment и ReplicaSet получают случайные суффиксы, а DaemonSet запускает по поду на ноду."
+    },
+    {
+      "id": "devops-kubernetes-009",
+      "topic": "kubernetes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт, если контейнер попытается использовать больше памяти, чем указано в resources.limits.memory?",
+      "options": [
+        "Контейнер будет троттлиться, как при превышении CPU limit",
+        "Под автоматически перенесётся на ноду с большим объёмом памяти",
+        "Ничего: лимит памяти носит лишь рекомендательный характер",
+        "Контейнер будет убит OOM killer (OOMKilled) и перезапущен по restartPolicy"
+      ],
+      "correct": [3],
+      "explanation": "Память нельзя «притормозить», поэтому при превышении лимита cgroup срабатывает OOM kill. Троттлинг применяется только к CPU, а автоматически переносить поды на другую ноду Kubernetes не умеет."
+    },
+    {
+      "id": "devops-kubernetes-010",
+      "topic": "kubernetes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "После неудачного обновления нужно вернуть Deployment web к предыдущей ревизии. Какая команда это делает?",
+      "options": [
+        "kubectl rollout undo deployment/web",
+        "kubectl rollback deployment/web",
+        "kubectl delete deployment web --revision=previous",
+        "kubectl rollout restart deployment/web"
+      ],
+      "correct": [0],
+      "explanation": "rollout undo возвращает предыдущую ревизию (или указанную через --to-revision). Команды kubectl rollback нет, а rollout restart лишь пересоздаёт поды с текущей спецификацией."
+    },
+    {
+      "id": "devops-kubernetes-011",
+      "topic": "kubernetes",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о Secret в Kubernetes верны?",
+      "options": [
+        "Без настроенного encryption at rest данные Secret хранятся в etcd незашифрованными (значения в API лишь закодированы в base64)",
+        "Secret можно смонтировать в под как файлы в volume или передать через переменные окружения",
+        "base64 в Secret — это надёжное шифрование",
+        "Если изменить Secret, переменные окружения, заданные из него, автоматически обновятся в запущенном контейнере",
+        "Доступ к Secret можно ограничить через RBAC"
+      ],
+      "correct": [0, 1, 4],
+      "explanation": "base64 — это кодирование, а не шифрование. Шифрование в etcd нужно включать отдельно через EncryptionConfiguration или KMS. Env-переменные фиксируются при старте контейнера, и автоматически обновляются только файлы в volume (кроме subPath)."
+    },
+    {
+      "id": "devops-kubernetes-012",
+      "topic": "kubernetes",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Под состоит из одного контейнера с такими ресурсами. Какой QoS-класс ему присвоит Kubernetes?",
+      "code": "resources:\n  requests:\n    cpu: \"500m\"\n    memory: \"512Mi\"\n  limits:\n    cpu: \"500m\"\n    memory: \"512Mi\"",
+      "options": ["Guaranteed", "Burstable", "BestEffort", "Critical"],
+      "correct": [0],
+      "explanation": "Guaranteed присваивается, когда у каждого контейнера заданы requests и limits для CPU и памяти и они равны. Burstable — когда requests заданы, но условия Guaranteed не выполнены, BestEffort — когда не задано ничего. Класса Critical нет."
+    }
+  ]
+}

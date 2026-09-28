@@ -1,0 +1,18 @@
+[
+  {
+    "id": "devops",
+    "title": "DevOps",
+    "description": "Linux, Git, сети, Docker, Kubernetes, CI/CD, IaC, мониторинг, облака и SRE-практики.",
+    "badge": "Ops",
+    "color": "#2f7de1",
+    "files": ["devops-1.json", "devops-2.json"]
+  },
+  {
+    "id": "sql",
+    "title": "SQL",
+    "description": "SELECT, JOIN, агрегация, подзапросы, оконные функции, индексы, транзакции и DDL.",
+    "badge": "SQL",
+    "color": "#e0822f",
+    "files": ["sql-1.json", "sql-2.json"]
+  }
+]

@@ -1,0 +1,1066 @@
+{
+  "topics": [
+    {
+      "id": "cicd",
+      "title": "CI/CD"
+    },
+    {
+      "id": "iac",
+      "title": "Infrastructure as Code (Terraform, Ansible)"
+    },
+    {
+      "id": "monitoring",
+      "title": "Мониторинг и логирование (Prometheus, Grafana, ELK)"
+    },
+    {
+      "id": "cloud",
+      "title": "Облака и архитектура"
+    },
+    {
+      "id": "practices",
+      "title": "SRE и DevOps-практики"
+    }
+  ],
+  "questions": [
+    {
+      "id": "devops-cicd-001",
+      "topic": "cicd",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое Continuous Integration (CI)?",
+      "options": [
+        "Автоматическое развёртывание каждого коммита в production без участия человека",
+        "Частое слияние изменений в общую ветку с автоматической сборкой и прогоном тестов",
+        "Ручная проверка каждого релиза отделом QA перед выкладкой",
+        "Хранение описания инфраструктуры в Git-репозитории"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "CI — практика частой интеграции кода в общую ветку, где каждое изменение автоматически собирается и тестируется. Автодеплой в production — это Continuous Deployment, а хранение инфраструктуры в Git — IaC/GitOps."
+    },
+    {
+      "id": "devops-cicd-002",
+      "topic": "cicd",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем Continuous Delivery отличается от Continuous Deployment?",
+      "options": [
+        "Continuous Delivery не включает автоматические тесты и проверки качества, а Continuous Deployment обязательно их включает",
+        "Это синонимы, разница только в названии у разных вендоров",
+        "Continuous Deployment применяется только к мобильным приложениям",
+        "В Delivery выкладку в production подтверждает человек, в Deployment она происходит автоматически"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Обе практики подразумевают, что артефакт всегда готов к релизу и проходит автоматические проверки. Отличие — в последнем шаге: при Delivery выкладку в prod подтверждает человек, при Deployment она происходит автоматически."
+    },
+    {
+      "id": "devops-cicd-003",
+      "topic": "cicd",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как по умолчанию называется файл описания пайплайна в корне репозитория GitLab?",
+      "options": [
+        ".gitlab-ci.yml",
+        "Jenkinsfile",
+        "gitlab-pipeline.yaml",
+        ".gitlab/pipeline.yml"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "GitLab CI/CD по умолчанию читает конфигурацию из .gitlab-ci.yml в корне репозитория (путь можно переопределить в настройках проекта). Jenkinsfile используется Jenkins."
+    },
+    {
+      "id": "devops-cicd-004",
+      "topic": "cicd",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В каком каталоге репозитория GitHub Actions ищет файлы workflow?",
+      "options": [
+        ".github/actions/",
+        ".github/workflows/",
+        ".workflows/",
+        "ci/github/"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Workflow-файлы (*.yml / *.yaml) должны лежать в .github/workflows/. Каталог .github/actions/ часто используют для локальных composite actions, но workflow оттуда не запускаются."
+    },
+    {
+      "id": "devops-cicd-005",
+      "topic": "cicd",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что описывает стратегия blue-green deployment?",
+      "options": [
+        "Постепенный перевод небольшой доли пользователей на новую версию с увеличением этой доли, пока метрики ошибок и задержек остаются в норме, и откатом при ухудшении",
+        "Поочерёдная замена подов старой версии на новые внутри одного окружения",
+        "Две идентичные среды: новая версия разворачивается в неактивной, затем весь трафик переключается на неё, а старая остаётся для быстрого отката",
+        "Развёртывание новой версии только на тестовом стенде без выкладки в production"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Blue-green держит две полноценные среды и переключает трафик целиком, что даёт мгновенный откат. Постепенный перевод доли трафика — это canary, поочерёдная замена подов — rolling update."
+    },
+    {
+      "id": "devops-cicd-006",
+      "topic": "cicd",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что характерно для canary-релиза?",
+      "options": [
+        "Новая версия сначала получает малую долю реального трафика, которая растёт, пока метрики в норме",
+        "Новая версия сразу получает 100% трафика, а старая удаляется",
+        "Новая версия разворачивается только для внутренних разработчиков в dev-окружении",
+        "Новая и старая версии получают одинаковый трафик, а ответы сравниваются без влияния на пользователей"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Canary ограничивает blast radius: проблемы видны на малой доле пользователей. Зеркалирование трафика без влияния на пользователей — это shadow (dark) launch, а не canary."
+    },
+    {
+      "id": "devops-cicd-007",
+      "topic": "cicd",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что делает секция artifacts в джобе build?",
+      "code": "stages: [build, test]\n\nbuild:\n  stage: build\n  script: make build\n  artifacts:\n    paths:\n      - bin/\n\ntest:\n  stage: test\n  script: make test",
+      "options": [
+        "Кеширует каталог bin/ между разными пайплайнами и ветками, чтобы последующие запуски сборки не компилировали проект заново с нуля",
+        "Публикует содержимое bin/ в Container Registry проекта",
+        "Исключает каталог bin/ из репозитория, аналогично .gitignore",
+        "Сохраняет файлы из bin/ после завершения джобы; по умолчанию они скачиваются в джобы последующих stages (например, в test)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "artifacts — это результаты джобы, которые загружаются на GitLab и по умолчанию передаются джобам следующих стадий. Для ускорения повторных сборок (например, зависимостей) предназначен cache, а не artifacts."
+    },
+    {
+      "id": "devops-cicd-008",
+      "topic": "cicd",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие способы работы с секретами в CI/CD считаются безопасными?",
+      "options": [
+        "Хранить секреты в masked/protected переменных CI-системы или во внешнем secrets manager",
+        "Закоммитить файл .env с секретами в приватный репозиторий",
+        "Получать краткоживущие облачные учётные данные через OIDC-федерацию вместо долгоживущих ключей",
+        "Передавать секреты в docker build через ARG, чтобы они были доступны на этапе сборки"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Masked-переменные, Vault и OIDC с краткоживущими токенами — стандартные практики. Секреты в Git остаются в истории навсегда, а значения ARG видны в метаданных образа (docker history); для сборки нужны BuildKit secret mounts."
+    },
+    {
+      "id": "devops-cicd-009",
+      "topic": "cicd",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как будут выполняться джобы в этом GitHub Actions workflow?",
+      "code": "jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps: [...]\n  test:\n    needs: build\n    runs-on: ubuntu-latest\n    steps: [...]\n  deploy:\n    needs: [build, test]\n    runs-on: ubuntu-latest\n    steps: [...]",
+      "options": [
+        "Строго последовательно в порядке объявления, независимо от needs",
+        "Все три джобы стартуют одновременно, needs влияет только на порядок вывода логов",
+        "build стартует первым; test — после успешного build; deploy — только после успешного завершения и build, и test",
+        "deploy стартует параллельно с test сразу после build, так как needs учитывает только первую джобу в массиве"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Без needs джобы в GitHub Actions выполняются параллельно. needs задаёт граф зависимостей: джоба ждёт успешного завершения всех перечисленных джоб (при провале зависимости она по умолчанию пропускается)."
+    },
+    {
+      "id": "devops-cicd-010",
+      "topic": "cicd",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Deployment имеет replicas: 4. Как пройдёт rolling update при такой стратегии?",
+      "code": "spec:\n  replicas: 4\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1\n      maxUnavailable: 0",
+      "options": [
+        "Сначала будут удалены все 4 старых пода, затем созданы 4 новых",
+        "Создаётся 1 новый под сверх 4, после его готовности удаляется один старый и т.д.; доступных подов всегда не меньше 4",
+        "Одновременно будут созданы 4 новых пода, после чего удалятся старые",
+        "Сначала удаляется 1 старый под, затем создаётся новый на его месте, поэтому во время обновления временно доступно только 3 пода из 4"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "maxSurge: 1 разрешает один лишний под сверх desired, а maxUnavailable: 0 запрещает опускаться ниже 4 готовых подов. Удаление всех подов сразу — стратегия Recreate."
+    },
+    {
+      "id": "devops-cicd-011",
+      "topic": "cicd",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Почему workflow на событии pull_request_target, который делает checkout и запускает код из PR форка, считается опасным?",
+      "options": [
+        "Он работает в контексте базового репозитория с доступом к секретам и write-токену, и код из форка может их украсть",
+        "Он запускается только после мержа PR, поэтому ошибки обнаруживаются слишком поздно",
+        "Он не поддерживает actions/checkout и всегда падает на форках",
+        "Он выполняется на self-hosted runner-е автора форка, поэтому тот может подменить результаты тестов и статус проверок в PR"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "pull_request_target работает в контексте base-ветки и имеет доступ к секретам, в отличие от pull_request из форка. Запуск недоверенного кода PR в таком контексте — известный вектор атаки (\"pwn request\")."
+    },
+    {
+      "id": "devops-cicd-012",
+      "topic": "cicd",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о GitOps (Argo CD, Flux) верны?",
+      "options": [
+        "Желаемое состояние системы описывается декларативно и хранится в Git как единый источник истины",
+        "CI-серверу обязательно нужен kubeconfig с правами cluster-admin, чтобы выполнять kubectl apply после каждой сборки",
+        "Агент в кластере по pull-модели постоянно сверяет фактическое состояние с Git и устраняет drift",
+        "GitOps работает только с Helm-чартами и не поддерживает plain YAML или Kustomize"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Ключевые принципы GitOps — декларативность, Git как источник истины и непрерывная reconcile-петля агента в кластере. Pull-модель как раз избавляет CI от прямого админского доступа к кластеру; Argo CD и Flux поддерживают plain YAML, Kustomize и Helm."
+    },
+    {
+      "id": "devops-iac-001",
+      "topic": "iac",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает команда terraform plan?",
+      "options": [
+        "Применяет изменения к инфраструктуре без подтверждения",
+        "Удаляет все ресурсы, описанные в конфигурации",
+        "Показывает, что будет создано, изменено или удалено, ничего не меняя",
+        "Скачивает провайдеры и модули и инициализирует backend"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "plan сравнивает конфигурацию, state и реальную инфраструктуру и выводит план изменений. Применяет их terraform apply, удаляет — terraform destroy, а провайдеры скачивает terraform init."
+    },
+    {
+      "id": "devops-iac-002",
+      "topic": "iac",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Для чего Terraform нужен state-файл?",
+      "options": [
+        "Для сопоставления ресурсов в коде с реальными объектами инфраструктуры и хранения их атрибутов",
+        "Для хранения исходного кода провайдеров",
+        "Только для журналирования истории запусков terraform apply, их авторов и времени — для аудита",
+        "Для хранения значений переменных окружения пользователя"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "State связывает адреса ресурсов в коде (например, aws_instance.web) с реальными ID объектов и хранит их атрибуты — без него Terraform не знает, чем уже управляет. Провайдеры лежат в каталоге .terraform/."
+    },
+    {
+      "id": "devops-iac-003",
+      "topic": "iac",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как Ansible по умолчанию подключается к управляемым Linux-хостам?",
+      "options": [
+        "Через агент ansible-agent, который нужно предварительно установить на каждый хост",
+        "По SSH, без установки отдельного агента (на хосте нужен Python для большинства модулей)",
+        "Через Kubernetes API",
+        "По протоколу SNMP"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Ansible — agentless-инструмент: он подключается по SSH (для Windows — обычно WinRM) и выполняет модули на хосте. Агентная модель характерна для Puppet и Chef."
+    },
+    {
+      "id": "devops-iac-004",
+      "topic": "iac",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает идемпотентность в контексте IaC и управления конфигурацией?",
+      "options": [
+        "Каждый запуск обязательно пересоздаёт все ресурсы с нуля, чтобы гарантировать одинаковое состояние на всех окружениях",
+        "Код можно запускать только один раз",
+        "Конфигурация выполняется параллельно на всех хостах",
+        "Повторное применение той же конфигурации не вносит изменений, если система уже в нужном состоянии"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Идемпотентность позволяет безопасно запускать код многократно: если желаемое состояние достигнуто, изменений не будет. Пересоздание ресурсов при каждом запуске противоречит этой идее."
+    },
+    {
+      "id": "devops-iac-005",
+      "topic": "iac",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает terraform init?",
+      "options": [
+        "Создаёт все ресурсы, описанные в конфигурации",
+        "Инициализирует рабочую директорию: backend, провайдеры, модули",
+        "Форматирует .tf-файлы по стандартному стилю",
+        "Проверяет синтаксис конфигурации без обращения к провайдерам"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "init — первая команда в новой рабочей директории: она настраивает backend и загружает провайдеры и модули. Форматирование выполняет terraform fmt, проверку синтаксиса — terraform validate."
+    },
+    {
+      "id": "devops-iac-006",
+      "topic": "iac",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем в этой конфигурации backend указан параметр dynamodb_table?",
+      "code": "terraform {\n  backend \"s3\" {\n    bucket         = \"my-tf-state\"\n    key            = \"prod/terraform.tfstate\"\n    region         = \"eu-central-1\"\n    dynamodb_table = \"tf-locks\"\n    encrypt        = true\n  }\n}",
+      "options": [
+        "Чтобы хранить копию state в DynamoDB на случай потери бакета",
+        "Чтобы шифровать state-файл ключом, который хранится в таблице DynamoDB и выдаётся по запросу",
+        "Чтобы хранить значения переменных Terraform",
+        "Для блокировки state, чтобы два одновременных terraform apply не повредили его"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Таблица DynamoDB используется для state locking в S3 backend. Шифрование задаётся encrypt/kms_key_id. В Terraform 1.10 появилась нативная блокировка через lock-файл в S3 (use_lockfile), с 1.11 она стала GA, а dynamodb_table помечен как deprecated."
+    },
+    {
+      "id": "devops-iac-007",
+      "topic": "iac",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "var.names = [\"a\", \"b\", \"c\"]. Из списка удалили первый элемент \"a\". Что покажет terraform plan?",
+      "code": "variable \"names\" {\n  type = list(string)\n}\n\nresource \"aws_instance\" \"web\" {\n  count         = length(var.names)\n  ami           = var.ami_id\n  instance_type = \"t3.micro\"\n  tags = {\n    Name = var.names[count.index]\n  }\n}",
+      "options": [
+        "Индексы сдвинутся: web[0] и web[1] получат значения \"b\" и \"c\" (будут изменены или пересозданы), а web[2] будет удалён",
+        "Будет удалён только инстанс, соответствовавший \"a\"; инстансы для \"b\" и \"c\" останутся без изменений, так как Terraform сопоставляет их по тегу Name",
+        "Terraform выдаст ошибку, так как нельзя уменьшать count",
+        "Изменений не будет, пока не выполнить terraform refresh"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "С count ресурсы адресуются по индексу, поэтому удаление элемента из начала списка сдвигает все последующие. for_each с ключами (например, toset(var.names)) привязывает ресурсы к значениям и удалит только нужный."
+    },
+    {
+      "id": "devops-iac-008",
+      "topic": "iac",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что из перечисленного НЕ следует коммитить в Git в Terraform-проекте?",
+      "options": [
+        "terraform.tfstate",
+        ".terraform.lock.hcl",
+        "Каталог .terraform/",
+        "main.tf и variables.tf"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "State может содержать секреты в открытом виде и должен храниться в remote backend; .terraform/ — локальный кеш провайдеров и модулей. Файл .terraform.lock.hcl, наоборот, рекомендуется коммитить для фиксации версий провайдеров."
+    },
+    {
+      "id": "devops-iac-009",
+      "topic": "iac",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Когда выполнится handler \"restart nginx\"?",
+      "code": "tasks:\n  - name: Update nginx config\n    template:\n      src: nginx.conf.j2\n      dest: /etc/nginx/nginx.conf\n    notify: restart nginx\n\nhandlers:\n  - name: restart nginx\n    service:\n      name: nginx\n      state: restarted",
+      "options": [
+        "Сразу после задачи Update nginx config при каждом запуске плейбука, независимо от того, изменился ли файл",
+        "Только если задача вернула changed; по умолчанию — один раз в конце play, даже при нескольких notify",
+        "Только если задача завершилась с ошибкой",
+        "Перед выполнением всех tasks, чтобы nginx стартовал с чистого состояния"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Handler запускается только по notify от задачи со статусом changed и по умолчанию выполняется в конце play один раз. Немедленный запуск можно форсировать через meta: flush_handlers."
+    },
+    {
+      "id": "devops-iac-010",
+      "topic": "iac",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Коллега вручную изменил тип инстанса в облачной консоли, хотя ресурс управляется Terraform. Что покажет следующий terraform plan?",
+      "options": [
+        "Terraform автоматически обновит .tf-файлы и state под новое значение, чтобы код соответствовал реальности",
+        "Изменений не будет, так как state-файл не менялся",
+        "Terraform обнаружит drift при обновлении state и предложит вернуть значение из конфигурации",
+        "plan завершится ошибкой \"state corrupted\" до ручного исправления state"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Перед планированием Terraform по умолчанию читает актуальное состояние ресурсов (refresh) и сравнивает его с кодом, поэтому предложит изменить тип обратно. Код Terraform сам не переписывает; игнорировать атрибут можно через lifecycle.ignore_changes."
+    },
+    {
+      "id": "devops-iac-011",
+      "topic": "iac",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Переменная app_port задана в нескольких местах. Какой источник имеет наивысший приоритет в Ansible?",
+      "options": [
+        "Role defaults (roles/x/defaults/main.yml)",
+        "group_vars/all",
+        "host_vars для конкретного хоста",
+        "Extra vars, переданные через -e в командной строке"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Extra vars (-e) имеют наивысший приоритет и перекрывают все остальные источники. Role defaults — наоборот, самый низкий приоритет; host_vars перекрывают group_vars, но уступают extra vars."
+    },
+    {
+      "id": "devops-iac-012",
+      "topic": "iac",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о поведении этого ресурса верны?",
+      "code": "resource \"aws_instance\" \"app\" {\n  ami           = var.ami_id\n  instance_type = \"t3.small\"\n  tags          = { Name = \"app\" }\n\n  lifecycle {\n    create_before_destroy = true\n    ignore_changes        = [tags]\n  }\n}",
+      "options": [
+        "Если изменение потребует замены ресурса, Terraform сначала создаст новый экземпляр, а затем удалит старый",
+        "Изменения тегов, сделанные вне Terraform, не будут отображаться в plan как расхождение",
+        "Попытка изменить tags в коде приведёт к ошибке plan, так как ignore_changes запрещает такие правки",
+        "create_before_destroy заставляет Terraform выполнять все изменения in-place вместо пересоздания"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "create_before_destroy меняет порядок при замене (create → destroy), но не отменяет её. ignore_changes заставляет Terraform игнорировать различия в указанных атрибутах — и при внешних изменениях, и при правках в коде — без ошибки."
+    },
+    {
+      "id": "devops-monitoring-001",
+      "topic": "monitoring",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как Prometheus по умолчанию получает метрики от сервисов?",
+      "options": [
+        "Сервисы отправляют метрики в Prometheus по протоколу syslog",
+        "Prometheus сам периодически опрашивает (scrape) HTTP-эндпоинт с метриками, обычно /metrics",
+        "Сервисы сами записывают метрики напрямую в локальную TSDB Prometheus через общий том на диске",
+        "Метрики поступают только через Pushgateway"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Prometheus использует pull-модель: он по расписанию (scrape_interval) опрашивает targets. Pushgateway — вспомогательный компонент для короткоживущих batch-задач, а не основной путь."
+    },
+    {
+      "id": "devops-monitoring-002",
+      "topic": "monitoring",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Из каких компонентов исторически состоит ELK stack?",
+      "options": [
+        "Elasticsearch, Loki, Kafka",
+        "Etcd, Logstash, Kubernetes",
+        "Elasticsearch, Fluentd, Kafka",
+        "Elasticsearch, Logstash, Kibana"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "ELK — Elasticsearch (хранение и поиск), Logstash (сбор и обработка) и Kibana (визуализация). Позже добавились Beats, и стек стали называть Elastic Stack; вариант с Fluentd называют EFK."
+    },
+    {
+      "id": "devops-monitoring-003",
+      "topic": "monitoring",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какова основная роль Grafana в стеке мониторинга?",
+      "options": [
+        "Визуализация и дашборды поверх разных источников данных (Prometheus, Loki, Elasticsearch)",
+        "Сбор метрик с хостов вместо node_exporter",
+        "Долговременное хранение метрик вместо TSDB Prometheus, с автоматическим даунсемплингом старых данных",
+        "Сбор и парсинг логов вместо Logstash"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Grafana подключается к data sources и визуализирует их данные, а также умеет алертинг. Сама по себе она не собирает и не хранит метрики — это задача Prometheus, Mimir, VictoriaMetrics и т.п."
+    },
+    {
+      "id": "devops-monitoring-004",
+      "topic": "monitoring",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой тип метрики Prometheus подходит для текущего объёма используемой памяти процесса?",
+      "options": [
+        "Counter",
+        "Histogram",
+        "Gauge",
+        "Summary"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Gauge — значение, которое может как расти, так и уменьшаться (память, температура, длина очереди). Counter только монотонно растёт (например, число запросов), а Histogram и Summary описывают распределения."
+    },
+    {
+      "id": "devops-monitoring-005",
+      "topic": "monitoring",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что из перечисленного НЕ входит в «четыре золотых сигнала» (four golden signals) из Google SRE Book?",
+      "options": [
+        "Latency (задержка)",
+        "Traffic (трафик)",
+        "Cost (стоимость инфраструктуры)",
+        "Saturation (насыщение)"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Четыре золотых сигнала: latency, traffic, errors и saturation. Стоимость важна для бизнеса, но не относится к этим сигналам."
+    },
+    {
+      "id": "devops-monitoring-006",
+      "topic": "monitoring",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что возвращает этот PromQL-запрос?",
+      "code": "rate(http_requests_total[5m])",
+      "options": [
+        "Среднюю посекундную скорость роста счётчика за 5 минут с учётом сбросов",
+        "Общее количество запросов за последние 5 минут",
+        "Максимальное значение счётчика за последние 5 минут",
+        "Абсолютный прирост значения счётчика за последние 5 минут, без учёта рестартов процесса"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "rate() вычисляет среднюю посекундную скорость роста counter за окно и корректно обрабатывает сбросы. Абсолютный прирост за окно даёт increase(), а максимум — max_over_time()."
+    },
+    {
+      "id": "devops-monitoring-007",
+      "topic": "monitoring",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вычисляет этот запрос?",
+      "code": "sum by (status) (rate(http_requests_total{job=\"api\"}[5m]))",
+      "options": [
+        "Общее число запросов за 5 минут для каждого инстанса и каждого статус-кода job=\"api\" отдельно",
+        "Количество уникальных статус-кодов у job=\"api\"",
+        "Скорость запросов в секунду для job=\"api\", суммированную по инстансам и разбитую по status",
+        "Долю ошибок 5xx от всех запросов"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "rate() даёт посекундную скорость по каждой серии, а sum by (status) агрегирует их, оставляя только label status. Метка instance при этом отбрасывается."
+    },
+    {
+      "id": "devops-monitoring-008",
+      "topic": "monitoring",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения о кардинальности метрик в Prometheus верны?",
+      "options": [
+        "Каждая уникальная комбинация значений labels образует отдельный time series",
+        "Количество labels и их значений не влияет на потребление памяти Prometheus",
+        "Prometheus автоматически агрегирует labels с высокой кардинальностью, поэтому проблема не возникает",
+        "Использование user_id или request_id в качестве label — антипаттерн, ведущий к взрыву числа серий"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "Серия определяется именем метрики и набором labels, поэтому неограниченные значения (ID, email, URL с параметрами) порождают огромное число серий и расход памяти. Автоматической агрегации Prometheus не делает."
+    },
+    {
+      "id": "devops-monitoring-009",
+      "topic": "monitoring",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вычисляет этот запрос и зачем нужен by (le)?",
+      "code": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m])))",
+      "options": [
+        "Среднюю задержку запросов по всем инстансам; le — это label инстанса",
+        "Оценку p95 задержки по всем инстансам; le (границы бакетов) нужен для интерполяции",
+        "Точное значение 95-го перцентиля, рассчитанное по сырым значениям каждого запроса",
+        "Количество запросов, выполненных быстрее 0.95 секунды, по бакетам le"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "histogram_quantile оценивает квантиль по бакетам гистограммы с линейной интерполяцией, поэтому результат приблизителен. Для агрегации по инстансам суммируются бакеты с сохранением le — без него функция не знает границ бакетов."
+    },
+    {
+      "id": "devops-monitoring-010",
+      "topic": "monitoring",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как распределены обязанности в стандартной связке Prometheus + Alertmanager?",
+      "options": [
+        "Prometheus вычисляет alerting rules, а Alertmanager группирует, дедуплицирует и маршрутизирует уведомления",
+        "Alertmanager сам опрашивает targets и вычисляет правила, а Prometheus только хранит метрики и отдаёт их по API",
+        "node_exporter на каждом хосте вычисляет правила и отправляет письма",
+        "Pushgateway вычисляет правила и передаёт их в Grafana"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Правила алертинга задаются и оцениваются в Prometheus, а Alertmanager отвечает за обработку уведомлений: группировку, дедупликацию, inhibition, silences и отправку получателям."
+    },
+    {
+      "id": "devops-monitoring-011",
+      "topic": "monitoring",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что означает for: 10m в этом alerting rule?",
+      "code": "groups:\n  - name: api\n    rules:\n      - alert: HighErrorRate\n        expr: |\n          sum(rate(http_requests_total{status=~\"5..\"}[5m]))\n            / sum(rate(http_requests_total[5m])) > 0.05\n        for: 10m\n        labels:\n          severity: critical",
+      "options": [
+        "Уведомление в Slack или на почту будет повторно отправляться каждые 10 минут, пока алерт остаётся активным и не заглушен",
+        "Выражение усредняется по окну в 10 минут вместо 5",
+        "Алерт автоматически перейдёт в resolved через 10 минут после срабатывания",
+        "Алерт будет в состоянии pending и перейдёт в firing, только если условие истинно непрерывно в течение 10 минут"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "for защищает от кратковременных всплесков: алерт сначала pending, и лишь при непрерывном выполнении условия становится firing. Интервал повторных уведомлений задаёт repeat_interval в Alertmanager, а окно усреднения — диапазон [5m] в выражении."
+    },
+    {
+      "id": "devops-monitoring-012",
+      "topic": "monitoring",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о Prometheus Pushgateway верны?",
+      "options": [
+        "Основной сценарий — service-level batch jobs, которые завершаются раньше, чем Prometheus успевает их опросить",
+        "Рекомендуется переводить все долгоживущие сервисы на push через Pushgateway, чтобы разгрузить Prometheus",
+        "Метрики хранятся в Pushgateway до явного удаления, поэтому после исчезновения job Prometheus продолжит получать последние запушенные значения",
+        "Для каждого запушившего job Prometheus формирует отдельную метрику up, отражающую доступность этого job"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Документация Prometheus рекомендует Pushgateway только для короткоживущих batch-задач. Он не забывает метрики сам, становится единой точкой отказа, а метрика up относится к самому Pushgateway, а не к отдельным job."
+    },
+    {
+      "id": "devops-cloud-001",
+      "topic": "cloud",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой из примеров относится к модели PaaS?",
+      "options": [
+        "Amazon EC2",
+        "Heroku или Google App Engine",
+        "Gmail",
+        "Аренда физического сервера в colocation"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "PaaS даёт платформу для запуска кода, скрывая ОС и инфраструктуру (Heroku, App Engine). EC2 — IaaS (вы управляете ОС), Gmail — SaaS, colocation — вообще не облачная модель."
+    },
+    {
+      "id": "devops-cloud-002",
+      "topic": "cloud",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое Availability Zone (AZ) у облачных провайдеров вроде AWS?",
+      "options": [
+        "Отдельная страна, в которой провайдер предоставляет услуги",
+        "Точка присутствия CDN (edge location) для кеширования статического контента ближе к пользователям",
+        "Один или несколько изолированных дата-центров в регионе с независимым питанием и сетью",
+        "Логическая группа аккаунтов в организации"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Регион состоит из нескольких AZ, связанных сетью с низкой задержкой; размещение в нескольких AZ защищает от отказа одного дата-центра. Точки CDN — это edge locations."
+    },
+    {
+      "id": "devops-cloud-003",
+      "topic": "cloud",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое горизонтальное масштабирование?",
+      "options": [
+        "Добавление новых экземпляров (серверов, подов) с распределением нагрузки",
+        "Увеличение CPU и RAM у существующего сервера",
+        "Перенос приложения в другой регион, ближе к основной массе пользователей",
+        "Уменьшение числа микросервисов за счёт их объединения"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Horizontal scaling (scale out) — добавление экземпляров; vertical scaling (scale up) — наращивание ресурсов одной машины, которое ограничено её максимальной конфигурацией."
+    },
+    {
+      "id": "devops-cloud-004",
+      "topic": "cloud",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой сервис AWS является объектным хранилищем?",
+      "options": [
+        "Amazon EBS",
+        "Amazon EFS",
+        "Amazon RDS",
+        "Amazon S3"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "S3 — объектное хранилище (объекты в бакетах по ключу). EBS — блочные тома для EC2, EFS — сетевая файловая система (NFS), RDS — управляемые реляционные БД."
+    },
+    {
+      "id": "devops-cloud-005",
+      "topic": "cloud",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой тип балансировщика может маршрутизировать запросы по URL-пути или заголовку Host?",
+      "options": [
+        "DNS round-robin",
+        "NAT Gateway",
+        "Балансировщик уровня L7 (например, AWS Application Load Balancer)",
+        "Балансировщик уровня L4 (например, AWS Network Load Balancer)"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "L7-балансировщик понимает HTTP и может маршрутизировать по path, host, заголовкам. L4 работает с TCP/UDP и не видит содержимое HTTP-запроса; NAT Gateway вообще не балансирует нагрузку."
+    },
+    {
+      "id": "devops-cloud-006",
+      "topic": "cloud",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему для автомасштабирования важно, чтобы сервис был stateless?",
+      "options": [
+        "Stateless-сервисы не требуют балансировщика нагрузки, так как клиенты сами выбирают свободный экземпляр",
+        "Stateless-сервисы не используют базы данных",
+        "Stateless-сервисы всегда потребляют меньше памяти",
+        "Любой экземпляр может обработать любой запрос, и экземпляры можно свободно добавлять и удалять"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Состояние (сессии, файлы) выносится во внешние хранилища — БД, Redis, S3, — и экземпляры становятся взаимозаменяемыми. Stateless не означает отказа от БД или балансировщика."
+    },
+    {
+      "id": "devops-cloud-007",
+      "topic": "cloud",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Инстансам в приватной подсети AWS VPC нужен исходящий доступ в интернет (например, для обновлений), но они не должны быть доступны извне. Что нужно настроить?",
+      "options": [
+        "Привязать Internet Gateway к приватной подсети и выдать инстансам публичные Elastic IP-адреса",
+        "NAT Gateway в публичной подсети и маршрут 0.0.0.0/0 на него в route table приватной подсети",
+        "VPC Peering с другой VPC",
+        "Достаточно разрешить весь исходящий трафик в Security Group"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "NAT Gateway транслирует исходящие соединения из приватной подсети, не позволяя инициировать входящие. Internet Gateway с публичными IP сделал бы подсеть публичной, а Security Group не заменяет отсутствующий маршрут."
+    },
+    {
+      "id": "devops-cloud-008",
+      "topic": "cloud",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения о Security Groups и Network ACL в AWS верны?",
+      "options": [
+        "Security Group — stateful: ответный трафик на разрешённое соединение пропускается автоматически",
+        "В Security Group можно задавать явные deny-правила",
+        "Network ACL — stateless: ответный трафик нужно разрешать отдельным правилом",
+        "Network ACL привязывается к сетевому интерфейсу инстанса, а не к подсети"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Security Group работает на уровне ENI, stateful и поддерживает только allow-правила. NACL работает на уровне подсети, stateless, поддерживает allow и deny и обрабатывает правила по номерам."
+    },
+    {
+      "id": "devops-cloud-009",
+      "topic": "cloud",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что утверждает теорема CAP для распределённых систем?",
+      "options": [
+        "Система может одновременно гарантировать consistency, availability и partition tolerance, если использовать репликацию",
+        "Распределённая система всегда жертвует partition tolerance ради скорости",
+        "При сетевом разделении системе приходится выбирать между consistency и availability",
+        "CAP описывает компромисс между стоимостью, доступностью и производительностью"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Сетевые разделения в распределённых системах неизбежны, поэтому на практике выбор идёт между C и A в момент partition (CP- или AP-поведение). Все три свойства одновременно гарантировать нельзя."
+    },
+    {
+      "id": "devops-cloud-010",
+      "topic": "cloud",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем применяют паттерн Circuit Breaker?",
+      "options": [
+        "Для шифрования трафика между микросервисами",
+        "Чтобы при частых ошибках зависимости временно перестать её вызывать и быстро возвращать отказ, не допуская каскадного сбоя",
+        "Для автоматического увеличения числа реплик зависимого сервиса, когда растут его задержки и число ошибок",
+        "Для бесконечных повторных попыток запроса с экспоненциальной задержкой до получения успешного ответа от зависимости"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Circuit breaker имеет состояния closed, open и half-open и защищает систему от исчерпания ресурсов на вызовах неработающего сервиса. Бесконечные retry, наоборот, усиливают нагрузку на упавшую зависимость."
+    },
+    {
+      "id": "devops-cloud-011",
+      "topic": "cloud",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Бэкап базы делается раз в 24 часа, а полное восстановление из бэкапа занимает около 4 часов. Какие RPO и RTO обеспечивает такая схема в худшем случае?",
+      "options": [
+        "RPO ≈ 4 ч, RTO ≈ 24 ч",
+        "RPO до 24 ч, RTO ≈ 4 ч",
+        "RPO и RTO ≈ 28 ч",
+        "RPO = 0, RTO ≈ 4 ч"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "RPO — максимально допустимая потеря данных во времени: при сбое прямо перед очередным бэкапом теряются данные почти за сутки. RTO — время восстановления сервиса, здесь около 4 часов. RPO = 0 требует синхронной репликации."
+    },
+    {
+      "id": "devops-cloud-012",
+      "topic": "cloud",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения об Amazon RDS верны?",
+      "options": [
+        "Multi-AZ защищает от ошибочного DROP TABLE, так как standby можно откатить независимо от primary",
+        "В классическом Multi-AZ DB instance standby синхронный, служит для failover и не обслуживает чтение",
+        "Read replica обновляется синхронно, поэтому replica lag невозможен",
+        "Read replica обновляется асинхронно и применяется прежде всего для масштабирования чтения"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Multi-AZ даёт высокую доступность за счёт синхронной реплики, но логические ошибки реплицируются мгновенно — от них защищают бэкапы и point-in-time recovery. Read replica асинхронна и может отставать."
+    },
+    {
+      "id": "devops-practices-001",
+      "topic": "practices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое SLA?",
+      "options": [
+        "Внутренняя целевая метрика надёжности, которую команда ставит себе сама и не обещает клиентам публично",
+        "Конкретная измеряемая метрика, например доля успешных запросов",
+        "Документ с описанием архитектуры сервиса",
+        "Соглашение с клиентом об уровне сервиса с последствиями (например, компенсациями) при нарушении"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "SLI — измеряемый показатель, SLO — внутренняя цель для SLI, SLA — внешнее соглашение с последствиями. SLO обычно строже SLA, чтобы успеть отреагировать до нарушения договора."
+    },
+    {
+      "id": "devops-practices-002",
+      "topic": "practices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "SLO доступности — 99.9% за 30 дней. Каков допустимый бюджет недоступности (error budget)?",
+      "options": [
+        "≈ 4.3 минуты",
+        "≈ 43 минуты",
+        "≈ 7.2 часа",
+        "≈ 8.7 часа"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "30 дней × 24 ч × 60 мин = 43 200 минут; 0.1% от этого — около 43.2 минуты. 8.7 часа — это бюджет 99.9% за год, а 4.3 минуты соответствуют 99.99% за 30 дней."
+    },
+    {
+      "id": "devops-practices-003",
+      "topic": "practices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой главный принцип blameless postmortem?",
+      "options": [
+        "Разбор фокусируется на системных причинах и улучшении процессов, а не на поиске и наказании виноватых",
+        "Postmortem проводится только если инцидент произошёл по вине внешнего подрядчика",
+        "В отчёте не указываются хронология и действия участников",
+        "Postmortem пишет руководитель без участия инженеров"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Blameless-культура позволяет людям честно рассказывать о своих действиях, что помогает найти реальные системные причины. Хронология и действия при этом обязательно фиксируются — без оценки личной вины."
+    },
+    {
+      "id": "devops-practices-004",
+      "topic": "practices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что в терминологии Google SRE называют toil?",
+      "options": [
+        "Любую работу по написанию кода",
+        "Проектирование новой архитектуры",
+        "Ручную повторяющуюся автоматизируемую операционную работу без долгосрочной ценности",
+        "Время, затраченное на обучение и онбординг новых инженеров в дежурную on-call ротацию"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Toil — рутина, которую можно автоматизировать и которая масштабируется линейно с ростом сервиса. SRE стремится ограничивать её долю (в SRE Book — не более 50% времени)."
+    },
+    {
+      "id": "devops-practices-005",
+      "topic": "practices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какая из метрик НЕ входит в четыре ключевые DORA-метрики?",
+      "options": [
+        "Deployment frequency",
+        "Процент покрытия кода тестами (code coverage)",
+        "Change failure rate",
+        "Lead time for changes"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Классические DORA-метрики: deployment frequency, lead time for changes, change failure rate и time to restore service (MTTR). В отчётах DORA последних лет MTTR заменён на failed deployment recovery time и добавлены новые метрики (например, rework rate). Code coverage — полезная инженерная метрика, но не часть DORA."
+    },
+    {
+      "id": "devops-practices-006",
+      "topic": "practices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Error budget сервиса полностью израсходован до конца периода. Какое действие обычно предписывает error budget policy?",
+      "options": [
+        "Снизить SLO задним числом, чтобы бюджет снова стал положительным и релизы не блокировались",
+        "Ускорить выпуск новых фич, чтобы компенсировать простой",
+        "Заморозить рискованные релизы фич и заняться надёжностью, пока бюджет не восстановится",
+        "Отключить алерты до начала следующего периода"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Error budget балансирует скорость и надёжность: пока бюджет есть — можно рисковать, когда он исчерпан — приоритет у стабильности (обычно кроме критичных и security-фиксов). Подгонка SLO задним числом лишает его смысла."
+    },
+    {
+      "id": "devops-practices-007",
+      "topic": "practices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означает подход shift-left в DevOps?",
+      "options": [
+        "Перенос тестирования и проверок безопасности на более ранние этапы разработки",
+        "Перенос сбора метрик мониторинга с серверов на клиентские устройства пользователей",
+        "Откат последнего релиза при любой ошибке",
+        "Перенос деплоев на начало рабочей недели"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Shift-left — находить дефекты и уязвимости как можно раньше (линтеры, unit-тесты, SAST в пайплайне), где их исправление дешевле, чем в production."
+    },
+    {
+      "id": "devops-practices-008",
+      "topic": "practices",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "SLO — 99.9% успешных запросов за 30 дней. Сейчас доля ошибок стабильно 1.4%. Каков burn rate и что это значит?",
+      "options": [
+        "Burn rate 1.4 — бюджет расходуется чуть быстрее нормы",
+        "Burn rate 0.14 — бюджет расходуется медленнее нормы",
+        "Burn rate 140 — бюджет закончится примерно за 5 часов",
+        "Burn rate 14 — месячный бюджет будет исчерпан примерно за 2 дня"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Burn rate = фактическая доля ошибок / допустимая = 1.4% / 0.1% = 14. При таком темпе 30-дневный бюджет израсходуется за 30 / 14 ≈ 2.1 дня. Мультиоконные алерты по burn rate — рекомендованный подход из SRE Workbook."
+    },
+    {
+      "id": "devops-practices-009",
+      "topic": "practices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что такое immutable infrastructure?",
+      "options": [
+        "Инфраструктура, которую запрещено масштабировать",
+        "Серверы не меняются после развёртывания: для обновления создаются новые из свежего образа",
+        "Инфраструктура, конфигурация которой хранится только в read-only файловой системе",
+        "Подход, при котором обновления применяются через SSH или Ansible прямо на работающих серверах без их пересоздания"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Immutable-подход устраняет configuration drift и \"snowflake\"-серверы: каждое изменение — это новый образ (AMI, контейнер). Обновление живых серверов по SSH — как раз mutable-подход."
+    },
+    {
+      "id": "devops-practices-010",
+      "topic": "practices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какую ключевую задачу решают feature flags?",
+      "options": [
+        "Полностью заменяют ветвление в системе контроля версий, поэтому feature-ветки и code review больше не нужны",
+        "Ускоряют компиляцию проекта",
+        "Шифруют конфигурацию приложения",
+        "Разделяют деплой кода и релиз фичи: её можно включать постепенно или выключать без нового деплоя"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Feature flags позволяют выкатывать незаконченный код выключенным, делать постепенные раскатки и мгновенно отключать проблемную фичу. Цена — технический долг, если не удалять старые флаги."
+    },
+    {
+      "id": "devops-practices-011",
+      "topic": "practices",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что из перечисленного относится к toil?",
+      "options": [
+        "Ежедневный ручной перезапуск зависающего сервиса по одному и тому же алерту",
+        "Проектирование архитектуры нового сервиса",
+        "Ручное создание учётных записей по однотипным тикетам по шаблону",
+        "Проведение blameless postmortem после крупного инцидента"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Toil — ручная, повторяющаяся и автоматизируемая работа без долгосрочной ценности. Проектирование и postmortem — инженерная работа, которая даёт долгосрочные улучшения."
+    },
+    {
+      "id": "devops-practices-012",
+      "topic": "practices",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какая последовательность соответствует принципам chaos engineering (Principles of Chaos Engineering)?",
+      "options": [
+        "Без предупреждения отключать случайные серверы в production, не отслеживая метрики, чтобы проверить, как быстро команда заметит проблему",
+        "Провести эксперимент только на локальной машине разработчика, так как production трогать нельзя",
+        "Определить steady state по метрикам, выдвинуть гипотезу о его сохранении, внести реальный отказ с минимальным blast radius и сравнить с контролем",
+        "Сначала добиться 100% покрытия тестами, затем заменить chaos-эксперименты нагрузочным тестированием"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Chaos engineering — управляемые эксперименты: гипотеза о steady state, реалистичные события, минимизация blast radius, по возможности в production и с автоматизацией. Хаотичные отключения без наблюдаемости — не эксперимент, а просто риск."
+    }
+  ]
+}

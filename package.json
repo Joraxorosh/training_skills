@@ -1,0 +1,14 @@
+{
+  "name": "training-skills",
+  "version": "1.0.0",
+  "description": "Тренажёр скиллов: тесты по DevOps, SQL и другим темам",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "validate": "node scripts/validate.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

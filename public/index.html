@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Тренажёр скиллов: тесты по DevOps, SQL и другим темам">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121419" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Тренажёр">
+  <title>Тренажёр скиллов</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    try { var t = localStorage.getItem('skilltrainer:theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main id="app" class="app" aria-live="polite">
+    <div class="loading">Загрузка…</div>
+  </main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>Для работы тренажёра нужен JavaScript.</noscript>
+</body>
+</html>

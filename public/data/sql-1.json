@@ -1,0 +1,1115 @@
+{
+  "topics": [
+    {
+      "id": "basics",
+      "title": "Основы SELECT, WHERE, ORDER BY"
+    },
+    {
+      "id": "joins",
+      "title": "JOIN'ы"
+    },
+    {
+      "id": "aggregation",
+      "title": "Агрегация, GROUP BY, HAVING"
+    },
+    {
+      "id": "subqueries",
+      "title": "Подзапросы и CTE"
+    },
+    {
+      "id": "nulls",
+      "title": "NULL, типы данных и функции"
+    }
+  ],
+  "questions": [
+    {
+      "id": "sql-basics-001",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В каком порядке логически обрабатываются предложения запроса SELECT ... FROM ... WHERE ... ORDER BY?",
+      "options": [
+        "SELECT → FROM → WHERE → ORDER BY",
+        "FROM → WHERE → SELECT → ORDER BY",
+        "FROM → SELECT → WHERE → ORDER BY",
+        "WHERE → FROM → SELECT → ORDER BY"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Сначала определяется источник данных (FROM), затем строки фильтруются (WHERE), затем вычисляется список SELECT и только потом выполняется сортировка (ORDER BY). Поэтому, например, псевдонимы из SELECT недоступны в WHERE, но доступны в ORDER BY."
+    },
+    {
+      "id": "sql-basics-002",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица employees:\n id | name  | dept  | salary\n----+-------+-------+-------\n  1 | Anna  | IT    |   100\n  2 | Boris | HR    |    80\n  3 | Vera  | IT    |   120\n  4 | Gleb  | Sales |    80\n\nSELECT name\nFROM employees\nWHERE dept = 'IT' OR salary < 90;",
+      "options": [
+        "2",
+        "3",
+        "4",
+        "1"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Условию dept = 'IT' удовлетворяют Anna и Vera, условию salary < 90 — Boris и Gleb. OR объединяет их, получаем все 4 строки."
+    },
+    {
+      "id": "sql-basics-003",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица products:\n name | category | price\n------+----------+------\n A    | books    |    10\n B    | books    |    50\n C    | toys     |    30\n D    | games    |     5\n\nSELECT name\nFROM products\nWHERE category = 'books' OR category = 'toys' AND price > 40;",
+      "options": [
+        "B",
+        "B, C",
+        "A, B",
+        "A, B, C"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "AND имеет более высокий приоритет, чем OR, поэтому условие читается как category = 'books' OR (category = 'toys' AND price > 40). Обе книги проходят, а игрушка C стоит 30 и не проходит. Чтобы применить price > 40 к обеим категориям, нужны скобки."
+    },
+    {
+      "id": "sql-basics-004",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица employees:\n id | name  | dept  | salary\n----+-------+-------+-------\n  1 | Anna  | IT    |   100\n  2 | Boris | HR    |    80\n  3 | Vera  | IT    |   120\n  4 | Gleb  | Sales |    80\n\nSELECT name\nFROM employees\nORDER BY salary DESC, name\nLIMIT 2 OFFSET 1;",
+      "options": [
+        "Boris, Gleb",
+        "Vera, Anna",
+        "Anna, Gleb",
+        "Anna, Boris"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "После сортировки получаем порядок Vera (120), Anna (100), Boris (80), Gleb (80): при равной зарплате строки упорядочены по имени. OFFSET 1 пропускает Vera, LIMIT 2 берёт Anna и Boris."
+    },
+    {
+      "id": "sql-basics-005",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица visits:\n customer | city\n----------+--------\n        1 | Moscow\n        1 | Moscow\n        2 | Kazan\n        2 | Moscow\n        3 | Kazan\n\nSELECT DISTINCT customer, city\nFROM visits;",
+      "options": [
+        "3",
+        "4",
+        "5",
+        "2"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "DISTINCT убирает дубликаты по всей комбинации выбранных столбцов, а не по одному столбцу. Уникальных пар четыре: (1, Moscow), (2, Kazan), (2, Moscow), (3, Kazan)."
+    },
+    {
+      "id": "sql-basics-006",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос (PostgreSQL)?",
+      "code": "Таблица people:\n name\n-------\n Maria\n Anna\n Ivan\n Pavel\n Sasha\n\nSELECT name\nFROM people\nWHERE name LIKE '_a%';",
+      "options": [
+        "1",
+        "2",
+        "4",
+        "3"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Шаблон '_a%' означает: ровно один любой символ, затем буква 'a', дальше что угодно. Подходят Maria, Pavel и Sasha. У Anna второй символ 'n', у Ivan — 'v'. В PostgreSQL LIKE чувствителен к регистру."
+    },
+    {
+      "id": "sql-basics-007",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос в PostgreSQL?",
+      "code": "Таблица t:\n x\n----\n  5\n 10\n 20\n 30\n 40\n\nSELECT COUNT(*)\nFROM t\nWHERE x BETWEEN 30 AND 10;",
+      "options": [
+        "0",
+        "3",
+        "1",
+        "Ошибка синтаксиса"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Запись x BETWEEN a AND b означает x >= a AND x <= b. При a = 30 и b = 10 ни одно число не удовлетворяет условию, поэтому результат 0. Ошибки нет. Если порядок границ неважен, в PostgreSQL есть BETWEEN SYMMETRIC."
+    },
+    {
+      "id": "sql-basics-008",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В каком порядке PostgreSQL выведет строки?",
+      "code": "Таблица scores:\n name | score\n------+------\n Ann  |    50\n Bob  |  NULL\n Cid  |    70\n\nSELECT name\nFROM scores\nORDER BY score DESC;",
+      "options": [
+        "Bob, Cid, Ann",
+        "Cid, Ann, Bob",
+        "Cid, Ann",
+        "Ann, Cid, Bob"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "PostgreSQL при сортировке считает NULL больше любого значения: при ASC NULL идёт последним, при DESC — первым. Строка с NULL не отбрасывается. Порядок можно явно задать через NULLS FIRST или NULLS LAST."
+    },
+    {
+      "id": "sql-basics-009",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении запроса в PostgreSQL?",
+      "code": "SELECT name, salary * 12 AS annual\nFROM employees\nWHERE annual > 1000;",
+      "options": [
+        "Вернутся строки, где годовая зарплата больше 1000",
+        "Ошибка: столбец annual не существует",
+        "Вернётся пустой результат",
+        "Условие будет проигнорировано, вернутся все строки"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "WHERE обрабатывается раньше SELECT, поэтому псевдоним annual в нём ещё неизвестен, и PostgreSQL выдаёт ошибку. Нужно повторить выражение: WHERE salary * 12 > 1000. Можно также вынести вычисление в подзапрос."
+    },
+    {
+      "id": "sql-basics-010",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие условия WHERE в PostgreSQL корректно отбирают сотрудников из отделов 'IT' или 'HR'?",
+      "options": [
+        "WHERE dept IN ('IT', 'HR')",
+        "WHERE dept = 'IT' OR dept = 'HR'",
+        "WHERE dept = 'IT' AND dept = 'HR'",
+        "WHERE dept = ('IT' OR 'HR')",
+        "WHERE dept = ANY (ARRAY['IT', 'HR'])"
+      ],
+      "correct": [
+        0,
+        1,
+        4
+      ],
+      "explanation": "IN, OR и = ANY(ARRAY[...]) эквивалентны. Условие с AND никогда не выполняется, потому что значение не может одновременно равняться двум разным строкам. Выражение ('IT' OR 'HR') вызывает ошибку: строки нельзя привести к boolean."
+    },
+    {
+      "id": "sql-basics-011",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос в PostgreSQL?",
+      "code": "Таблица employees:\n id | name  | dept  | salary\n----+-------+-------+-------\n  1 | Anna  | IT    |   100\n  2 | Boris | HR    |    80\n  3 | Vera  | IT    |   120\n  4 | Gleb  | Sales |    80\n\nSELECT DISTINCT ON (dept) name\nFROM employees\nORDER BY dept, salary DESC;",
+      "options": [
+        "Boris, Anna, Gleb",
+        "Boris, Vera, Gleb",
+        "Vera, Anna, Boris, Gleb",
+        "Ошибка: DISTINCT ON не поддерживается"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "DISTINCT ON (dept) оставляет по одной, первой строке в каждой группе dept с учётом ORDER BY. Внутри отдела строки отсортированы по salary DESC, поэтому из IT берётся Vera (120), а не Anna. Группы выводятся по dept: HR, IT, Sales."
+    },
+    {
+      "id": "sql-basics-012",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица employees:\n id | name  | dept  | salary\n----+-------+-------+-------\n  1 | Anna  | IT    |   100\n  2 | Boris | HR    |    80\n  3 | Vera  | IT    |   120\n  4 | Gleb  | Sales |    80\n\nSELECT name\nFROM employees\nWHERE NOT dept = 'IT' AND salary > 90;",
+      "options": [
+        "2",
+        "1",
+        "4",
+        "0"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "NOT связывает сильнее, чем AND, поэтому условие читается как (NOT dept = 'IT') AND salary > 90. Из не-IT сотрудников (Boris и Gleb) никто не получает больше 90, поэтому строк 0. Ответ 2 получился бы при NOT (dept = 'IT' AND salary > 90)."
+    },
+    {
+      "id": "sql-joins-001",
+      "topic": "joins",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица customers:\n id | name\n----+-----\n  1 | Ann\n  2 | Bob\n  3 | Cid\n\nТаблица orders (внешнего ключа нет):\n id | customer_id | amount\n----+-------------+-------\n 10 |           1 |    100\n 11 |           1 |     50\n 12 |           2 |     70\n 13 |           4 |     30\n\nSELECT c.name, o.amount\nFROM customers c\nJOIN orders o ON o.customer_id = c.id;",
+      "options": [
+        "3",
+        "4",
+        "5",
+        "2"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "INNER JOIN оставляет только пары с совпадением: у Ann два заказа, у Bob один. У Cid нет заказов, а заказу 13 не соответствует ни один клиент, поэтому обе строки отбрасываются."
+    },
+    {
+      "id": "sql-joins-002",
+      "topic": "joins",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица customers:\n id | name\n----+-----\n  1 | Ann\n  2 | Bob\n  3 | Cid\n\nТаблица orders (внешнего ключа нет):\n id | customer_id | amount\n----+-------------+-------\n 10 |           1 |    100\n 11 |           1 |     50\n 12 |           2 |     70\n 13 |           4 |     30\n\nSELECT c.name, o.amount\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id;",
+      "options": [
+        "3",
+        "5",
+        "4",
+        "6"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "LEFT JOIN сохраняет всех клиентов: Ann попадает в результат дважды (два заказа), Bob — один раз, Cid — один раз со значением NULL в amount. Заказ 13 без клиента в результат не попадает."
+    },
+    {
+      "id": "sql-joins-003",
+      "topic": "joins",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой тип соединения возвращает все строки обеих таблиц, подставляя NULL там, где нет пары?",
+      "options": [
+        "INNER JOIN",
+        "LEFT JOIN",
+        "CROSS JOIN",
+        "FULL OUTER JOIN"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "FULL OUTER JOIN сохраняет несопоставленные строки обеих сторон. LEFT JOIN сохраняет только левую сторону, INNER JOIN — только пары с совпадением, а CROSS JOIN строит все комбинации без условия."
+    },
+    {
+      "id": "sql-joins-004",
+      "topic": "joins",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В таблице a 3 строки, в таблице b 4 строки. Сколько строк вернёт запрос?",
+      "code": "SELECT *\nFROM a\nCROSS JOIN b;",
+      "options": [
+        "7",
+        "12",
+        "4",
+        "3"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "CROSS JOIN возвращает декартово произведение: каждая строка a соединяется с каждой строкой b, получается 3 × 4 = 12 строк."
+    },
+    {
+      "id": "sql-joins-005",
+      "topic": "joins",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие запросы вернут клиентов, у которых нет ни одного заказа?",
+      "code": "Таблица customers:\n id | name\n----+-----\n  1 | Ann\n  2 | Bob\n  3 | Cid\n\nТаблица orders (внешнего ключа нет):\n id | customer_id | amount\n----+-------------+-------\n 10 |           1 |    100\n 11 |           1 |     50\n 12 |           2 |     70\n 13 |           4 |     30",
+      "options": [
+        "SELECT c.name FROM customers c JOIN orders o ON o.customer_id = c.id WHERE o.id IS NULL",
+        "SELECT c.name FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.id IS NULL",
+        "SELECT c.name FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.id = NULL",
+        "SELECT c.name FROM customers c WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Подходят LEFT JOIN с проверкой o.id IS NULL (anti-join) и NOT EXISTS: оба вернут Cid. INNER JOIN не оставляет строк без пары, поэтому o.id там никогда не NULL. Сравнение o.id = NULL всегда даёт NULL, а не true, и такой запрос вернёт пустой результат."
+    },
+    {
+      "id": "sql-joins-006",
+      "topic": "joins",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица customers:\n id | name\n----+-----\n  1 | Ann\n  2 | Bob\n  3 | Cid\n\nТаблица orders (внешнего ключа нет):\n id | customer_id | amount\n----+-------------+-------\n 10 |           1 |    100\n 11 |           1 |     50\n 12 |           2 |     70\n 13 |           4 |     30\n\nSELECT c.name, o.amount\nFROM customers c\nFULL OUTER JOIN orders o ON o.customer_id = c.id;",
+      "options": [
+        "4",
+        "5",
+        "6",
+        "3"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Строк с совпадением три (Ann ×2, Bob). К ним добавляются Cid без заказов (amount = NULL) и заказ 13 без клиента (name = NULL). Всего 5."
+    },
+    {
+      "id": "sql-joins-007",
+      "topic": "joins",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица customers:\n id | name\n----+-----\n  1 | Ann\n  2 | Bob\n  3 | Cid\n\nТаблица orders (внешнего ключа нет):\n id | customer_id | amount\n----+-------------+-------\n 10 |           1 |    100\n 11 |           1 |     50\n 12 |           2 |     70\n 13 |           4 |     30\n\nSELECT c.name, o.amount\nFROM customers c\nLEFT JOIN orders o\n  ON o.customer_id = c.id AND o.amount > 60;",
+      "options": [
+        "4",
+        "2",
+        "5",
+        "3"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Условие в ON ограничивает только то, какие заказы присоединяются, и не удаляет клиентов. Получаем Ann–100 (заказ на 50 не прошёл), Bob–70 и Cid–NULL, то есть 3 строки."
+    },
+    {
+      "id": "sql-joins-008",
+      "topic": "joins",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица customers:\n id | name\n----+-----\n  1 | Ann\n  2 | Bob\n  3 | Cid\n\nТаблица orders (внешнего ключа нет):\n id | customer_id | amount\n----+-------------+-------\n 10 |           1 |    100\n 11 |           1 |     50\n 12 |           2 |     70\n 13 |           4 |     30\n\nSELECT c.name\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.amount > 60;",
+      "options": [
+        "Ann, Bob",
+        "Ann, Bob, Cid",
+        "Ann, Ann, Bob",
+        "Bob"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "WHERE применяется после соединения. У Cid amount = NULL, условие NULL > 60 не выполняется, и строка отбрасывается. Заказ Ann на 50 тоже не проходит. Фильтр по правой таблице в WHERE фактически превращает LEFT JOIN в INNER JOIN."
+    },
+    {
+      "id": "sql-joins-009",
+      "topic": "joins",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица a:     Таблица b:\n k              k\n---            ---\n 1              1\n 1              1\n 2              1\n                3\n\nSELECT *\nFROM a\nJOIN b ON a.k = b.k;",
+      "options": [
+        "2",
+        "3",
+        "6",
+        "5"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Каждая из двух строк a с k = 1 соединяется с каждой из трёх строк b с k = 1, это 2 × 3 = 6 строк. Значениям 2 и 3 пары не находится. Так дубликаты ключей «размножают» строки при соединении."
+    },
+    {
+      "id": "sql-joins-010",
+      "topic": "joins",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос (self join)?",
+      "code": "Таблица staff:\n id | name | manager_id\n----+------+-----------\n  1 | Ann  |       NULL\n  2 | Bob  |          1\n  3 | Cid  |          1\n  4 | Dan  |          2\n\nSELECT e.name AS employee, m.name AS manager\nFROM staff e\nJOIN staff m ON e.manager_id = m.id;",
+      "options": [
+        "4",
+        "3",
+        "2",
+        "6"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Пары: Bob→Ann, Cid→Ann, Dan→Bob. У Ann manager_id = NULL, а при INNER JOIN такая строка отбрасывается. Чтобы оставить Ann, нужен LEFT JOIN, и тогда строк будет 4."
+    },
+    {
+      "id": "sql-joins-011",
+      "topic": "joins",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица a:     Таблица b:\n x              x\n----           ----\n    1              1\n NULL           NULL\n NULL\n\nSELECT COUNT(*)\nFROM a\nLEFT JOIN b ON a.x = b.x;",
+      "options": [
+        "1",
+        "5",
+        "2",
+        "3"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "NULL = NULL даёт NULL, а не true, поэтому NULL-ключи ни с чем не соединяются. Строка 1 находит пару, а каждая из двух строк a с NULL попадает в результат без пары, так как это LEFT JOIN. Итого 3 строки."
+    },
+    {
+      "id": "sql-joins-012",
+      "topic": "joins",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о соединениях верны?",
+      "options": [
+        "A INNER JOIN B и B INNER JOIN A возвращают одинаковый набор строк (с точностью до порядка столбцов и строк)",
+        "LEFT JOIN может вернуть больше строк, чем есть в левой таблице",
+        "LEFT JOIN всегда возвращает ровно столько строк, сколько в левой таблице",
+        "A LEFT JOIN B эквивалентно B RIGHT JOIN A (с точностью до порядка столбцов)",
+        "Для LEFT JOIN перенос условия на правую таблицу из ON в WHERE никогда не меняет результат"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "INNER JOIN коммутативен, а LEFT и RIGHT JOIN зеркальны друг другу. Если у строки слева несколько пар справа, LEFT JOIN вернёт больше строк, чем в левой таблице. Условие на правую таблицу в WHERE отбрасывает строки с NULL, поэтому результат отличается от варианта с ON."
+    },
+    {
+      "id": "sql-aggregation-001",
+      "topic": "aggregation",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица sales:\n id | region | product | amount\n----+--------+---------+-------\n  1 | North  | A       |    100\n  2 | North  | B       |    200\n  3 | South  | A       |    150\n  4 | South  | A       |   NULL\n  5 | East   | B       |     50\n\nSELECT COUNT(*), COUNT(amount)\nFROM sales;",
+      "options": [
+        "5 и 5",
+        "5 и 4",
+        "4 и 4",
+        "4 и 5"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "COUNT(*) считает все строки, а COUNT(столбец) — только строки, где значение не NULL. У одной строки amount = NULL, поэтому 5 и 4."
+    },
+    {
+      "id": "sql-aggregation-002",
+      "topic": "aggregation",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица sales:\n id | region | product | amount\n----+--------+---------+-------\n  1 | North  | A       |    100\n  2 | North  | B       |    200\n  3 | South  | A       |    150\n  4 | South  | A       |   NULL\n  5 | East   | B       |     50\n\nSELECT region, SUM(amount)\nFROM sales\nGROUP BY region;",
+      "options": [
+        "5",
+        "2",
+        "3",
+        "4"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "GROUP BY возвращает одну строку на каждое уникальное значение region: North, South, East. Получается 3 строки."
+    },
+    {
+      "id": "sql-aggregation-003",
+      "topic": "aggregation",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "В каких предложениях запроса (на том же уровне, без подзапросов) допустимо использовать агрегатные функции, например SUM()?",
+      "options": [
+        "WHERE",
+        "SELECT",
+        "HAVING",
+        "GROUP BY",
+        "ORDER BY"
+      ],
+      "correct": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "Агрегаты вычисляются после группировки, поэтому их можно использовать в SELECT, HAVING и ORDER BY. WHERE выполняется до группировки, а в GROUP BY агрегаты тоже запрещены. В обоих случаях будет ошибка."
+    },
+    {
+      "id": "sql-aggregation-004",
+      "topic": "aggregation",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица sales:\n id | region | product | amount\n----+--------+---------+-------\n  1 | North  | A       |    100\n  2 | North  | B       |    200\n  3 | South  | A       |    150\n  4 | South  | A       |   NULL\n  5 | East   | B       |     50\n\nSELECT AVG(amount)\nFROM sales\nWHERE region = 'South';",
+      "options": [
+        "75",
+        "150",
+        "NULL",
+        "0"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Агрегатные функции, кроме COUNT(*), игнорируют NULL. Среднее считается по одному значению 150. Ответ 75 получился бы, только если бы NULL считался нулём."
+    },
+    {
+      "id": "sql-aggregation-005",
+      "topic": "aggregation",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении запроса в PostgreSQL?",
+      "code": "Таблица sales:\n id | region | product | amount\n----+--------+---------+-------\n  1 | North  | A       |    100\n  2 | North  | B       |    200\n  3 | South  | A       |    150\n  4 | South  | A       |   NULL\n  5 | East   | B       |     50\n\nSELECT region, product, SUM(amount)\nFROM sales\nGROUP BY region;",
+      "options": [
+        "Вернутся 3 строки с произвольным product для каждого региона",
+        "Вернутся 5 строк, по одной на каждую продажу",
+        "Ошибка: product не входит в GROUP BY и не агрегирован",
+        "Вернутся 3 строки, где product = NULL"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Каждый столбец в SELECT должен либо входить в GROUP BY, либо стоять внутри агрегатной функции. Иначе значение неоднозначно, и PostgreSQL выдаёт ошибку. Произвольное значение вместо ошибки возвращают только некоторые СУБД в нестрогом режиме, например старый MySQL."
+    },
+    {
+      "id": "sql-aggregation-006",
+      "topic": "aggregation",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица sales:\n id | region | product | amount\n----+--------+---------+-------\n  1 | North  | A       |    100\n  2 | North  | B       |    200\n  3 | South  | A       |    150\n  4 | South  | A       |   NULL\n  5 | East   | B       |     50\n\nSELECT region\nFROM sales\nGROUP BY region\nHAVING SUM(amount) > 100;",
+      "options": [
+        "North",
+        "North, South",
+        "North, South, East",
+        "South"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Суммы по регионам: North = 300, South = 150 (NULL игнорируется), East = 50. HAVING оставляет группы с суммой больше 100, то есть North и South."
+    },
+    {
+      "id": "sql-aggregation-007",
+      "topic": "aggregation",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица sales:\n id | region | product | amount\n----+--------+---------+-------\n  1 | North  | A       |    100\n  2 | North  | B       |    200\n  3 | South  | A       |    150\n  4 | South  | A       |   NULL\n  5 | East   | B       |     50\n\nSELECT COUNT(DISTINCT product), COUNT(DISTINCT region)\nFROM sales;",
+      "options": [
+        "2 и 3",
+        "5 и 5",
+        "3 и 2",
+        "2 и 5"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "COUNT(DISTINCT ...) считает уникальные значения, отличные от NULL. Продуктов два (A и B), регионов три (North, South, East)."
+    },
+    {
+      "id": "sql-aggregation-008",
+      "topic": "aggregation",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос (региона West в таблице нет)?",
+      "code": "Таблица sales:\n id | region | product | amount\n----+--------+---------+-------\n  1 | North  | A       |    100\n  2 | North  | B       |    200\n  3 | South  | A       |    150\n  4 | South  | A       |   NULL\n  5 | East   | B       |     50\n\nSELECT SUM(amount), COUNT(*)\nFROM sales\nWHERE region = 'West';",
+      "options": [
+        "0 и 0",
+        "NULL и NULL",
+        "NULL и 0",
+        "Ни одной строки"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Агрегатный запрос без GROUP BY всегда возвращает одну строку, даже если исходных строк нет. SUM по пустому набору даёт NULL, а COUNT(*) — 0. Чтобы получить 0, используйте COALESCE(SUM(amount), 0)."
+    },
+    {
+      "id": "sql-aggregation-009",
+      "topic": "aggregation",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица t:\n g\n------\n a\n NULL\n a\n NULL\n b\n\nSELECT g, COUNT(*)\nFROM t\nGROUP BY g;",
+      "options": [
+        "2 строки: a — 2, b — 1",
+        "4 строки: каждый NULL образует отдельную группу",
+        "Ошибка: нельзя группировать по столбцу с NULL",
+        "3 строки: a — 2, b — 1, NULL — 2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "При группировке все NULL считаются одинаковыми и попадают в одну группу. Строки с NULL не отбрасываются. Получается три группы: a, b и NULL."
+    },
+    {
+      "id": "sql-aggregation-010",
+      "topic": "aggregation",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие из запросов выполнятся в PostgreSQL без ошибки?",
+      "options": [
+        "SELECT region, COUNT(*) FROM sales GROUP BY region HAVING COUNT(*) > 1",
+        "SELECT region, COUNT(*) FROM sales WHERE COUNT(*) > 1 GROUP BY region",
+        "SELECT region FROM sales GROUP BY region ORDER BY SUM(amount) DESC",
+        "SELECT COUNT(*) FROM sales HAVING COUNT(*) > 1",
+        "SELECT region, SUM(amount) AS s FROM sales GROUP BY region HAVING s > 100"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "Агрегат в WHERE запрещён. PostgreSQL также не разрешает ссылаться в HAVING на псевдоним из SELECT (столбец s не найден). HAVING без GROUP BY допустим: вся таблица считается одной группой. Сортировать по агрегату, которого нет в SELECT, тоже можно."
+    },
+    {
+      "id": "sql-aggregation-011",
+      "topic": "aggregation",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какое значение COUNT(*) получит клиент Cid?",
+      "code": "Таблица customers:\n id | name\n----+-----\n  1 | Ann\n  2 | Bob\n  3 | Cid\n\nТаблица orders (внешнего ключа нет):\n id | customer_id | amount\n----+-------------+-------\n 10 |           1 |    100\n 11 |           1 |     50\n 12 |           2 |     70\n 13 |           4 |     30\n\nSELECT c.name, COUNT(*)\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nGROUP BY c.name;",
+      "options": [
+        "NULL",
+        "Cid не попадёт в результат",
+        "0",
+        "1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "LEFT JOIN даёт для Cid одну строку с NULL в столбцах orders, а COUNT(*) считает строки, а не значения, поэтому получится 1. Чтобы получить 0, нужно COUNT(o.id): эта функция не учитывает NULL."
+    },
+    {
+      "id": "sql-aggregation-012",
+      "topic": "aggregation",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос в PostgreSQL?",
+      "code": "SELECT SUM(x) / COUNT(x) AS a, AVG(x) AS b\nFROM (VALUES (1), (2)) AS t(x);",
+      "options": [
+        "a = 1.5, b = 1.5",
+        "a = 1, b = 1.5",
+        "a = 1, b = 1",
+        "a = 2, b = 1.5"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SUM от integer возвращает bigint, COUNT тоже возвращает bigint, поэтому 3 / 2 — целочисленное деление с отбрасыванием дробной части, результат 1. AVG от integer возвращает numeric, то есть 1.5 (отображается как 1.5000000000000000). Округления до 2 при целочисленном делении не происходит."
+    },
+    {
+      "id": "sql-subqueries-001",
+      "topic": "subqueries",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nSELECT name\nFROM employees\nWHERE salary > (SELECT AVG(salary) FROM employees);",
+      "options": [
+        "3",
+        "1",
+        "2",
+        "4"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Средняя зарплата равна (100 + 80 + 120 + 90 + 70) / 5 = 92. Больше неё получают только Ann (100) и Cid (120)."
+    },
+    {
+      "id": "sql-subqueries-002",
+      "topic": "subqueries",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nSELECT name\nFROM departments\nWHERE id IN (SELECT dept_id FROM employees);",
+      "options": [
+        "IT, HR",
+        "IT, HR, Sales",
+        "Sales",
+        "IT"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Подзапрос возвращает dept_id: 1, 1, 2, 2, NULL. Отделы с id 1 и 2 находятся в этом наборе, отдел 3 (Sales) — нет. NULL в списке не мешает положительным совпадениям IN."
+    },
+    {
+      "id": "sql-subqueries-003",
+      "topic": "subqueries",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "С какого ключевого слова начинается запрос с общим табличным выражением (CTE)?",
+      "options": [
+        "USING",
+        "DEFINE",
+        "WITH",
+        "WITHIN"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "CTE объявляется так: WITH имя AS (подзапрос) SELECT ... USING используется в JOIN и DELETE, WITHIN — в WITHIN GROUP для упорядоченных агрегатов, а DEFINE не относится к CTE."
+    },
+    {
+      "id": "sql-subqueries-004",
+      "topic": "subqueries",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении запроса в PostgreSQL?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nSELECT name\nFROM employees\nWHERE salary = (SELECT salary FROM employees WHERE dept_id = 1);",
+      "options": [
+        "Вернутся Ann и Bob (обе зарплаты отдела 1)",
+        "Ошибка: подзапрос вернул более одной строки",
+        "Вернётся только Ann (берётся первая строка подзапроса)",
+        "Вернётся пустой результат без ошибки"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "После оператора = ожидается скалярный подзапрос, то есть не более одной строки. Здесь подзапрос возвращает две зарплаты (100 и 80), и PostgreSQL выдаёт ошибку. Для сравнения с набором значений нужны IN или = ANY."
+    },
+    {
+      "id": "sql-subqueries-005",
+      "topic": "subqueries",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nSELECT d.name\nFROM departments d\nWHERE NOT EXISTS (\n  SELECT 1 FROM employees e WHERE e.dept_id = d.id\n);",
+      "options": [
+        "IT, HR",
+        "Пустой результат",
+        "IT, HR, Sales",
+        "Sales"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "NOT EXISTS истинно, если коррелированный подзапрос не возвращает ни одной строки. Сотрудников нет только у Sales. Сотрудник с dept_id = NULL на результат не влияет."
+    },
+    {
+      "id": "sql-subqueries-006",
+      "topic": "subqueries",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nSELECT name\nFROM departments\nWHERE id NOT IN (SELECT dept_id FROM employees);",
+      "options": [
+        "Sales",
+        "Пустой результат",
+        "IT, HR",
+        "Ошибка"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Подзапрос содержит NULL (у Eve). Для id = 3 проверка 3 <> NULL даёт NULL, поэтому всё условие NOT IN — NULL, а не true. Строка не проходит, и результат пуст. Это классическая ловушка: используйте NOT EXISTS или отфильтруйте NULL в подзапросе."
+    },
+    {
+      "id": "sql-subqueries-007",
+      "topic": "subqueries",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nSELECT name\nFROM employees e\nWHERE salary = (\n  SELECT MAX(salary)\n  FROM employees e2\n  WHERE e2.dept_id = e.dept_id\n);",
+      "options": [
+        "Ann, Cid",
+        "Ann, Cid, Eve",
+        "Cid",
+        "Ann, Bob, Cid, Dan, Eve"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Коррелированный подзапрос находит максимум по отделу текущего сотрудника: 100 в отделе 1 (Ann) и 120 в отделе 2 (Cid). Для Eve условие e2.dept_id = NULL не находит строк, MAX возвращает NULL, и сравнение 70 = NULL не проходит."
+    },
+    {
+      "id": "sql-subqueries-008",
+      "topic": "subqueries",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nWITH t AS (\n  SELECT dept_id, SUM(salary) AS s\n  FROM employees\n  GROUP BY dept_id\n)\nSELECT COUNT(*) FROM t;",
+      "options": [
+        "2",
+        "3",
+        "5",
+        "1"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "CTE t содержит по строке на каждую группу dept_id: 1, 2 и NULL. NULL образует отдельную группу, поэтому в t три строки."
+    },
+    {
+      "id": "sql-subqueries-009",
+      "topic": "subqueries",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие условия на этих данных вернут только сотрудников, чья зарплата больше зарплаты каждого сотрудника отдела 1?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales",
+      "options": [
+        "WHERE salary > ANY (SELECT salary FROM employees WHERE dept_id = 1)",
+        "WHERE salary > ALL (SELECT salary FROM employees WHERE dept_id = 1)",
+        "WHERE salary > (SELECT MIN(salary) FROM employees WHERE dept_id = 1)",
+        "WHERE salary > (SELECT MAX(salary) FROM employees WHERE dept_id = 1)"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "«Больше каждого» означает > ALL, что на непустом наборе без NULL эквивалентно > MAX; оба варианта вернут только Cid. Варианты > ANY и > MIN означают «больше хотя бы одного» и вернут также Ann и Dan."
+    },
+    {
+      "id": "sql-subqueries-010",
+      "topic": "subqueries",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос в PostgreSQL?",
+      "code": "WITH RECURSIVE n(x) AS (\n  SELECT 1\n  UNION ALL\n  SELECT x * 2 FROM n WHERE x < 20\n)\nSELECT MAX(x), COUNT(*) FROM n;",
+      "options": [
+        "16 и 5",
+        "32 и 5",
+        "20 и 6",
+        "32 и 6"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Получаются строки 1, 2, 4, 8, 16. Условие x < 20 проверяется для предыдущей строки, поэтому из 16 ещё порождается 32. Для 32 условие ложно, и рекурсия останавливается. Итого 6 строк, максимум 32."
+    },
+    {
+      "id": "sql-subqueries-011",
+      "topic": "subqueries",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица employees:\n id | name | dept_id | salary\n----+------+---------+-------\n  1 | Ann  |       1 |    100\n  2 | Bob  |       1 |     80\n  3 | Cid  |       2 |    120\n  4 | Dan  |       2 |     90\n  5 | Eve  |    NULL |     70\n\nТаблица departments:\n id | name\n----+------\n  1 | IT\n  2 | HR\n  3 | Sales\n\nSELECT d.name,\n       (SELECT COUNT(*) FROM employees e WHERE e.dept_id = d.id) AS cnt\nFROM departments d\nORDER BY d.id;",
+      "options": [
+        "IT 2, HR 2, Sales 0",
+        "IT 2, HR 2, Sales NULL",
+        "IT 2, HR 2 (Sales отсутствует)",
+        "Ошибка: подзапрос в SELECT не может быть коррелированным"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Скалярный коррелированный подзапрос выполняется для каждого отдела. COUNT(*) по пустому набору возвращает 0, а не NULL. Строка Sales сохраняется, потому что фильтрации по departments нет."
+    },
+    {
+      "id": "sql-subqueries-012",
+      "topic": "subqueries",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о CTE в PostgreSQL (версия 12 и новее) верны?",
+      "options": [
+        "Нерекурсивный CTE без побочных эффектов, используемый один раз, может быть встроен в запрос",
+        "Ключевые слова MATERIALIZED и NOT MATERIALIZED позволяют явно управлять материализацией CTE",
+        "CTE после выполнения запроса остаётся доступным в сессии как временная таблица",
+        "На CTE можно сослаться в основном запросе только один раз, иначе будет ошибка"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Начиная с PostgreSQL 12, такие CTE встраиваются в основной запрос. Поведение можно переопределить через WITH x AS [NOT] MATERIALIZED (...). CTE существует только в рамках одного запроса, и ссылаться на него можно многократно."
+    },
+    {
+      "id": "sql-nulls-001",
+      "topic": "nulls",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT NULL = NULL;",
+      "options": [
+        "true",
+        "false",
+        "NULL",
+        "Ошибка"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Любое обычное сравнение с NULL даёт NULL (неизвестно), даже если NULL сравнивается с NULL. Чтобы проверить на NULL, используйте IS NULL или IS NOT DISTINCT FROM."
+    },
+    {
+      "id": "sql-nulls-002",
+      "topic": "nulls",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как правильно отобрать строки, где столбец col не заполнен (NULL)?",
+      "options": [
+        "WHERE col = NULL",
+        "WHERE col == NULL",
+        "WHERE col IN (NULL)",
+        "WHERE col IS NULL"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Проверка на NULL выполняется только через IS NULL. Выражения col = NULL и col IN (NULL) всегда дают NULL и не отбирают ни одной строки. Оператора == в стандартном SQL нет."
+    },
+    {
+      "id": "sql-nulls-003",
+      "topic": "nulls",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT COALESCE(NULL, NULL, 'x', 'y');",
+      "options": [
+        "NULL",
+        "x",
+        "y",
+        "xy"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "COALESCE возвращает первый аргумент, отличный от NULL, то есть 'x'. Вариант 'y' неверен, потому что вычисление останавливается на первом найденном значении."
+    },
+    {
+      "id": "sql-nulls-004",
+      "topic": "nulls",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос в PostgreSQL?",
+      "code": "SELECT 7 / 2;",
+      "options": [
+        "3.5",
+        "3",
+        "4",
+        "3.0"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Оба операнда имеют тип integer, поэтому деление целочисленное и дробная часть отбрасывается. Чтобы получить 3.5, приведите хотя бы один операнд к дробному типу: 7 / 2.0 или 7::numeric / 2."
+    },
+    {
+      "id": "sql-nulls-005",
+      "topic": "nulls",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT NULLIF(10, 10), NULLIF(10, 5);",
+      "options": [
+        "NULL и 10",
+        "10 и NULL",
+        "0 и 10",
+        "NULL и 5"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "NULLIF(a, b) возвращает NULL, если a = b, иначе a. Поэтому получаем NULL и 10. Функцию часто используют, чтобы избежать деления на ноль: x / NULLIF(y, 0)."
+    },
+    {
+      "id": "sql-nulls-006",
+      "topic": "nulls",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица t:\n dept\n------\n IT\n HR\n NULL\n IT\n NULL\n\nSELECT COUNT(*)\nFROM t\nWHERE dept <> 'IT';",
+      "options": [
+        "3",
+        "2",
+        "1",
+        "5"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Для строк с NULL условие NULL <> 'IT' даёт NULL, и такие строки отбрасываются. Остаётся только HR. Чтобы учесть NULL, нужно добавить OR dept IS NULL или использовать dept IS DISTINCT FROM 'IT'."
+    },
+    {
+      "id": "sql-nulls-007",
+      "topic": "nulls",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие выражения в PostgreSQL возвращают NULL?",
+      "options": [
+        "'abc' || NULL",
+        "concat('abc', NULL)",
+        "NULL AND false",
+        "NULL OR true",
+        "NULL AND true"
+      ],
+      "correct": [
+        0,
+        4
+      ],
+      "explanation": "Оператор || с NULL даёт NULL, а concat() пропускает NULL и возвращает 'abc'. В трёхзначной логике NULL AND false = false и NULL OR true = true, потому что результат не зависит от неизвестного операнда. NULL AND true остаётся NULL."
+    },
+    {
+      "id": "sql-nulls-008",
+      "topic": "nulls",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос в PostgreSQL?",
+      "code": "SELECT DATE '2024-03-01' - DATE '2024-02-01';",
+      "options": [
+        "29",
+        "28",
+        "30",
+        "interval '1 mon'"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "В PostgreSQL разность двух значений date — это целое число дней, а не interval. 2024 год високосный, в феврале 29 дней."
+    },
+    {
+      "id": "sql-nulls-009",
+      "topic": "nulls",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица t (x integer), одна строка:\n x\n------\n NULL\n\nSELECT CASE x WHEN NULL THEN 'a' ELSE 'b' END\nFROM t;",
+      "options": [
+        "a",
+        "b",
+        "NULL",
+        "Ошибка"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Простая форма CASE сравнивает значения через =, а x = NULL даёт NULL, а не true. Поэтому срабатывает ELSE. Для проверки на NULL нужна форма CASE WHEN x IS NULL THEN 'a' ... END."
+    },
+    {
+      "id": "sql-nulls-010",
+      "topic": "nulls",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица t:\n x\n------\n   10\n NULL\n   20\n\nSELECT AVG(x), AVG(COALESCE(x, 0))\nFROM t;",
+      "options": [
+        "15 и 15",
+        "10 и 10",
+        "15 и 10",
+        "NULL и 10"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "AVG(x) игнорирует NULL: (10 + 20) / 2 = 15. После COALESCE NULL превращается в 0 и участвует в расчёте: (10 + 0 + 20) / 3 = 10."
+    },
+    {
+      "id": "sql-nulls-011",
+      "topic": "nulls",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие выражения в PostgreSQL возвращают true?",
+      "options": [
+        "NULL IS NULL",
+        "NULL IS DISTINCT FROM NULL",
+        "1 IS DISTINCT FROM NULL",
+        "NULL = NULL",
+        "NULL IS NOT DISTINCT FROM NULL"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "IS [NOT] DISTINCT FROM сравнивает значения, считая NULL обычным значением, и всегда возвращает true или false. Два NULL не отличаются друг от друга, а 1 от NULL отличается. NULL = NULL даёт NULL."
+    },
+    {
+      "id": "sql-nulls-012",
+      "topic": "nulls",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица t:\n x\n------\n    1\n NULL\n NULL\n    2\n\nSELECT (SELECT COUNT(*) FROM (SELECT DISTINCT x FROM t) s) AS a,\n       COUNT(DISTINCT x) AS b\nFROM t;",
+      "options": [
+        "a = 4, b = 3",
+        "a = 3, b = 3",
+        "a = 2, b = 2",
+        "a = 3, b = 2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "SELECT DISTINCT считает все NULL одинаковыми и оставляет одну строку с NULL: получаем 1, NULL, 2, то есть a = 3. COUNT(DISTINCT x) не учитывает NULL, поэтому b = 2."
+    }
+  ]
+}

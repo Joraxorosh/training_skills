@@ -1,0 +1,30 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+    # Без HTTPS: приложение доступно на http://<IP-сервера>:8080
+    ports:
+      - "8080:3000"
+
+  # HTTPS через Caddy (автоматический сертификат Let's Encrypt).
+  # Включается командой: DOMAIN=quiz.example.com docker compose --profile https up -d
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["https"]
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
