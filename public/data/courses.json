@@ -2,17 +2,17 @@
   {
     "id": "devops",
     "title": "DevOps",
-    "description": "Linux, Git, сети, Docker, Kubernetes, CI/CD, IaC, мониторинг, облака и SRE-практики.",
+    "description": "Linux, Git, сети, Docker, Kubernetes, CI/CD, IaC, мониторинг, облака, безопасность, Nginx и SRE-практики.",
     "badge": "Ops",
     "color": "#2f7de1",
-    "files": ["devops-1.json", "devops-2.json"]
+    "files": ["devops-1.json", "devops-2.json", "devops-3.json", "devops-4.json", "devops-5.json"]
   },
   {
     "id": "sql",
     "title": "SQL",
-    "description": "SELECT, JOIN, агрегация, подзапросы, оконные функции, индексы, транзакции и DDL.",
+    "description": "SELECT, JOIN, агрегация, подзапросы, оконные функции, индексы, транзакции, DDL, возможности PostgreSQL и практические задачи.",
     "badge": "SQL",
     "color": "#e0822f",
-    "files": ["sql-1.json", "sql-2.json"]
+    "files": ["sql-1.json", "sql-2.json", "sql-3.json", "sql-4.json", "sql-5.json"]
   }
 ]

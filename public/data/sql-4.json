@@ -1,0 +1,1098 @@
+{
+  "topics": [
+    {
+      "id": "window",
+      "title": "Оконные функции"
+    },
+    {
+      "id": "ddl",
+      "title": "DDL, ограничения и нормализация"
+    },
+    {
+      "id": "indexes",
+      "title": "Индексы и оптимизация запросов"
+    },
+    {
+      "id": "transactions",
+      "title": "Транзакции, ACID и блокировки"
+    },
+    {
+      "id": "dml",
+      "title": "INSERT, UPDATE, DELETE, UPSERT"
+    }
+  ],
+  "questions": [
+    {
+      "id": "sql-window-013",
+      "topic": "window",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие значения получит строка C?",
+      "code": "-- Таблица scores\n-- name | score\n-- A    | 90\n-- B    | 100\n-- C    | 90\n-- D    | 80\n\nSELECT name,\n       ROW_NUMBER() OVER (ORDER BY score DESC, name) AS rn,\n       RANK()       OVER (ORDER BY score DESC)       AS rnk,\n       DENSE_RANK() OVER (ORDER BY score DESC)       AS drnk\nFROM scores;",
+      "options": [
+        "rn = 2, rnk = 2, drnk = 2",
+        "rn = 3, rnk = 3, drnk = 2",
+        "rn = 3, rnk = 2, drnk = 2",
+        "rn = 3, rnk = 2, drnk = 3"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A и C делят 2-е место, поэтому RANK и DENSE_RANK дают обеим 2. ROW_NUMBER всегда нумерует строки без повторов: при равном score порядок задаёт name, и C идёт третьей после B и A."
+    },
+    {
+      "id": "sql-window-014",
+      "topic": "window",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк попадёт в группы g = 1, 2 и 3 соответственно?",
+      "code": "-- Таблица t: x = 1, 2, 3, 4, 5, 6, 7\n\nSELECT x, NTILE(3) OVER (ORDER BY x) AS g\nFROM t;",
+      "options": [
+        "3, 2, 2",
+        "2, 2, 3",
+        "3, 3, 1",
+        "2, 3, 2"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "NTILE(3) делит 7 строк на 3 группы максимально поровну: 7 = 3 + 2 + 2. Лишние строки достаются первым группам, поэтому первая группа больше остальных."
+    },
+    {
+      "id": "sql-window-015",
+      "topic": "window",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие значения p вернёт запрос (в порядке day)?",
+      "code": "-- Таблица readings\n-- day | v\n-- 1   | 5\n-- 2   | 8\n-- 3   | 6\n-- 4   | 9\n\nSELECT day, LAG(v, 2, 0) OVER (ORDER BY day) AS p\nFROM readings\nORDER BY day;",
+      "options": [
+        "NULL, NULL, 5, 8",
+        "0, 5, 8, 6",
+        "6, 9, 0, 0",
+        "0, 0, 5, 8"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Второй аргумент LAG — смещение (на 2 строки назад), третий — значение по умолчанию, если такой строки нет. У первых двух строк нет строки на 2 позиции раньше, поэтому они получают 0 вместо NULL."
+    },
+    {
+      "id": "sql-window-016",
+      "topic": "window",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие значения running вернёт запрос (в порядке acc, d)?",
+      "code": "-- Таблица payments\n-- acc | d | amt\n-- A   | 1 | 10\n-- A   | 2 | 5\n-- A   | 3 | 1\n-- B   | 1 | 7\n-- B   | 2 | 3\n\nSELECT acc, d,\n       SUM(amt) OVER (PARTITION BY acc ORDER BY d) AS running\nFROM payments\nORDER BY acc, d;",
+      "options": [
+        "10, 15, 16, 23, 26",
+        "10, 15, 16, 7, 10",
+        "16, 16, 16, 10, 10",
+        "10, 5, 1, 7, 3"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "PARTITION BY acc начинает отдельный нарастающий итог для каждого счёта, а ORDER BY d задаёт порядок накопления. 10, 15, 16, 23, 26 получилось бы без PARTITION BY, а 16, 16, 16, 10, 10 — без ORDER BY в окне."
+    },
+    {
+      "id": "sql-window-017",
+      "topic": "window",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какое значение top получит сотрудник Ann?",
+      "code": "-- Таблица employees\n-- dept | name | salary\n-- IT   | Ann  | 100\n-- IT   | Bob  | 200\n-- IT   | Eve  | 150\n-- HR   | Cid  | 300\n-- HR   | Dan  | 120\n\nSELECT name,\n       FIRST_VALUE(name) OVER (PARTITION BY dept ORDER BY salary DESC) AS top\nFROM employees;",
+      "options": [
+        "Ann",
+        "Bob",
+        "Cid",
+        "Eve"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "FIRST_VALUE берёт первую строку рамки, а рамка по умолчанию начинается с первой строки партиции. В отделе IT при сортировке по убыванию зарплаты первым идёт Bob (200); Cid — лидер другого отдела."
+    },
+    {
+      "id": "sql-window-018",
+      "topic": "window",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какие значения n2 вернёт запрос (в порядке x)?",
+      "code": "-- Таблица t: x = 10, 20, 30, 40\n\nSELECT x, NTH_VALUE(x, 2) OVER (ORDER BY x) AS n2\nFROM t\nORDER BY x;",
+      "options": [
+        "20, 20, 20, 20",
+        "NULL, 20, 30, 40",
+        "20, 30, 40, NULL",
+        "NULL, 20, 20, 20"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "С ORDER BY рамка по умолчанию идёт от начала партиции до текущей строки. Для первой строки в рамке одна строка, второй нет — результат NULL; дальше вторая строка рамки всегда 20. Чтобы получить 20 везде, нужна рамка до UNBOUNDED FOLLOWING."
+    },
+    {
+      "id": "sql-window-019",
+      "topic": "window",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какие значения nxt вернёт запрос в PostgreSQL (в порядке day)?",
+      "code": "-- Таблица readings\n-- day | v\n-- 1   | 5\n-- 2   | 8\n-- 3   | 6\n\nSELECT day, LEAD(v, 1, v) OVER (ORDER BY day) AS nxt\nFROM readings\nORDER BY day;",
+      "options": [
+        "8, 6, 6",
+        "8, 6, NULL",
+        "8, 6, 5",
+        "5, 8, 6"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "LEAD(v, 1, ...) берёт v следующей строки. Значение по умолчанию может быть выражением и вычисляется для текущей строки, поэтому у последней строки (следующей нет) результатом становится её собственное v = 6."
+    },
+    {
+      "id": "sql-window-020",
+      "topic": "window",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какие значения s вернёт запрос в PostgreSQL (в порядке x)?",
+      "code": "-- Таблица r: x = 1, 2, 2, 4\n\nSELECT x,\n       SUM(x) OVER (ORDER BY x\n                    GROUPS BETWEEN 1 PRECEDING AND CURRENT ROW) AS s\nFROM r\nORDER BY x;",
+      "options": [
+        "1, 3, 4, 6",
+        "1, 5, 5, 4",
+        "1, 5, 5, 8",
+        "1, 5, 5, 9"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "GROUPS считает смещение в группах ровесников (строк с одинаковым x): в рамку входит текущая группа и одна предыдущая. x=1: {1}; x=2: {1} и {2,2} = 5; x=4: {2,2} и {4} = 8. Вариант 1, 3, 4, 6 дала бы рамка ROWS, а 1, 5, 5, 4 — RANGE BETWEEN 1 PRECEDING."
+    },
+    {
+      "id": "sql-window-021",
+      "topic": "window",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения о результате запроса верны?",
+      "code": "-- Таблица t: x = 10, 20, 20, 30\n\nSELECT x,\n       percent_rank() OVER (ORDER BY x) AS pr,\n       cume_dist()    OVER (ORDER BY x) AS cd\nFROM t;",
+      "options": [
+        "Для x = 10: pr = 0",
+        "Для x = 10: cd = 0",
+        "Для x = 20: pr = 0.5",
+        "Для x = 20: cd = 0.75"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "percent_rank = (rank - 1) / (n - 1): для 10 это 0, для 20 — (2 - 1) / 3 ≈ 0.333. cume_dist — доля строк, которые идут до текущей или являются её ровесниками: для 10 это 1/4, для 20 — 3/4 = 0.75."
+    },
+    {
+      "id": "sql-window-022",
+      "topic": "window",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие запросы выполнятся в PostgreSQL без ошибки (таблица t(x int, y int))?",
+      "options": [
+        "SELECT x FROM t WHERE ROW_NUMBER() OVER (ORDER BY x) > 1;",
+        "SELECT x, SUM(x) OVER w FROM t WINDOW w AS (PARTITION BY y ORDER BY x);",
+        "SELECT x, SUM(x) OVER (w ROWS 1 PRECEDING) FROM t WINDOW w AS (ORDER BY x);",
+        "SELECT x, SUM(x) OVER (w ORDER BY y) FROM t WINDOW w AS (ORDER BY x);"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Именованное окно из WINDOW можно использовать напрямую или дополнить рамкой, если у него своей рамки нет. Переопределить уже заданный в окне ORDER BY нельзя, а оконные функции в WHERE запрещены."
+    },
+    {
+      "id": "sql-window-023",
+      "topic": "window",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какие значения s вернёт запрос в PostgreSQL (в порядке x)?",
+      "code": "-- Таблица r: x = 1, 2, 2, 4\n\nSELECT x,\n       SUM(x) OVER (ORDER BY x\n                    ROWS BETWEEN UNBOUNDED PRECEDING\n                             AND UNBOUNDED FOLLOWING\n                    EXCLUDE TIES) AS s\nFROM r\nORDER BY x;",
+      "options": [
+        "8, 7, 7, 5",
+        "9, 7, 7, 9",
+        "8, 5, 5, 5",
+        "9, 9, 9, 9"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Рамка охватывает все строки (сумма 9), а EXCLUDE TIES исключает ровесников текущей строки, оставляя саму строку. Для каждого x = 2 выпадает другая двойка: 9 - 2 = 7. 8, 7, 7, 5 дал бы EXCLUDE CURRENT ROW, а 8, 5, 5, 5 — EXCLUDE GROUP."
+    },
+    {
+      "id": "sql-window-024",
+      "topic": "window",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какие значения s вернёт запрос в PostgreSQL (в порядке вывода)?",
+      "code": "-- Таблица t: x = 1, NULL, 2, NULL\n\nSELECT x, SUM(x) OVER (ORDER BY x) AS s\nFROM t\nORDER BY x;",
+      "options": [
+        "1, 3, NULL, NULL",
+        "NULL, NULL, 1, 3",
+        "1, 3, 3, 3",
+        "1, 3, 3, NULL"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "При ORDER BY x по возрастанию NULL в PostgreSQL идут последними, и обе строки с NULL — ровесники. Рамка по умолчанию (RANGE до CURRENT ROW) включает всех ровесников, поэтому для них сумма охватывает всю таблицу: SUM игнорирует NULL и даёт 3."
+    },
+    {
+      "id": "sql-ddl-013",
+      "topic": "ddl",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт с заказом 10 после UPDATE?",
+      "code": "CREATE TABLE customers (id int PRIMARY KEY);\nCREATE TABLE orders (\n  id int PRIMARY KEY,\n  customer_id int REFERENCES customers(id) ON UPDATE CASCADE\n);\n-- customers: 1, 2\n-- orders: (10, 1), (11, 2)\n\nUPDATE customers SET id = 5 WHERE id = 1;",
+      "options": [
+        "UPDATE завершится ошибкой из-за ссылки",
+        "Его customer_id станет 5",
+        "Его customer_id станет NULL",
+        "Заказ 10 будет удалён"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "ON UPDATE CASCADE переносит изменение ключа родителя в ссылающиеся строки. Без этой опции (NO ACTION по умолчанию) UPDATE упал бы с ошибкой внешнего ключа."
+    },
+    {
+      "id": "sql-ddl-014",
+      "topic": "ddl",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт последний SELECT?",
+      "code": "CREATE TABLE tasks (id int, status text DEFAULT 'new');\n\nINSERT INTO tasks (id) VALUES (1);\nINSERT INTO tasks VALUES (2, NULL);\nINSERT INTO tasks VALUES (3, DEFAULT);\n\nSELECT status FROM tasks ORDER BY id;",
+      "options": [
+        "'new', 'new', 'new'",
+        "'new', NULL, NULL",
+        "NULL, NULL, 'new'",
+        "'new', NULL, 'new'"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "DEFAULT подставляется, когда столбец не указан в INSERT или явно передано ключевое слово DEFAULT. Явный NULL — это обычное значение, и умолчание его не заменяет."
+    },
+    {
+      "id": "sql-ddl-015",
+      "topic": "ddl",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой из ключей таблицы users является суррогатным?",
+      "code": "CREATE TABLE users (\n  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  email       text NOT NULL UNIQUE,\n  passport_no text NOT NULL UNIQUE\n);",
+      "options": [
+        "id — число из identity без смысла вне базы",
+        "email — адрес, уникальный у каждого",
+        "passport_no — номер паспорта клиента",
+        "(email, passport_no) — пара полей"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Суррогатный ключ генерируется системой и не несёт предметного смысла. email и passport_no — естественные ключи-кандидаты: они уникальны по свойствам самих данных, а их пара — лишь суперключ."
+    },
+    {
+      "id": "sql-ddl-016",
+      "topic": "ddl",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что верно про MATERIALIZED VIEW в PostgreSQL?",
+      "options": [
+        "Сам обновляется при каждом изменении базовых таблиц",
+        "Хранит только текст запроса и выполняет его при чтении",
+        "Хранит результат запроса и обновляется командой REFRESH",
+        "Не может иметь собственных индексов"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Материализованное представление сохраняет результат запроса как таблицу; данные устаревают, пока не выполнить REFRESH MATERIALIZED VIEW. На нём можно создавать индексы. Хранит только запрос обычное представление (VIEW)."
+    },
+    {
+      "id": "sql-ddl-017",
+      "topic": "ddl",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт в PostgreSQL, если в таблице users уже есть 3 строки?",
+      "code": "ALTER TABLE users ADD COLUMN age int NOT NULL;",
+      "options": [
+        "Столбец добавится, в старых строках будет NULL",
+        "Столбец добавится, в старых строках будет 0",
+        "Ошибка: новый столбец содержит NULL в существующих строках",
+        "Столбец добавится, NOT NULL проверится только для новых строк"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Новый столбец без DEFAULT заполняется NULL, а это нарушает NOT NULL, поэтому команда отменяется целиком. С DEFAULT (например, DEFAULT 0) существующие строки получили бы это значение, и команда прошла бы."
+    },
+    {
+      "id": "sql-ddl-018",
+      "topic": "ddl",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт последний SELECT?",
+      "code": "CREATE TABLE items (\n  price numeric,\n  qty   int,\n  total numeric GENERATED ALWAYS AS (price * qty) STORED\n);\n\nINSERT INTO items (price, qty) VALUES (10, 3);\nUPDATE items SET qty = 5;\n\nSELECT total FROM items;",
+      "options": [
+        "50",
+        "30",
+        "NULL",
+        "Ошибка: total нельзя изменять"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Генерируемый столбец пересчитывается при каждом INSERT и UPDATE строки из её текущих значений: 10 * 5 = 50. Записать в total явное значение нельзя, но менять столбцы, от которых он зависит, можно."
+    },
+    {
+      "id": "sql-ddl-019",
+      "topic": "ddl",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт последний SELECT в PostgreSQL?",
+      "code": "CREATE TABLE t (\n  id   int GENERATED ALWAYS AS IDENTITY,\n  name text\n);\n\nBEGIN;\nINSERT INTO t (name) VALUES ('a');\nROLLBACK;\n\nINSERT INTO t (name) VALUES ('b');\nSELECT id FROM t;",
+      "options": [
+        "1",
+        "NULL",
+        "Ошибка: identity не восстановлена после ROLLBACK",
+        "2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Значения identity берутся из последовательности, а nextval не откатывается вместе с транзакцией. Выданное в отменённой транзакции значение 1 теряется, поэтому в идентификаторах возможны пропуски."
+    },
+    {
+      "id": "sql-ddl-020",
+      "topic": "ddl",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какое утверждение о таблице верно?",
+      "code": "-- lessons(student, course, teacher)\n-- PRIMARY KEY (student, course)\n-- Каждый преподаватель ведёт ровно один курс: teacher -> course\n-- У курса может быть несколько преподавателей",
+      "options": [
+        "Таблица нарушает 2НФ из-за частичной зависимости",
+        "Таблица в 3НФ, но нарушает НФБК (BCNF)",
+        "Таблица нарушает 1НФ из-за неатомарных значений",
+        "Таблица в НФБК, нарушений нормальных форм нет"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Зависимость teacher -> course нарушает НФБК, так как teacher не суперключ. 3НФ при этом соблюдена: course входит в ключ-кандидат (student, course), то есть является ключевым атрибутом, а неключевых атрибутов с частичной или транзитивной зависимостью нет."
+    },
+    {
+      "id": "sql-ddl-021",
+      "topic": "ddl",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про денормализацию схемы?",
+      "options": [
+        "Всегда уменьшает объём хранимых данных",
+        "Намеренно дублирует данные ради ускорения чтения",
+        "Устраняет аномалии обновления данных",
+        "Требует следить за согласованностью копий данных"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Денормализация добавляет избыточность ради скорости чтения: например, хранит сумму заказа или имя клиента прямо в заказе. Платой становятся больший объём и риск рассинхронизации копий, то есть те самые аномалии обновления, от которых избавляет нормализация."
+    },
+    {
+      "id": "sql-ddl-022",
+      "topic": "ddl",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про схемы (schema) в PostgreSQL?",
+      "options": [
+        "В одной базе могут одновременно существовать таблицы sales.orders и archive.orders",
+        "Таблицы из разных схем одной базы нельзя соединять в одном запросе",
+        "Имя таблицы без указания схемы ищется по схемам из search_path",
+        "Схема — это отдельная база данных со своими подключениями"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Схема — пространство имён внутри базы: одинаковые имена в разных схемах не конфликтуют, а JOIN между схемами одной базы работает как обычно. Неполные имена разрешаются по порядку схем в search_path (по умолчанию \"$user\", public)."
+    },
+    {
+      "id": "sql-ddl-023",
+      "topic": "ddl",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт при выполнении последней команды в PostgreSQL?",
+      "code": "CREATE TABLE sales (id int, amount int);\nCREATE MATERIALIZED VIEW sales_total AS\n  SELECT sum(amount) AS s FROM sales;\n\nINSERT INTO sales VALUES (1, 10);\n\nREFRESH MATERIALIZED VIEW CONCURRENTLY sales_total;",
+      "options": [
+        "Представление обновится, не блокируя чтение из него",
+        "Команда ничего не сделает: представление уже обновилось само",
+        "Обновление будет отложено до ближайшего VACUUM",
+        "Ошибка: для CONCURRENTLY нужен уникальный индекс на представлении"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "REFRESH ... CONCURRENTLY сравнивает старый и новый результат построчно, поэтому требует хотя бы один уникальный индекс по столбцам представления (без WHERE). Обычный REFRESH сработал бы, но заблокировал бы чтение на время обновления."
+    },
+    {
+      "id": "sql-ddl-024",
+      "topic": "ddl",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какие команды завершатся ошибкой (в таблице t(x int) изначально одна строка с x = -1)?",
+      "code": "-- (1)\nALTER TABLE t ADD CONSTRAINT x_pos CHECK (x > 0) NOT VALID;\n-- (2)\nINSERT INTO t VALUES (5);\n-- (3)\nINSERT INTO t VALUES (-2);\n-- (4)\nALTER TABLE t VALIDATE CONSTRAINT x_pos;",
+      "options": [
+        "(3) и (4)",
+        "Только (1)",
+        "Только (4)",
+        "(1) и (3)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "NOT VALID добавляет ограничение без проверки существующих строк, но новые и изменяемые строки проверяются сразу, поэтому (3) падает. VALIDATE CONSTRAINT проверяет старые данные и спотыкается о строку с -1."
+    },
+    {
+      "id": "sql-indexes-013",
+      "topic": "indexes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Таблица логов на сотни миллионов строк: строки только добавляются, и created_at растёт вместе с физическим порядком записи. Какой индекс позволит фильтровать по диапазону created_at при минимальном размере индекса?",
+      "options": [
+        "Hash",
+        "GIN",
+        "GiST",
+        "BRIN"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "BRIN хранит лишь сводку (минимум и максимум) по диапазонам блоков, поэтому весит в сотни раз меньше B-tree и хорошо работает, когда значения коррелируют с физическим порядком строк. Hash не поддерживает диапазоны, а GIN и GiST предназначены для составных и геометрических типов."
+    },
+    {
+      "id": "sql-indexes-014",
+      "topic": "indexes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Для какого запроса может использоваться Hash-индекс по столбцу code в PostgreSQL?",
+      "code": "CREATE INDEX ON products USING hash (code);",
+      "options": [
+        "WHERE code > 'A1'",
+        "WHERE code = 'A1'",
+        "WHERE code LIKE 'A%'",
+        "ORDER BY code LIMIT 10"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Hash-индекс хранит хеши значений и поддерживает только оператор равенства. Диапазоны, префиксный LIKE и сортировку обслуживает B-tree."
+    },
+    {
+      "id": "sql-indexes-015",
+      "topic": "indexes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой тип индекса в PostgreSQL обычно используют для поиска пересекающихся интервалов (оператор && по столбцу tstzrange) и для ограничений EXCLUDE, запрещающих пересечение бронирований?",
+      "options": [
+        "Hash",
+        "BRIN",
+        "GiST",
+        "B-tree"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "GiST поддерживает операторы пересечения и вложения для диапазонных и геометрических типов, на нём строят и ограничения исключения (EXCLUDE USING gist). B-tree и Hash умеют только сравнение и равенство значений целиком."
+    },
+    {
+      "id": "sql-indexes-016",
+      "topic": "indexes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает rows=100 в выводе EXPLAIN?",
+      "code": "EXPLAIN SELECT * FROM orders WHERE customer_id = 42;\n\nSeq Scan on orders  (cost=0.00..1791.00 rows=100 width=12)\n  Filter: (customer_id = 42)",
+      "options": [
+        "Оценку планировщика: сколько строк выдаст этот узел",
+        "Фактическое число найденных строк",
+        "Число строк, прочитанных до применения фильтра",
+        "Число страниц таблицы, которые будут прочитаны"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Обычный EXPLAIN не выполняет запрос, поэтому rows — это оценка по статистике числа строк на выходе узла (уже после Filter). Фактические значения показывает EXPLAIN ANALYZE в блоке actual."
+    },
+    {
+      "id": "sql-indexes-017",
+      "topic": "indexes",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В таблице orders миллион строк и B-tree индекс по status. Для какого условия планировщик, скорее всего, выберет этот индекс?",
+      "options": [
+        "status = 'refund' (0,1% строк)",
+        "status = 'done' (95% строк)",
+        "status <> 'refund'",
+        "status IS NOT NULL (NULL нет)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Индекс выгоден при высокой селективности, когда условию соответствует малая доля строк. Если выбирается почти вся таблица, последовательное чтение дешевле множества обращений через индекс, а условие <> индексом B-tree вообще не ищется."
+    },
+    {
+      "id": "sql-indexes-018",
+      "topic": "indexes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему в плане Heap Fetches равно числу строк, и что это исправит?",
+      "code": "CREATE TABLE t (id int PRIMARY KEY, v int);\nINSERT INTO t SELECT g, g FROM generate_series(1, 100000) g;\nANALYZE t;\n\nEXPLAIN (ANALYZE, COSTS OFF) SELECT id FROM t WHERE id < 1000;\n\nIndex Only Scan using t_pkey on t (actual time=... rows=999 loops=1)\n  Index Cond: (id < 1000)\n  Heap Fetches: 999",
+      "options": [
+        "Индекс не покрывает id — нужен индекс с INCLUDE (id)",
+        "Статистика устарела — поможет повторный ANALYZE t",
+        "Visibility map не отмечает страницы — поможет VACUUM t",
+        "Так работает любой Index Only Scan — уменьшить нельзя"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Index Only Scan обращается к таблице для проверки видимости строки, если её страница не помечена в visibility map как all-visible. Карту обновляет VACUUM (или autovacuum); после него Heap Fetches станет 0."
+    },
+    {
+      "id": "sql-indexes-019",
+      "topic": "indexes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Столбец orders.id имеет тип bigint и B-tree индекс. Какое условие позволит использовать этот индекс для поиска в PostgreSQL?",
+      "options": [
+        "WHERE id::text = '42'",
+        "WHERE id = 42",
+        "WHERE id + 0 = 42",
+        "WHERE id = 42.0"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Индекс применим, только если сам столбец стоит в условии без преобразований. В остальных вариантах к столбцу применяется выражение: приведение к text, сложение или неявное приведение к numeric (литерал 42.0 имеет тип numeric, и сравнение идёт как numeric = numeric)."
+    },
+    {
+      "id": "sql-indexes-020",
+      "topic": "indexes",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Есть отдельные B-tree индексы по a и по b, условию соответствует малая доля строк. Какой план типичен для этого запроса в PostgreSQL?",
+      "code": "SELECT * FROM t WHERE a = 1 OR b = 2;",
+      "options": [
+        "Index Only Scan по одному из индексов с фильтром",
+        "Два Index Scan, соединённые через Hash Join",
+        "Nested Loop, где внешний цикл идёт по индексу a",
+        "BitmapOr двух Bitmap Index Scan, затем Bitmap Heap Scan"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Для OR по разным индексам PostgreSQL строит битовые карты страниц из каждого индекса, объединяет их (BitmapOr) и читает страницы таблицы в физическом порядке, перепроверяя условие. Соединения (Join) тут не нужны: это одна таблица."
+    },
+    {
+      "id": "sql-indexes-021",
+      "topic": "indexes",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Есть B-tree индекс по events(created_at), тип столбца — timestamp. Какие условия могут использовать этот индекс как Index Cond?",
+      "options": [
+        "created_at::date = '2024-01-15'",
+        "created_at >= '2024-01-01' AND created_at < '2024-02-01'",
+        "date_trunc('month', created_at) = '2024-01-01'",
+        "created_at BETWEEN '2024-01-01' AND '2024-01-31 23:59:59'"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Диапазонные условия непосредственно по столбцу B-tree обслуживает напрямую. Приведение к date и date_trunc — выражения над столбцом, для них понадобился бы функциональный индекс; обычно же условие переписывают в полуинтервал."
+    },
+    {
+      "id": "sql-indexes-022",
+      "topic": "indexes",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про VACUUM и ANALYZE в PostgreSQL?",
+      "options": [
+        "ANALYZE перестраивает все индексы анализируемой таблицы",
+        "ANALYZE собирает статистику значений для планировщика",
+        "Обычный VACUUM помечает место мёртвых строк для переиспользования",
+        "Обычный VACUUM блокирует таблицу и возвращает место ОС"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "ANALYZE обновляет статистику (pg_statistic), по которой планировщик оценивает селективность. Обычный VACUUM работает параллельно с чтением и записью и чаще всего не уменьшает файл; эксклюзивная блокировка и возврат места ОС — это VACUUM FULL. Индексы перестраивает REINDEX."
+    },
+    {
+      "id": "sql-indexes-023",
+      "topic": "indexes",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "В таблице orders миллион строк и 50 разных значений status. Какой индекс лучше всего подходит для запроса?",
+      "code": "SELECT * FROM orders\nWHERE status = 'paid' AND created_at >= '2024-06-01'\nORDER BY created_at\nLIMIT 20;",
+      "options": [
+        "(created_at, status)",
+        "(created_at) INCLUDE (status)",
+        "(status, created_at)",
+        "Два отдельных: (status) и (created_at)"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Столбец с равенством ставят первым, а столбец диапазона и сортировки — следом: внутри status = 'paid' записи уже упорядочены по created_at, поэтому скан начинается с нужной даты, не требует Sort и останавливается после 20 строк. При (created_at, status) пришлось бы просматривать записи всех статусов после даты."
+    },
+    {
+      "id": "sql-indexes-024",
+      "topic": "indexes",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какие INSERT завершатся ошибкой (таблица users изначально пуста)?",
+      "code": "CREATE TABLE users (email text, deleted_at timestamptz);\nCREATE UNIQUE INDEX users_email_alive\n  ON users (email) WHERE deleted_at IS NULL;\n\nINSERT INTO users VALUES ('a@x.io', NULL);   -- (1)\nINSERT INTO users VALUES ('a@x.io', now());  -- (2)\nINSERT INTO users VALUES ('a@x.io', now());  -- (3)\nINSERT INTO users VALUES ('a@x.io', NULL);   -- (4)",
+      "options": [
+        "(2) и (3)",
+        "Только (4)",
+        "(3) и (4)",
+        "Никакие"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Частичный уникальный индекс содержит только строки с deleted_at IS NULL, поэтому уникальность проверяется лишь среди «живых» записей. Удалённые (2) и (3) в индекс не попадают, а (4) — второй живой a@x.io."
+    },
+    {
+      "id": "sql-transactions-013",
+      "topic": "transactions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как MVCC в PostgreSQL позволяет обычному SELECT не ждать транзакцию, которая прямо сейчас обновляет ту же строку?",
+      "options": [
+        "UPDATE создаёт новую версию строки, читатель видит версию из снимка",
+        "SELECT читает последнюю, ещё не зафиксированную версию строки",
+        "UPDATE до COMMIT копирует всю таблицу в отдельный файл",
+        "SELECT берёт разделяемую блокировку, совместимую с UPDATE"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "При UPDATE PostgreSQL не перезаписывает строку, а создаёт новую версию; старая остаётся видимой снимкам, в которых новая ещё не зафиксирована. Поэтому читатели не блокируют писателей и наоборот, а незафиксированные данные никто, кроме автора, не видит."
+    },
+    {
+      "id": "sql-transactions-014",
+      "topic": "transactions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Два обработчика очереди работают параллельно. Что вернёт SELECT обработчика B, пока транзакция A не завершена?",
+      "code": "-- tasks(id, status): (1, 'new'), (2, 'new'), (3, 'new')\n\n-- Обработчик A:\nBEGIN;\nSELECT id FROM tasks WHERE status = 'new'\nORDER BY id LIMIT 1\nFOR UPDATE SKIP LOCKED;   -- 1\n\n-- Обработчик B:\nBEGIN;\nSELECT id FROM tasks WHERE status = 'new'\nORDER BY id LIMIT 1\nFOR UPDATE SKIP LOCKED;   -- ?",
+      "options": [
+        "1",
+        "Ничего: будет ждать завершения A",
+        "2",
+        "Ошибку could not obtain lock on row"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "SKIP LOCKED пропускает строки, уже заблокированные другими транзакциями, и сразу берёт следующую подходящую. Без этой опции B ждал бы A, а с NOWAIT получил бы ошибку."
+    },
+    {
+      "id": "sql-transactions-015",
+      "topic": "transactions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какая команда начинает транзакцию с уровнем изоляции REPEATABLE READ в PostgreSQL?",
+      "options": [
+        "SET ISOLATION REPEATABLE READ;",
+        "BEGIN ISOLATION LEVEL REPEATABLE READ;",
+        "BEGIN REPEATABLE READ TRANSACTION;",
+        "START TRANSACTION WITH (isolation = rr);"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Уровень задают прямо в BEGIN / START TRANSACTION через ISOLATION LEVEL либо первой командой транзакции SET TRANSACTION ISOLATION LEVEL. Остальные варианты — синтаксические ошибки."
+    },
+    {
+      "id": "sql-transactions-016",
+      "topic": "transactions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что должно сделать приложение, получив в PostgreSQL ошибку SQLSTATE 40001 (could not serialize access)?",
+      "options": [
+        "Повторить только последний оператор той же транзакции",
+        "Выполнить COMMIT: изменения уже применены",
+        "Понизить уровень изоляции для всей базы",
+        "Откатить транзакцию и повторить её целиком с начала"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Ошибка сериализации означает, что транзакцию нельзя зафиксировать без нарушения изоляции; транзакция уже в состоянии ошибки. Правильная реакция — ROLLBACK и повтор всей транзакции, включая чтения, так как повтор может увидеть новые данные."
+    },
+    {
+      "id": "sql-transactions-017",
+      "topic": "transactions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт последний SELECT (изначально t пуста, id — PRIMARY KEY)?",
+      "code": "BEGIN;\nINSERT INTO t (id) VALUES (1);\nSAVEPOINT s;\nINSERT INTO t (id) VALUES (1);   -- ошибка уникальности\nROLLBACK TO SAVEPOINT s;\nINSERT INTO t (id) VALUES (2);\nCOMMIT;\n\nSELECT count(*) FROM t;",
+      "options": [
+        "0",
+        "1",
+        "3",
+        "2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "ROLLBACK TO SAVEPOINT выводит транзакцию из состояния ошибки, откатывая только действия после точки s. Затем вставляется 2, и COMMIT фиксирует строки 1 и 2. Без savepoint транзакция была бы прервана и не сохранила бы ничего."
+    },
+    {
+      "id": "sql-transactions-018",
+      "topic": "transactions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем закончится UPDATE в T1 в PostgreSQL?",
+      "code": "-- accounts: (id = 1, balance = 100)\n\n-- T1: BEGIN ISOLATION LEVEL REPEATABLE READ;\n-- T1: SELECT balance FROM accounts WHERE id = 1;   -- 100\n-- T2: UPDATE accounts SET balance = 200 WHERE id = 1;   -- автокоммит\n-- T1: UPDATE accounts SET balance = balance + 10 WHERE id = 1;",
+      "options": [
+        "Успешно: UPDATE применится к снимку, balance = 110",
+        "Ошибкой could not serialize access due to concurrent update",
+        "Успешно: UPDATE применится к новой версии, balance = 210",
+        "Ошибкой deadlock detected после deadlock_timeout"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "На REPEATABLE READ T1 видит снимок с balance = 100, но строку после снимка изменила зафиксированная транзакция. Применить обновление поверх неё без нарушения снимка нельзя, поэтому PostgreSQL прерывает T1 с ошибкой сериализации, и её нужно повторить. На READ COMMITTED получилось бы 210."
+    },
+    {
+      "id": "sql-transactions-019",
+      "topic": "transactions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой balance будет после обеих транзакций (уровень READ COMMITTED)?",
+      "code": "-- accounts: (id = 1, balance = 100)\n\n-- T1: BEGIN;\n-- T1: UPDATE accounts SET balance = balance - 10 WHERE id = 1;\n-- T2: BEGIN;\n-- T2: UPDATE accounts SET balance = balance - 10 WHERE id = 1;  -- ждёт T1\n-- T1: COMMIT;\n-- T2: COMMIT;",
+      "options": [
+        "90",
+        "100",
+        "80",
+        "T2 получит ошибку, balance станет 90"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "UPDATE в T2 ждёт снятия блокировки строки, а после COMMIT T1 на READ COMMITTED перечитывает её последнюю версию (90) и применяет своё изменение к ней. Потерянного обновления не происходит, итог 80."
+    },
+    {
+      "id": "sql-transactions-020",
+      "topic": "transactions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Переводы между счетами (UPDATE двух строк в одной транзакции) иногда падают с ошибкой deadlock detected. Какой приём устраняет причину?",
+      "options": [
+        "Захватывать строки всегда в одном порядке, например по id",
+        "Увеличить deadlock_timeout, чтобы проверка шла реже",
+        "Перевести такие транзакции на уровень SERIALIZABLE",
+        "Заменить UPDATE на предварительный SELECT ... FOR SHARE"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Взаимоблокировка возникает, когда одна транзакция держит строку A и ждёт B, а другая — наоборот. Единый порядок захвата исключает цикл ожидания. deadlock_timeout лишь откладывает обнаружение, а FOR SHARE с последующим UPDATE сам легко приводит к deadlock."
+    },
+    {
+      "id": "sql-transactions-021",
+      "topic": "transactions",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про advisory-блокировки в PostgreSQL?",
+      "options": [
+        "Смысл ключа блокировки определяет приложение; к строкам таблиц он не привязан",
+        "pg_advisory_xact_lock снимается только вызовом pg_advisory_unlock",
+        "Сессионная pg_advisory_lock не снимается при COMMIT транзакции",
+        "pg_advisory_lock(42) блокирует строку с id = 42 во всех таблицах"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Advisory-блокировки — это именованные числом мьютексы, их значение знает только приложение. Сессионные держатся до pg_advisory_unlock или конца сессии независимо от COMMIT, а транзакционные (_xact_) снимаются автоматически в конце транзакции и явно не освобождаются."
+    },
+    {
+      "id": "sql-transactions-022",
+      "topic": "transactions",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про построчные блокировки в PostgreSQL?",
+      "options": [
+        "NOWAIT заставляет ждать освобождения строки не дольше lock_timeout",
+        "FOR UPDATE не мешает другим транзакциям читать строку обычным SELECT",
+        "SKIP LOCKED возвращает заблокированные строки, но только для чтения",
+        "Две транзакции могут одновременно держать FOR SHARE на одной строке"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Обычный SELECT построчных блокировок не берёт и из-за MVCC не ждёт FOR UPDATE. FOR SHARE совместим сам с собой, но конфликтует с изменением строки. NOWAIT сразу выдаёт ошибку вместо ожидания, а SKIP LOCKED просто не возвращает заблокированные строки."
+    },
+    {
+      "id": "sql-transactions-023",
+      "topic": "transactions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Чем закончится сценарий в PostgreSQL?",
+      "code": "-- doctors: (1, 'Ann', on_call = true), (2, 'Bob', on_call = true)\n-- Правило приложения: дежурить должен хотя бы один врач\n\n-- T1: BEGIN ISOLATION LEVEL REPEATABLE READ;\n-- T2: BEGIN ISOLATION LEVEL REPEATABLE READ;\n-- T1: SELECT count(*) FROM doctors WHERE on_call;   -- 2\n-- T2: SELECT count(*) FROM doctors WHERE on_call;   -- 2\n-- T1: UPDATE doctors SET on_call = false WHERE id = 1;\n-- T2: UPDATE doctors SET on_call = false WHERE id = 2;\n-- T1: COMMIT;\n-- T2: COMMIT;",
+      "options": [
+        "T2 получит ошибку сериализации на COMMIT",
+        "Обе транзакции зафиксируются, дежурных не останется",
+        "UPDATE в T2 дождётся T1 и обновит 0 строк",
+        "T2 получит ошибку concurrent update на UPDATE"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Это write skew: транзакции меняют разные строки, поэтому конфликта записи нет, и REPEATABLE READ (изоляция снимков) пропускает обе. Только на уровне SERIALIZABLE PostgreSQL обнаружит зависимость чтение-запись и прервёт одну из транзакций."
+    },
+    {
+      "id": "sql-transactions-024",
+      "topic": "transactions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что сделает UPDATE в T2 после COMMIT в T1 (уровень READ COMMITTED)?",
+      "code": "-- t: (id = 1, status = 'new', attempts = 0)\n\n-- T1: BEGIN;\n-- T1: UPDATE t SET status = 'done' WHERE id = 1;\n-- T2: UPDATE t SET attempts = attempts + 1\n--     WHERE status = 'new';                 -- ждёт T1\n-- T1: COMMIT;",
+      "options": [
+        "Обновит строку: attempts = 1, status = 'done'",
+        "Завершится ошибкой could not serialize access",
+        "Перепроверит WHERE на новой версии строки и обновит 0 строк",
+        "Обновит старую версию строки, изменение T1 потеряется"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "На READ COMMITTED ожидавший UPDATE после фиксации конкурента берёт новую версию строки и заново проверяет по ней WHERE. Теперь status = 'done', условие ложно, и строка пропускается. Ошибку сериализации дали бы REPEATABLE READ и SERIALIZABLE."
+    },
+    {
+      "id": "sql-dml-013",
+      "topic": "dml",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт команда?",
+      "code": "-- stock\n-- sku | qty\n-- A   | 0\n-- B   | 5\n-- C   | 0\n\nDELETE FROM stock WHERE qty = 0 RETURNING sku;",
+      "options": [
+        "Одну строку: число 2",
+        "Одну строку: B",
+        "Две строки: A и C",
+        "Ошибку: DELETE не поддерживает RETURNING"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "RETURNING в DELETE возвращает значения удалённых строк, здесь sku = A и C. Число затронутых строк выводится отдельно, в статусе команды (DELETE 2)."
+    },
+    {
+      "id": "sql-dml-014",
+      "topic": "dml",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт SELECT?",
+      "code": "-- products        new_prices\n-- id | price      id | price\n-- 1  | 100        1  | 150\n-- 2  | 200        3  | 350\n-- 3  | 300\n\nUPDATE products p\nSET price = n.price\nFROM new_prices n\nWHERE p.id = n.id;\n\nSELECT SUM(price) FROM products;",
+      "options": [
+        "600",
+        "500",
+        "NULL",
+        "700"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "UPDATE ... FROM обновляет только строки products, для которых нашлась пара в new_prices: 1 -> 150 и 3 -> 350. Строка 2 остаётся 200, сумма 150 + 200 + 350 = 700."
+    },
+    {
+      "id": "sql-dml-015",
+      "topic": "dml",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк останется в orders?",
+      "code": "-- users              orders\n-- id | blocked       id | user_id\n-- 1  | false         10 | 1\n-- 2  | true          11 | 2\n-- 3  | true          12 | 2\n--                    13 | 3\n--                    14 | 1\n\nDELETE FROM orders o\nUSING users u\nWHERE o.user_id = u.id AND u.blocked;\n\nSELECT count(*) FROM orders;",
+      "options": [
+        "3",
+        "2",
+        "0",
+        "5"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "DELETE ... USING соединяет orders с users и удаляет заказы заблокированных пользователей 2 и 3 (заказы 11, 12, 13). Остаются заказы 10 и 14; таблица из USING не изменяется."
+    },
+    {
+      "id": "sql-dml-016",
+      "topic": "dml",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем TRUNCATE t отличается от DELETE FROM t в PostgreSQL?",
+      "options": [
+        "Не удаляет строки поштучно и не вызывает строковые триггеры",
+        "Его нельзя откатить через ROLLBACK, даже внутри транзакции",
+        "Поддерживает WHERE для удаления только части строк",
+        "Работает только с таблицами, у которых нет индексов"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "TRUNCATE не сканирует таблицу, а сразу заменяет её файлы пустыми, поэтому быстрее на больших таблицах и сразу освобождает место; строковые триггеры ON DELETE не срабатывают. В PostgreSQL TRUNCATE транзакционна, но WHERE не поддерживает."
+    },
+    {
+      "id": "sql-dml-017",
+      "topic": "dml",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт команда в PostgreSQL?",
+      "code": "-- users(id int PRIMARY KEY, name text)\n-- Данные: (1, 'Ann')\n\nINSERT INTO users (id, name)\nVALUES (1, 'Bob'), (2, 'Cid')\nON CONFLICT (id) DO NOTHING\nRETURNING id;",
+      "options": [
+        "Две строки: 1 и 2",
+        "Одну строку: 2",
+        "Ничего: вся вставка отменена",
+        "Одну строку: 1"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "RETURNING возвращает только реально вставленные (или обновлённые) строки. Строка с id = 1 пропущена из-за DO NOTHING, поэтому в результате лишь id = 2."
+    },
+    {
+      "id": "sql-dml-018",
+      "topic": "dml",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что будет в таблице stock после MERGE?",
+      "code": "-- stock          incoming\n-- sku | qty      sku | qty\n-- A   | 5        A   | 0\n-- B   | 3        C   | 7\n\nMERGE INTO stock s\nUSING incoming i ON s.sku = i.sku\nWHEN MATCHED AND i.qty = 0 THEN DELETE\nWHEN MATCHED THEN UPDATE SET qty = i.qty\nWHEN NOT MATCHED THEN INSERT (sku, qty) VALUES (i.sku, i.qty);",
+      "options": [
+        "(B, 3), (C, 7)",
+        "(A, 0), (B, 3), (C, 7)",
+        "(A, 5), (B, 3), (C, 7)",
+        "(C, 7)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Для каждой строки источника срабатывает первое подходящее WHEN: A совпала и qty = 0 — удаляется; C не нашлась — вставляется. B нет в источнике, и её не трогают: для этого понадобилось бы WHEN NOT MATCHED BY SOURCE."
+    },
+    {
+      "id": "sql-dml-019",
+      "topic": "dml",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какое значение qty будет у sku = 'A' после выполнения?",
+      "code": "-- inventory(sku text PRIMARY KEY, qty int)\n-- Данные: ('A', 5)\n\nINSERT INTO inventory (sku, qty) VALUES ('A', 3)\nON CONFLICT (sku) DO UPDATE\nSET qty = EXCLUDED.qty\nWHERE inventory.qty < EXCLUDED.qty;",
+      "options": [
+        "3",
+        "8",
+        "Ошибка: дубликат ключа",
+        "5"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "WHERE в DO UPDATE определяет, обновлять ли конфликтующую строку. Условие 5 < 3 ложно, поэтому строка остаётся без изменений, а ошибки нет: конфликт уже обработан."
+    },
+    {
+      "id": "sql-dml-020",
+      "topic": "dml",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Команду выполняют в psql на ноутбуке, подключённом к удалённому серверу PostgreSQL. Откуда будет прочитан файл?",
+      "code": "COPY users FROM '/home/me/users.csv' WITH (FORMAT csv, HEADER);",
+      "options": [
+        "С ноутбука, на котором запущен клиент psql",
+        "Из каталога, который указан в search_path",
+        "С файловой системы сервера БД, процессом сервера",
+        "Из временной области памяти текущей сессии"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "COPY с именем файла читает его на стороне сервера и требует прав суперпользователя или роли pg_read_server_files. Для файла на клиенте используют метакоманду psql \\copy или COPY ... FROM STDIN."
+    },
+    {
+      "id": "sql-dml-021",
+      "topic": "dml",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие приёмы ускоряют загрузку миллиона строк в PostgreSQL?",
+      "options": [
+        "Фиксировать каждую строку отдельным COMMIT",
+        "Использовать COPY вместо построчных INSERT",
+        "Создать все индексы до загрузки, а не после",
+        "Слать многострочные INSERT в одной транзакции"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "COPY и пакетные многострочные INSERT экономят на разборе команд, сетевых обменах и фиксациях. COMMIT на каждую строку, наоборот, заставляет каждый раз сбрасывать WAL на диск, а индексы выгоднее строить после загрузки, чем обновлять на каждой вставке."
+    },
+    {
+      "id": "sql-dml-022",
+      "topic": "dml",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения верны после выполнения команды в PostgreSQL?",
+      "code": "-- orders(id, status): (1, 'done'), (2, 'new'), (3, 'done'), (4, 'new')\n-- archive: та же структура, пуста\n\nWITH moved AS (\n  DELETE FROM orders WHERE status = 'done'\n  RETURNING *\n)\nINSERT INTO archive SELECT * FROM moved;",
+      "options": [
+        "В orders останутся строки 2 и 4",
+        "Команда упадёт: DELETE нельзя использовать в WITH",
+        "В archive окажутся строки 1 и 3",
+        "archive останется пустой: INSERT видит данные до DELETE"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "PostgreSQL разрешает изменяющие операторы в WITH; их RETURNING доступен основному запросу как обычная таблица. Так строки переносятся атомарно одной командой: удалённые заказы 1 и 3 попадают в archive."
+    },
+    {
+      "id": "sql-dml-023",
+      "topic": "dml",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт в PostgreSQL?",
+      "code": "-- products        new_prices\n-- id | price      id | price\n-- 1  | 100        1  | 150\n--                 1  | 170\n\nUPDATE products p\nSET price = n.price\nFROM new_prices n\nWHERE p.id = n.id;",
+      "options": [
+        "Цена станет 150 или 170 — какой именно, не определено",
+        "Ошибка: подзапрос вернул больше одной строки",
+        "price станет 320 — значения сложатся",
+        "Строка обновится дважды, итог всегда 170"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Если строке цели соответствует несколько строк из FROM, PostgreSQL обновит её только один раз, используя одну произвольную из них, без ошибки. MERGE в такой ситуации выдал бы ошибку, поэтому источник для UPDATE ... FROM нужно делать уникальным по ключу соединения."
+    },
+    {
+      "id": "sql-dml-024",
+      "topic": "dml",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что будет в таблице products после выполнения?",
+      "code": "-- products        new_prices\n-- id | price      id | price\n-- 1  | 100        1  | 150\n-- 2  | 200        3  | 350\n-- 3  | 300\n\nUPDATE products p\nSET price = (SELECT n.price FROM new_prices n WHERE n.id = p.id);",
+      "options": [
+        "(1, 150), (2, 200), (3, 350)",
+        "(1, 150), (3, 350) — строка 2 удалится",
+        "Ошибка: подзапрос не вернул строк для id = 2",
+        "(1, 150), (2, NULL), (3, 350)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "UPDATE без WHERE затрагивает все строки, а скалярный подзапрос, не нашедший строк, возвращает NULL. Поэтому цена товара 2 затирается. Нужно добавить WHERE EXISTS (...) или использовать UPDATE ... FROM."
+    }
+  ]
+}

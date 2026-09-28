@@ -415,6 +415,7 @@ pre.code {
 }
 .option.multi .letter { border-radius: 6px; }
 .option .txt { padding-top: 3px; flex: 1; min-width: 0; }
+.option .txt.code-opt { font-family: var(--mono); font-size: 13px; line-height: 1.5; white-space: pre-wrap; padding-top: 4px; }
 .option.selected { border-color: var(--accent); background: var(--accent-soft); }
 .option.selected .letter { background: var(--accent); color: var(--accent-contrast); }
 .option.correct { border-color: var(--ok); background: var(--ok-soft); }

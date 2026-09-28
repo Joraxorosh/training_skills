@@ -2,7 +2,7 @@
 
 Веб-тренажёр для подготовки к собеседованиям и проверки знаний. Работает в браузере на телефоне и на компьютере. На телефоне его можно установить на главный экран как приложение (PWA).
 
-**Курсы:** DevOps (120 вопросов, 10 тем) и SQL (120 вопросов, 10 тем).
+**Курсы:** DevOps (288 вопросов, 12 тем) и SQL (288 вопросов, 12 тем), по 24 вопроса на тему.
 
 ## Возможности
 
@@ -77,8 +77,8 @@ public/
   sw.js, manifest.webmanifest      — PWA
   data/
     courses.json                   — список курсов
-    devops-1.json, devops-2.json   — вопросы DevOps
-    sql-1.json, sql-2.json         — вопросы SQL
+    devops-1..5.json               — вопросы DevOps
+    sql-1..5.json                  — вопросы SQL
 server.js                          — статический сервер без зависимостей
 scripts/validate.js                — проверка формата вопросов
 Dockerfile, docker-compose.yml, deploy/Caddyfile

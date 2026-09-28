@@ -1,0 +1,873 @@
+{
+  "topics": [
+    {
+      "id": "security",
+      "title": "Безопасность и DevSecOps"
+    },
+    {
+      "id": "nginx",
+      "title": "Nginx, веб-серверы и балансировка"
+    }
+  ],
+  "questions": [
+    {
+      "id": "devops-security-001",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает принцип наименьших привилегий (least privilege) применительно к сервисным аккаунтам и CI-токенам?",
+      "options": [
+        "Выдавать только те права, которые нужны для конкретной задачи, и не больше",
+        "Выдавать права только пользователям с наименьшим стажем в команде",
+        "Использовать один общий токен с правами администратора для всех пайплайнов",
+        "Отзывать все права на выходные и восстанавливать их в понедельник"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Least privilege — каждая учётная запись, процесс или токен получает минимально необходимый набор прав. Это ограничивает ущерб при компрометации: утёкший токен с правом только на push в один репозиторий гораздо менее опасен, чем админский."
+    },
+    {
+      "id": "devops-security-002",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем DAST отличается от SAST?",
+      "options": [
+        "DAST анализирует исходный код, SAST — скомпилированные бинарники",
+        "DAST проверяет только лицензии зависимостей, SAST — их уязвимости",
+        "DAST тестирует запущенное приложение снаружи, SAST анализирует код без запуска",
+        "DAST выполняется только в продакшене, SAST — только на ноутбуке разработчика"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "SAST (Static Application Security Testing) ищет уязвимости в исходном коде без его выполнения. DAST (Dynamic) атакует работающее приложение как «чёрный ящик» — отправляет запросы и анализирует ответы, например, ищет XSS или SQL-инъекции."
+    },
+    {
+      "id": "devops-security-003",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какую задачу решает SCA (Software Composition Analysis)?",
+      "options": [
+        "Поиск логических ошибок и code smells в собственном коде команды",
+        "Поиск известных уязвимостей и проблем с лицензиями в сторонних зависимостях",
+        "Нагрузочное тестирование API и базы данных перед каждым релизом сервиса",
+        "Автоматическую ротацию паролей и токенов доступа к базам данных"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SCA-инструменты (Dependabot, Snyk, OWASP Dependency-Check, Trivy и др.) сопоставляют используемые библиотеки и их версии с базами известных уязвимостей (CVE) и проверяют лицензии."
+    },
+    {
+      "id": "devops-security-004",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие из перечисленных форматов являются стандартными форматами SBOM (Software Bill of Materials)?",
+      "options": [
+        "SARIF",
+        "SPDX",
+        "OpenAPI",
+        "CycloneDX"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "SPDX (стандарт ISO/IEC 5962) и CycloneDX (проект OWASP) — два основных формата SBOM, описывающих состав ПО. SARIF — формат результатов статического анализа, OpenAPI — описание HTTP API."
+    },
+    {
+      "id": "devops-security-005",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Уязвимость имеет базовую оценку CVSS 9.8. К какому уровню критичности она относится по шкале CVSS?",
+      "options": [
+        "Medium",
+        "High",
+        "Low",
+        "Critical"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Качественная шкала CVSS: 0.1–3.9 Low, 4.0–6.9 Medium, 7.0–8.9 High, 9.0–10.0 Critical. Оценка 9.8 — Critical."
+    },
+    {
+      "id": "devops-security-006",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Разработчик случайно закоммитил и запушил в публичный репозиторий действующий API-ключ. Что нужно сделать в первую очередь?",
+      "options": [
+        "Удалить файл следующим коммитом — этого достаточно",
+        "Отозвать (ротировать) ключ у провайдера и выпустить новый",
+        "Сделать репозиторий приватным и больше ничего не менять",
+        "Переписать историю через git filter-repo и сделать force push"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Ключ нужно считать скомпрометированным: его могли уже скопировать боты, сканирующие GitHub, форки и кэши. Главное — немедленно отозвать его; чистка истории полезна, но вторична и сама по себе ключ не защищает."
+    },
+    {
+      "id": "devops-security-007",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какая команда Trivy просканирует Docker-образ на известные уязвимости?",
+      "options": [
+        "trivy image myapp:1.4",
+        "trivy scan --docker myapp:1.4",
+        "trivy run myapp:1.4",
+        "trivy check container myapp:1.4"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Для образов используется подкоманда trivy image. Для других целей есть trivy fs (файловая система), trivy repo, trivy config (IaC-конфигурации), trivy k8s."
+    },
+    {
+      "id": "devops-security-008",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Почему ресурс SealedSecret (Bitnami Sealed Secrets) можно хранить в Git-репозитории?",
+      "options": [
+        "Значения в нём закодированы в base64, а этого достаточно для защиты от чтения",
+        "Он хранит не сами секреты, а только ссылку на запись в HashiCorp Vault",
+        "Он зашифрован публичным ключом контроллера, расшифровать его может только контроллер",
+        "Git-сервер автоматически шифрует файлы с kind: SealedSecret при push"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "kubeseal шифрует секрет публичным ключом контроллера Sealed Secrets. Приватный ключ есть только у контроллера в кластере: он расшифровывает SealedSecret и создаёт обычный Secret. Base64 шифрованием не является."
+    },
+    {
+      "id": "devops-security-009",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие настройки в /etc/ssh/sshd_config повышают защищённость SSH-сервера?",
+      "options": [
+        "PermitRootLogin no",
+        "PermitEmptyPasswords yes",
+        "PasswordAuthentication no",
+        "X11Forwarding yes",
+        "MaxAuthTries 3"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "Запрет входа root, отключение парольной аутентификации (только ключи) и ограничение числа попыток аутентификации за соединение усложняют атаки. Пустые пароли и X11Forwarding, наоборот, расширяют поверхность атаки."
+    },
+    {
+      "id": "devops-security-010",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем mTLS (mutual TLS) отличается от обычного TLS, используемого на большинстве сайтов?",
+      "options": [
+        "В mTLS трафик шифруется дважды разными алгоритмами",
+        "В mTLS используется только самоподписанный сертификат сервера",
+        "В mTLS сертификат сервера не проверяется, проверяется только клиент",
+        "В mTLS сертификаты предъявляют обе стороны: и сервер, и клиент"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "В обычном TLS клиент проверяет сертификат сервера, а сервер клиента не аутентифицирует. В mTLS клиент тоже предъявляет сертификат, и стороны проверяют друг друга — так часто защищают межсервисный трафик (например, в service mesh)."
+    },
+    {
+      "id": "devops-security-011",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Файл зашифрован с помощью SOPS. Какое утверждение о нём верно?",
+      "code": "db:\n    user: ENC[AES256_GCM,data:3kLx,iv:...,tag:...,type:str]\n    password: ENC[AES256_GCM,data:Qm9v8w==,iv:...,tag:...,type:str]\nsops:\n    age:\n        - recipient: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p\n    lastmodified: \"2026-03-10T09:12:44Z\"\n    mac: ENC[AES256_GCM,data:...,type:str]",
+      "options": [
+        "Ключи YAML открыты, шифруются только значения; расшифрует владелец age-ключа",
+        "Файл зашифрован целиком и поэтому больше не является валидным YAML",
+        "Значения лишь закодированы в base64 и читаются без всякого ключа",
+        "Расшифровать файл может только кластер Kubernetes, в котором он был создан"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "SOPS шифрует только значения, оставляя структуру и ключи читаемыми — это удобно для diff и code review. Ключ данных шифруется для получателей (age, PGP, AWS/GCP KMS, Azure Key Vault, Vault), а поле mac защищает файл от подмены."
+    },
+    {
+      "id": "devops-security-012",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Namespace помечен меткой pod-security.kubernetes.io/enforce: restricted. Какие из перечисленных настроек securityContext обязательны для контейнеров пода по профилю Restricted из Pod Security Standards?",
+      "options": [
+        "allowPrivilegeEscalation: false",
+        "readOnlyRootFilesystem: true",
+        "capabilities: { drop: [\"ALL\"] }",
+        "privileged: true",
+        "seccompProfile: { type: RuntimeDefault }"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "Restricted требует запрет повышения привилегий, drop ALL для capabilities (добавить можно только NET_BIND_SERVICE), seccomp-профиль RuntimeDefault или Localhost (его можно задать и на уровне пода) и runAsNonRoot: true. readOnlyRootFilesystem — хорошая практика, но профилем не требуется, а privileged: true запрещён уже в Baseline."
+    },
+    {
+      "id": "devops-security-013",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Эту NetworkPolicy применили в namespace prod (CNI поддерживает NetworkPolicy). Каким будет эффект?",
+      "code": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: default-deny\n  namespace: prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress",
+      "options": [
+        "Политика ни на что не повлияет, так как в ней нет ни одного правила ingress",
+        "Будет запрещён и входящий, и исходящий трафик всех подов в prod",
+        "Будет запрещён входящий трафик только к подам prod без меток",
+        "Запрещён весь входящий трафик ко всем подам prod, исходящий не изменится"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Пустой podSelector выбирает все поды namespace, а policyTypes: [Ingress] без списка правил означает «разрешённых входящих источников нет». Egress не указан в policyTypes, поэтому исходящий трафик остаётся открытым."
+    },
+    {
+      "id": "devops-security-014",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "При keyless-подписи образа через cosign используются компоненты Sigstore. Какую роль играет Rekor?",
+      "options": [
+        "Выдаёт короткоживущие сертификаты, привязанные к OIDC-идентичности",
+        "Хранит приватные ключи подписантов в аппаратном модуле",
+        "Сканирует подписанный образ на уязвимости перед публикацией",
+        "Ведёт публичный неизменяемый журнал прозрачности записей о подписях"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Rekor — transparency log: записи о подписях добавляются в append-only журнал, который можно проверить. Короткоживущие сертификаты по OIDC-токену выдаёт Fulcio, поэтому долгоживущий приватный ключ хранить не нужно."
+    },
+    {
+      "id": "devops-security-015",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что описывает provenance (происхождение сборки) в терминах SLSA?",
+      "options": [
+        "Перечень всех прямых и транзитивных зависимостей артефакта с лицензиями",
+        "Проверяемую запись о том, кто, где, из каких исходников и как собрал артефакт",
+        "Список найденных в артефакте CVE с их оценками по шкале CVSS",
+        "Политику, какие пользователи могут скачивать артефакт из реестра"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SLSA provenance — аттестация о сборке: билдер, исходный репозиторий и коммит, параметры и входные данные. Уровни Build-трека SLSA (L1–L3) повышают доверие к этой записи: начиная с L2 её подписывает платформа сборки, на L3 билдер защищён от вмешательства самих сборок. Список компонентов — это уже SBOM."
+    },
+    {
+      "id": "devops-security-016",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Приложение получает учётные данные к PostgreSQL через database secrets engine в HashiCorp Vault. Как это работает?",
+      "options": [
+        "Vault хранит один общий пароль и раздаёт его всем экземплярам приложения",
+        "Vault шифрует трафик между приложением и базой вместо TLS",
+        "Vault по запросу создаёт в БД уникальную учётку с TTL (lease) и удаляет её по истечении",
+        "Vault раз в сутки меняет пароль суперпользователя postgres и отправляет его на почту"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Это dynamic secrets: для каждого запроса Vault создаёт отдельного пользователя БД с ограниченным сроком жизни (lease). По истечении или при отзыве lease учётка удаляется, поэтому утёкшие данные быстро становятся бесполезными, а доступ можно отследить до конкретного клиента."
+    },
+    {
+      "id": "devops-security-017",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Эта команда выполняется шагом в CI. В каком случае шаг завершится с ошибкой?",
+      "code": "trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed registry.example.com/shop/api:2.3.0",
+      "options": [
+        "При любой найденной уязвимости, включая уровни LOW и MEDIUM",
+        "Только при HIGH или CRITICAL уязвимостях, у которых есть исправление",
+        "Только если найдены CRITICAL уязвимости без доступного исправления",
+        "Никогда: флаг --exit-code 1 лишь печатает предупреждение в лог"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "--severity ограничивает учитываемые уровни, --ignore-unfixed скрывает уязвимости, у которых нет исправленной версии, а --exit-code 1 заставляет Trivy вернуть код 1, если после фильтрации что-то осталось."
+    },
+    {
+      "id": "devops-security-018",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сервис в облаке скачивает картинку по URL, переданному пользователем. Злоумышленник передаёт адрес ниже и получает временные ключи роли инстанса. Как называется эта атака?",
+      "code": "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+      "options": [
+        "SSRF (Server-Side Request Forgery)",
+        "CSRF (Cross-Site Request Forgery)",
+        "Clickjacking",
+        "XXE (XML External Entity)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "При SSRF сервер выполняет запрос от своего имени к адресу, выбранному атакующим, — в том числе к внутренним ресурсам вроде сервиса метаданных облака. Защита: allowlist адресов, запрет обращений к link-local и внутренним сетям, IMDSv2 с обязательным токеном."
+    },
+    {
+      "id": "devops-security-019",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Браузер открывает сайт без ошибок, а curl и часть Android-клиентов выдают «unable to get local issuer certificate». В nginx указан ssl_certificate с одним сертификатом сайта. В чём наиболее вероятная причина?",
+      "options": [
+        "Сертификат сайта истёк, но браузер временно это игнорирует",
+        "На сервере отключён TLS 1.3, а curl требует именно его",
+        "Сервер не отдаёт промежуточный сертификат, нужен fullchain",
+        "У сертификата неверный Common Name, а SAN правильный"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Сервер должен отдавать сертификат сайта вместе с промежуточными. Браузеры иногда достраивают цепочку сами (кэш, загрузка по AIA), а curl и многие клиенты — нет. В nginx в ssl_certificate указывают файл, где сначала сертификат сайта, затем промежуточные (fullchain)."
+    },
+    {
+      "id": "devops-security-020",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Для npm install при сборке образа нужен токен приватного реестра. Какой вариант не оставит токен в слоях и истории образа?",
+      "options": [
+        "ARG NPM_TOKEN и передача через --build-arg",
+        "ENV NPM_TOKEN=... в начале Dockerfile",
+        "COPY .npmrc, затем RUN rm .npmrc в следующей инструкции",
+        "RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "BuildKit-секрет монтируется только на время выполнения RUN и не попадает в слой. Значения ARG видны в docker history, ENV сохраняется в конфиге образа, а файл, удалённый в следующем слое, остаётся в предыдущем слое."
+    },
+    {
+      "id": "devops-security-021",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какой трафик разрешит это правило ingress к подам app: db?",
+      "code": "spec:\n  podSelector:\n    matchLabels:\n      app: db\n  policyTypes: [Ingress]\n  ingress:\n    - from:\n        - namespaceSelector:\n            matchLabels:\n              team: web\n          podSelector:\n            matchLabels:\n              app: frontend",
+      "options": [
+        "От любых подов из namespace с team: web и от подов app: frontend из любых namespace",
+        "Только от подов app: frontend в namespace с меткой team: web",
+        "Только от подов app: frontend в том же namespace, что и db",
+        "От любых подов кластера: namespaceSelector и podSelector отменяют друг друга"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "namespaceSelector и podSelector в одном элементе списка from объединяются через AND. Если бы podSelector начинался с отдельного «-», это были бы два элемента, объединённые через OR, и доступ получили бы оба множества подов."
+    },
+    {
+      "id": "devops-security-022",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Образ подписан keyless через cosign в GitHub Actions. Зачем при проверке указывать оба флага?",
+      "code": "cosign verify \\\n  --certificate-identity \"https://github.com/acme/shop/.github/workflows/release.yml@refs/heads/main\" \\\n  --certificate-oidc-issuer \"https://token.actions.githubusercontent.com\" \\\n  ghcr.io/acme/shop@sha256:4f1c...",
+      "options": [
+        "Без них cosign не сможет найти в OCI-реестре подпись этого образа",
+        "Они нужны только для поиска записи в Rekor и на результат проверки не влияют",
+        "Подписать может любой владелец OIDC-токена; флаги задают ожидаемого подписанта",
+        "Флаги задают публичный ключ, которым этот образ был подписан при сборке в CI"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Fulcio выдаёт сертификат любому, кто прошёл OIDC-аутентификацию, поэтому валидная подпись сама по себе ничего не говорит о доверии. Проверка должна привязывать её к ожидаемой идентичности (workflow конкретного репозитория и ветки) и издателю токена."
+    },
+    {
+      "id": "devops-security-023",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о приоритизации уязвимостей верны?",
+      "options": [
+        "Базовая оценка CVSS отражает тяжесть уязвимости, а не вероятность её эксплуатации",
+        "EPSS оценивает вероятность эксплуатации уязвимости в ближайшие 30 дней",
+        "Базовая оценка CVSS учитывает, вызывается ли уязвимая функция в вашем приложении",
+        "Каталог CISA KEV содержит уязвимости, эксплуатация которых уже замечена в атаках",
+        "У уязвимости с CVSS ниже 4.0 не может быть присвоен идентификатор CVE"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "CVSS base описывает внутренние свойства уязвимости и не знает о вашем контексте (достижимость кода выясняют reachability-анализом). EPSS даёт вероятность эксплуатации, KEV — факт эксплуатации; их комбинируют с CVSS для приоритизации. CVE присваивается независимо от оценки."
+    },
+    {
+      "id": "devops-security-024",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "kube-apiserver запущен с такой EncryptionConfiguration. Что происходит с Secret-ами?",
+      "code": "apiVersion: apiserver.config.k8s.io/v1\nkind: EncryptionConfiguration\nresources:\n  - resources: [\"secrets\"]\n    providers:\n      - identity: {}\n      - aescbc:\n          keys:\n            - name: key1\n              secret: 5bJbMVL1cBZ+2+otR9CVnsgBtTmiWsQ1FLzrDK7W9bM=",
+      "options": [
+        "Новые Secret пишутся в etcd открытыми; aescbc нужен лишь для чтения старых",
+        "Все Secret шифруются aescbc, а identity служит запасным вариантом при ошибке",
+        "kube-apiserver не запустится: identity нельзя сочетать с другими провайдерами",
+        "Все существующие Secret автоматически перешифровываются при старте kube-apiserver"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Для записи используется первый провайдер в списке, а при чтении провайдеры перебираются по порядку. identity первым означает «писать без шифрования». Чтобы шифровать, aescbc (или kms) ставят первым, а существующие Secret перезаписывают, например kubectl get secrets -A -o json | kubectl replace -f -."
+    },
+    {
+      "id": "devops-nginx-001",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой метод балансировки nginx использует по умолчанию в блоке upstream, если метод явно не задан?",
+      "code": "upstream app {\n    server 10.0.0.11:8080;\n    server 10.0.0.12:8080;\n}",
+      "options": [
+        "least_conn — по числу соединений",
+        "ip_hash — по адресу клиента",
+        "Взвешенный round-robin",
+        "random — случайный выбор"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "По умолчанию запросы распределяются взвешенным round-robin (weight по умолчанию 1). Остальные методы включаются явно директивами least_conn, ip_hash, hash, random."
+    },
+    {
+      "id": "devops-nginx-002",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает директива least_conn в блоке upstream?",
+      "options": [
+        "Отправляет запрос на сервер с наименьшим числом активных соединений",
+        "Закрывает самые старые соединения, когда их становится слишком много",
+        "Ограничивает число соединений от одного клиента",
+        "Выбирает сервер с наименьшим временем ответа по данным health checks"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "least_conn направляет запрос на сервер с наименьшим числом активных соединений, учитывая веса; при равенстве используется round-robin. Метод полезен, когда запросы сильно различаются по длительности."
+    },
+    {
+      "id": "devops-nginx-003",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В access.log nginx встречаются запросы со статусом 499. Что это означает?",
+      "options": [
+        "Бэкенд вернул нестандартный код ошибки из диапазона 4xx",
+        "Клиент закрыл соединение до того, как nginx отправил ответ",
+        "Запрос отклонён модулем limit_req из-за превышения лимита",
+        "Размер тела запроса превысил client_max_body_size"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "499 — нестандартный код nginx (Client Closed Request): клиент разорвал соединение, не дождавшись ответа. Часто это признак медленного бэкенда или слишком короткого таймаута у клиента или балансировщика перед nginx. Превышение client_max_body_size даёт 413."
+    },
+    {
+      "id": "devops-nginx-004",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что умеет балансировщик уровня L7, чего не может балансировщик уровня L4?",
+      "options": [
+        "Выбирать бэкенд по пути URL, заголовку Host или cookie",
+        "Распределять TCP-соединения между несколькими серверами",
+        "Проксировать UDP-трафик, например DNS",
+        "Проверять, открыт ли TCP-порт на бэкенде"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "L4-балансировщик оперирует IP-адресами и портами TCP/UDP и не видит содержимое HTTP. L7 (nginx http, HAProxy в mode http, Envoy) разбирает HTTP и может маршрутизировать по пути, заголовкам, cookie, а также менять запросы и ответы."
+    },
+    {
+      "id": "devops-nginx-005",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает этот server-блок?",
+      "code": "server {\n    listen 80;\n    server_name example.com www.example.com;\n    return 301 https://$host$request_uri;\n}",
+      "options": [
+        "Проксирует запросы на HTTPS-бэкенд, не меняя URL в адресной строке браузера",
+        "Возвращает 301 только для корня сайта, остальные пути отдаёт по HTTP",
+        "Отдаёт ошибку 301 и закрывает соединение без заголовка Location",
+        "Постоянно перенаправляет на HTTPS с тем же хостом, путём и query string"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "return 301 с URL отправляет клиенту постоянный редирект с заголовком Location. $request_uri содержит исходный путь вместе с аргументами, $host — имя хоста из запроса."
+    },
+    {
+      "id": "devops-nginx-006",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Запрос пришёл с заголовком Host: unknown.test, который не совпадает ни с одним server_name. Какой server обработает запрос?",
+      "code": "server {\n    listen 80;\n    server_name a.example.com;\n}\nserver {\n    listen 80 default_server;\n    server_name b.example.com;\n}\nserver {\n    listen 80;\n    server_name c.example.com;\n}",
+      "options": [
+        "Первый в конфигурации — a.example.com",
+        "Сервер с default_server — b.example.com",
+        "Последний в конфигурации — c.example.com",
+        "Никакой: nginx сразу закроет соединение"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Если Host не совпал ни с одним server_name, запрос уходит в default server для данной пары адрес:порт. Без явного default_server им был бы первый server с этим listen."
+    },
+    {
+      "id": "devops-nginx-007",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В http-блоке указано только gzip on;. API отдаёт ответы с Content-Type: application/json. Будут ли они сжаты?",
+      "options": [
+        "Нет: по умолчанию сжимается только text/html, нужен gzip_types",
+        "Да: gzip on сжимает ответы любых MIME-типов без исключений",
+        "Нет: nginx не умеет сжимать JSON, это делает только бэкенд",
+        "Да, но только если размер ответа превышает 1 МБ"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "По умолчанию gzip_types равен text/html, и этот тип сжимается всегда. Для JSON, CSS, JS нужно явно указать gzip_types application/json text/css application/javascript и т.п."
+    },
+    {
+      "id": "devops-nginx-008",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие команды применят изменённую конфигурацию nginx без остановки обслуживания (graceful reload)?",
+      "options": [
+        "nginx -s reload",
+        "nginx -s quit",
+        "kill -HUP $(cat /run/nginx.pid)",
+        "nginx -s stop",
+        "systemctl reload nginx"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "reload эквивалентен сигналу HUP мастер-процессу: он перечитывает конфиг, запускает новые воркеры, а старые завершают текущие запросы. quit — плавная остановка, stop — быстрая; обе останавливают nginx. Перед reload полезно выполнить nginx -t."
+    },
+    {
+      "id": "devops-nginx-009",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает TLS-терминация на nginx?",
+      "options": [
+        "nginx завершает TLS-сессию, если клиент использует устаревший протокол",
+        "nginx пропускает зашифрованный трафик к бэкенду без расшифровки",
+        "nginx отзывает сертификаты клиентов после окончания сессии",
+        "nginx расшифровывает HTTPS клиента и передаёт запрос бэкенду, часто по HTTP"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "При терминации сертификат и приватный ключ хранятся на прокси, он расшифровывает трафик и может работать с HTTP (маршрутизация, заголовки, кэш). Передача зашифрованного трафика без расшифровки — это TLS passthrough (L4)."
+    },
+    {
+      "id": "devops-nginx-010",
+      "topic": "nginx",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой веб-сервер по умолчанию сам получает и продлевает TLS-сертификаты (например, от Let's Encrypt) для доменов из конфигурации?",
+      "options": [
+        "HAProxy",
+        "Caddy",
+        "Apache httpd",
+        "nginx"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Caddy включает Automatic HTTPS по умолчанию: для указанных доменов он сам получает сертификаты по ACME, продлевает их и настраивает редирект с HTTP. У nginx с 2025 года есть официальный динамический модуль ngx_http_acme_module, а в HAProxy появилась встроенная поддержка ACME, но их нужно явно подключать и настраивать; традиционно используют внешний клиент вроде certbot."
+    },
+    {
+      "id": "devops-nginx-011",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой location обработает запрос GET /images/logo.png?",
+      "code": "server {\n    location / {\n        root /var/www/site;\n    }\n    location /images/ {\n        root /var/www/media;\n    }\n    location ~* \\.(png|jpg|gif)$ {\n        root /var/www/cache;\n        expires 30d;\n    }\n}",
+      "options": [
+        "location /",
+        "location /images/",
+        "location ~* \\.(png|jpg|gif)$",
+        "Первый по порядку в файле, то есть location /"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "nginx запоминает самый длинный совпавший префикс (/images/), но затем проверяет регулярные выражения, и совпавшее регулярное выражение имеет приоритет. Префикс победил бы только с модификатором ^~ или при отсутствии совпадающих регулярных выражений."
+    },
+    {
+      "id": "devops-nginx-012",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой location обработает запрос GET /admin/index.php?",
+      "code": "location ~ \\.php$ {\n    fastcgi_pass 127.0.0.1:9000;\n}\nlocation ~ ^/admin/ {\n    auth_basic \"Admin\";\n    auth_basic_user_file /etc/nginx/.htpasswd;\n}\nlocation /admin/ {\n    root /var/www;\n}",
+      "options": [
+        "location /admin/, так как префиксы имеют приоритет",
+        "location ~ ^/admin/, так как это совпадение длиннее",
+        "Оба регулярных выражения: их директивы объединятся",
+        "location ~ \\.php$ — первое совпавшее регулярное выражение"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Регулярные location проверяются в порядке появления в конфиге, и используется первое совпадение. Здесь это \\.php$, поэтому auth_basic для /admin/*.php не сработает — классическая дыра в конфигурациях."
+    },
+    {
+      "id": "devops-nginx-013",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой URI получит бэкенд при запросе GET /api/users?id=7?",
+      "code": "upstream backend {\n    server 10.0.0.5:8080;\n}\nserver {\n    location /api/ {\n        proxy_pass http://backend/;\n    }\n}",
+      "options": [
+        "/api/users?id=7",
+        "/users?id=7",
+        "//users?id=7",
+        "/users"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Если в proxy_pass указан URI (здесь это «/»), совпавшая с location часть (/api/) заменяется на него: /api/users → /users. Аргументы передаются как есть."
+    },
+    {
+      "id": "devops-nginx-014",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Это конфиг для SPA. Файла /var/www/app/dashboard/settings на диске нет. Что вернёт nginx на запрос GET /dashboard/settings?",
+      "code": "server {\n    root /var/www/app;\n    location / {\n        try_files $uri $uri/ /index.html;\n    }\n}",
+      "options": [
+        "Ошибку 404 Not Found",
+        "Редирект 302 на /index.html со сменой URL в браузере",
+        "Содержимое /var/www/app/index.html со статусом 200",
+        "Листинг каталога /var/www/app/dashboard/"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "try_files по очереди проверяет файл, затем каталог, а последний параметр выполняет внутренний редирект на /index.html. Клиент получает index.html без смены URL, и роутинг выполняет фронтенд. Чтобы вернуть 404, последним параметром указывают =404."
+    },
+    {
+      "id": "devops-nginx-015",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Клиент с одного IP резко отправляет больше запросов, чем допускают rate и burst. Что произойдёт с запросами сверх burst?",
+      "code": "limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;\n\nserver {\n    location /api/ {\n        limit_req zone=api burst=20 nodelay;\n        proxy_pass http://backend;\n    }\n}",
+      "options": [
+        "Они встанут в очередь и будут обработаны со скоростью 10 r/s",
+        "Они будут сразу отклонены с кодом 503",
+        "Они будут отклонены с кодом 429, так как это код по умолчанию",
+        "Они будут перенаправлены на другой сервер upstream"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Запросы в пределах burst с nodelay обрабатываются сразу, а превышающие burst отклоняются. Код по умолчанию — 503 (limit_req_status 503); для 429 нужно явно задать limit_req_status 429."
+    },
+    {
+      "id": "devops-nginx-016",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "В nginx версии 1.26 нужно включить переиспользование (keepalive) соединений с бэкендами upstream. Что для этого нужно в конфигурации?",
+      "options": [
+        "Директива keepalive 32; в блоке upstream",
+        "proxy_http_version 1.1; в location с proxy_pass",
+        "keepalive_timeout 65; в блоке http или server",
+        "proxy_set_header Connection \"\"; в location с proxy_pass"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "keepalive в upstream включает кэш простаивающих соединений, а для HTTP нужны HTTP/1.1 (до 1.29.7 по умолчанию использовался 1.0) и очистка заголовка Connection, который по умолчанию равен close. keepalive_timeout относится к соединениям с клиентами."
+    },
+    {
+      "id": "devops-nginx-017",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В upstream включён ip_hash. Почти все пользователи — сотрудники офиса, выходящие в интернет через один NAT-адрес. Как будет распределена нагрузка?",
+      "code": "upstream app {\n    ip_hash;\n    server 10.0.0.11:8080;\n    server 10.0.0.12:8080;\n    server 10.0.0.13:8080;\n}",
+      "options": [
+        "Равномерно: ip_hash учитывает также порт клиента",
+        "Равномерно: nginx использует X-Forwarded-For вместо адреса клиента",
+        "По кругу, так как ip_hash работает только для IPv6",
+        "Почти весь трафик уйдёт на один сервер"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Ключом ip_hash служат первые три октета IPv4-адреса клиента (или весь IPv6-адрес). Один NAT-адрес даёт один и тот же хэш, поэтому сервер будет один. Заголовок X-Forwarded-For ip_hash не учитывает."
+    },
+    {
+      "id": "devops-nginx-018",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означают параметры max_fails и fail_timeout в этой конфигурации?",
+      "code": "upstream app {\n    server 10.0.0.11:8080 max_fails=3 fail_timeout=30s;\n    server 10.0.0.12:8080 max_fails=3 fail_timeout=30s;\n}",
+      "options": [
+        "После 3 неудач за 30 секунд сервер считается недоступным на 30 секунд",
+        "nginx каждые 30 секунд отправляет на сервер 3 проверочных запроса",
+        "Каждый запрос повторяется максимум 3 раза с паузой 30 секунд",
+        "Сервер навсегда исключается из upstream после 3 ошибок до reload"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Это пассивные проверки: nginx считает неудачи реальных запросов. Если за fail_timeout их набралось max_fails, сервер исключается на время fail_timeout, после чего снова получает трафик. Значения по умолчанию — max_fails=1 и fail_timeout=10s."
+    },
+    {
+      "id": "devops-nginx-019",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Запрос пришёл на nginx с адреса 203.0.113.7 с заголовком X-Forwarded-For: 198.51.100.20. Какое значение X-Forwarded-For получит бэкенд?",
+      "code": "location / {\n    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    proxy_pass http://backend;\n}",
+      "options": [
+        "203.0.113.7",
+        "198.51.100.20",
+        "198.51.100.20, 203.0.113.7",
+        "203.0.113.7, 198.51.100.20"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "$proxy_add_x_forwarded_for — это входящий X-Forwarded-For, к которому через запятую добавлен $remote_addr. Первые значения присылает клиент, поэтому доверять им можно, только если их добавили ваши прокси."
+    },
+    {
+      "id": "devops-nginx-020",
+      "topic": "nginx",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Бэкенд обслуживает несколько виртуальных хостов по заголовку Host. Какой Host он получит при запросе клиента на https://shop.example.com/?",
+      "code": "upstream backend {\n    server 10.0.0.5:8080;\n}\nserver {\n    listen 443 ssl;\n    server_name shop.example.com;\n    location / {\n        proxy_pass http://backend;\n    }\n}",
+      "options": [
+        "backend",
+        "shop.example.com",
+        "10.0.0.5:8080",
+        "Заголовок Host не передаётся"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "По умолчанию nginx подставляет Host: $proxy_host — имя и порт из proxy_pass (порт 80 не указывается), здесь это backend. Чтобы передать исходное имя, добавляют proxy_set_header Host $host."
+    },
+    {
+      "id": "devops-nginx-021",
+      "topic": "nginx",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какой URI получит бэкенд при запросе GET /api/users?",
+      "code": "location /api/ {\n    proxy_pass http://backend/v2;\n}",
+      "options": [
+        "/v2/users",
+        "/v2/api/users",
+        "/v2users",
+        "/api/users"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Совпавшая с location часть /api/ заменяется URI из proxy_pass буквально: /api/users → /v2 + users = /v2users. Чтобы получить /v2/users, нужно писать proxy_pass http://backend/v2/; — слэши в location и proxy_pass должны соответствовать."
+    },
+    {
+      "id": "devops-nginx-022",
+      "topic": "nginx",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Кэш включён так. Какие ответы nginx НЕ сохранит в кэш (proxy_ignore_headers и proxy_cache_methods не заданы)?",
+      "code": "proxy_cache_path /var/cache/nginx keys_zone=app:10m;\n\nlocation / {\n    proxy_cache app;\n    proxy_cache_valid 200 10m;\n    proxy_pass http://backend;\n}",
+      "options": [
+        "Ответ 200 на GET без заголовков кэширования",
+        "Ответ 200 на GET с заголовком Set-Cookie",
+        "Ответ 200 на POST-запрос",
+        "Ответ 200 на GET с заголовком Vary: *",
+        "Ответ 200 на GET с заголовком Cache-Control: max-age=300"
+      ],
+      "correct": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "Ответы с Set-Cookie и с Vary: * nginx не кэширует, а proxy_cache_methods по умолчанию — GET HEAD, поэтому POST не кэшируется. Cache-Control: max-age имеет приоритет над proxy_cache_valid и лишь задаёт время хранения."
+    },
+    {
+      "id": "devops-nginx-023",
+      "topic": "nginx",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт с запросом GET /old/page?",
+      "code": "location /old/ {\n    rewrite ^/old/(.*)$ /new/$1 break;\n    proxy_pass http://backend;\n}\nlocation /new/ {\n    return 403;\n}",
+      "options": [
+        "Клиент получит 403, так как после rewrite выбран location /new/",
+        "Бэкенд получит запрос с URI /old/page, rewrite игнорируется",
+        "Клиент получит редирект 302 на /new/page",
+        "Бэкенд получит запрос с URI /new/page"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Флаг break прекращает обработку rewrite и оставляет запрос в текущем location, поэтому /new/ не выбирается. proxy_pass без URI при изменённом URI передаёт бэкенду полный новый URI. С флагом last nginx заново искал бы location и вернул бы 403."
+    },
+    {
+      "id": "devops-nginx-024",
+      "topic": "nginx",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "В каких ситуациях nginx в роли reverse proxy вернёт клиенту 502 Bad Gateway?",
+      "options": [
+        "Бэкенд не слушает порт, и connect() получает Connection refused",
+        "Бэкенд принял запрос, но не ответил за время proxy_read_timeout",
+        "Бэкенд закрыл соединение, не отправив заголовки ответа",
+        "Запрос превысил лимит limit_req для клиента",
+        "Заголовки ответа больше proxy_buffer_size (too big header)"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "502 означает, что nginx не получил от upstream корректного ответа: отказ в соединении, преждевременное закрытие, слишком большие или битые заголовки. Истечение proxy_read_timeout даёт 504, а превышение limit_req — 503 по умолчанию."
+    }
+  ]
+}

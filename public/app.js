@@ -111,6 +111,13 @@ function rich(s) {
   return esc(s).replace(/`([^`]+)`/g, '<code>$1</code>');
 }
 
+// Вариант ответа: многострочный (обычно SQL-запрос) показываем как код
+function optionHtml(text) {
+  return String(text).includes('\n')
+    ? `<span class="txt code-opt">${esc(text)}</span>`
+    : `<span class="txt">${rich(text)}</span>`;
+}
+
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -442,7 +449,7 @@ function renderQuestion() {
       cls += ' selected';
     }
     return `<button class="${cls}" data-action="pick" data-value="${orig}" ${revealed ? 'disabled' : ''}>
-      <span class="letter">${LETTERS[pos]}</span><span class="txt">${rich(q.options[orig])}</span>
+      <span class="letter">${LETTERS[pos]}</span>${optionHtml(q.options[orig])}
     </button>`;
   }).join('');
 
@@ -599,7 +606,9 @@ function renderResult() {
       <div class="bar ${pct(t.ok, t.total) >= 70 ? 'ok' : ''}"><span style="width:${pct(t.ok, t.total)}%"></span></div>
     </div>`).join('');
 
-  const answerText = (q, idxs) => idxs.length ? idxs.map((i) => rich(q.options[i])).join('; ') : '—';
+  const answerText = (q, idxs) => idxs.length
+    ? idxs.map((i) => (q.options[i].includes('\n') ? `<pre class="code">${esc(q.options[i])}</pre>` : rich(q.options[i]))).join('; ')
+    : '—';
   const review = results.map((r) => {
     const good = r.a && r.a.ok;
     return `<details class="review">

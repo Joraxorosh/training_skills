@@ -1,0 +1,879 @@
+{
+  "topics": [
+    {
+      "id": "postgres",
+      "title": "Возможности PostgreSQL"
+    },
+    {
+      "id": "practice",
+      "title": "Практические задачи"
+    }
+  ],
+  "questions": [
+    {
+      "id": "sql-postgres-001",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие типы вернёт запрос?",
+      "code": "SELECT pg_typeof(data -> 'name')  AS t1,\n       pg_typeof(data ->> 'name') AS t2\nFROM (SELECT '{\"name\": \"Ann\"}'::jsonb AS data) s;",
+      "options": [
+        "t1 = text, t2 = jsonb",
+        "t1 = jsonb, t2 = text",
+        "t1 = text, t2 = text",
+        "t1 = jsonb, t2 = jsonb"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Оператор `->` возвращает значение как jsonb (для строки — вместе с кавычками), а `->>` — как text. Поэтому для сравнения со строкой или приведения к числу обычно используют `->>`."
+    },
+    {
+      "id": "sql-postgres-002",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT x FROM generate_series(1, 10, 3) AS x;",
+      "options": [
+        "1, 4, 7",
+        "1, 4, 7, 10",
+        "1, 3, 6, 9",
+        "3, 6, 9"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "generate_series(start, stop, step) выдаёт значения от start с шагом step, пока они не превышают stop; обе границы включаются. 10 = 1 + 3·3, поэтому оно тоже попадает в результат."
+    },
+    {
+      "id": "sql-postgres-003",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какое условие проверяет, что значение 5 содержится в массиве `arr` (тип int[])?",
+      "options": [
+        "5 IN (arr)",
+        "5 = ALL(arr)",
+        "arr = 5",
+        "5 = ANY(arr)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`x = ANY(arr)` истинно, если x равен хотя бы одному элементу массива. `5 IN (arr)` и `arr = 5` сравнивают число с целым массивом и падают с ошибкой типов, а `= ALL` требует равенства всем элементам."
+    },
+    {
+      "id": "sql-postgres-004",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос в PostgreSQL?",
+      "code": "SELECT (ARRAY[10, 20, 30])[1];",
+      "options": [
+        "20",
+        "10",
+        "NULL",
+        "Ошибка: индекс 1 выходит за границы массива"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Индексы массивов PostgreSQL по умолчанию начинаются с 1, поэтому [1] — первый элемент. Обращение за границы (например, [0] или [4]) не вызывает ошибку, а возвращает NULL."
+    },
+    {
+      "id": "sql-postgres-005",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выводит команда `\\dt` в psql?",
+      "options": [
+        "Список всех баз данных на сервере",
+        "Описание столбцов и индексов одной таблицы",
+        "Список пользовательских типов данных",
+        "Список таблиц из схем, входящих в search_path"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`\\dt` выводит список таблиц. Без шаблона показываются объекты, видимые через search_path. Базы данных выводит `\\l`, структуру конкретной таблицы — `\\d имя_таблицы`, типы — `\\dT`."
+    },
+    {
+      "id": "sql-postgres-006",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает команда `\\x` в psql?",
+      "options": [
+        "Переключает расширенный вывод: столбцы строки идут друг под другом",
+        "Повторно выполняет последний запрос из буфера и выводит его результат",
+        "Завершает сеанс psql и закрывает соединение с сервером базы данных",
+        "Показывает план выполнения последнего запроса вместо его результата"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`\\x` включает и выключает расширенный (вертикальный) формат вывода, удобный для широких строк; `\\x auto` включает его только когда строка не помещается. Выход — `\\q`, повтор запроса — `\\g`."
+    },
+    {
+      "id": "sql-postgres-007",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица users:\n id | name\n----+------\n  1 | Ann\n  2 | Bob\n  3 | Cat\n\nSELECT jsonb_agg(name ORDER BY id DESC) FROM users;",
+      "options": [
+        "[\"Cat\", \"Bob\", \"Ann\"]",
+        "{Cat,Bob,Ann}",
+        "[{\"name\": \"Cat\"}, {\"name\": \"Bob\"}, {\"name\": \"Ann\"}]",
+        "Три строки: \"Cat\", \"Bob\", \"Ann\""
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "jsonb_agg — агрегатная функция: собирает значения группы в один JSON-массив, порядок задаёт ORDER BY внутри вызова. Запись `{Cat,Bob,Ann}` — вывод обычного массива от array_agg, а массив объектов получился бы из jsonb_agg(users) или jsonb_build_object."
+    },
+    {
+      "id": "sql-postgres-008",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой вызов генерирует случайный UUID встроенными средствами PostgreSQL 13+, без установки расширений?",
+      "options": [
+        "uuid_generate_v4()",
+        "newid()",
+        "gen_random_uuid()",
+        "random_uuid()"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Начиная с PostgreSQL 13 функция gen_random_uuid() встроена в ядро (раньше она была в pgcrypto). uuid_generate_v4() требует расширения uuid-ossp, а newid() — функция SQL Server."
+    },
+    {
+      "id": "sql-postgres-009",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Для чего используют расширение pg_stat_statements?",
+      "options": [
+        "Собирает статистику выполненных запросов: число вызовов, время, строки",
+        "Ведёт журнал изменений строк во всех таблицах для последующего аудита",
+        "Шифрует выбранные столбцы таблиц прозрачно для приложения и клиентов",
+        "Автоматически создаёт индексы для самых медленных запросов в базе"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "pg_stat_statements агрегирует статистику по нормализованным текстам запросов: calls, total_exec_time, mean_exec_time, rows и другие поля. Для работы его нужно добавить в shared_preload_libraries и выполнить CREATE EXTENSION pg_stat_statements."
+    },
+    {
+      "id": "sql-postgres-010",
+      "topic": "postgres",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие утверждения о строковых типах PostgreSQL верны?",
+      "options": [
+        "Для text не нужно указывать максимальную длину",
+        "INSERT строки длиннее n символов в столбец varchar(n) завершится ошибкой",
+        "text заметно медленнее varchar(n), поэтому для коротких строк лучше varchar",
+        "char(n) дополняет более короткие значения пробелами до длины n"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "В PostgreSQL text и varchar хранятся одинаково и по скорости не различаются; varchar(n) лишь добавляет проверку длины (превышение при INSERT — ошибка). char(n) дополняет значение пробелами до n символов."
+    },
+    {
+      "id": "sql-postgres-011",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT 0.1::float8  + 0.2::float8  = 0.3::float8  AS f,\n       0.1::numeric + 0.2::numeric = 0.3::numeric AS n;",
+      "options": [
+        "f = true, n = true",
+        "f = false, n = false",
+        "f = false, n = true",
+        "f = true, n = false"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "float8 — двоичное число с плавающей точкой: 0.1 и 0.2 в нём непредставимы точно, и сумма не равна 0.3. numeric хранит десятичные значения точно, поэтому его используют для денег и других точных расчётов."
+    },
+    {
+      "id": "sql-postgres-012",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT '{\"items\": [{\"sku\": \"A\"}, {\"sku\": \"B\"}, {\"sku\": \"C\"}]}'::jsonb\n       #>> '{items,1,sku}';",
+      "options": [
+        "A",
+        "B",
+        "NULL",
+        "\"B\" (значение типа jsonb)"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`#>>` извлекает значение по пути и возвращает его как text. Элементы JSON-массивов нумеруются с 0 (в отличие от массивов PostgreSQL), поэтому индекс 1 — второй элемент. `\"B\"` в кавычках вернул бы оператор `#>`, результат которого — jsonb."
+    },
+    {
+      "id": "sql-postgres-013",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие выражения вернут true?",
+      "options": [
+        "ARRAY[1,2] @> ARRAY[2,5]",
+        "ARRAY[1,2,3] @> ARRAY[3,1]",
+        "ARRAY[1,2,3] = ARRAY[3,2,1]",
+        "ARRAY[1,2] && ARRAY[2,5]"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "`@>` проверяет, что левый массив содержит все элементы правого (порядок не важен), а `&&` — что у массивов есть хотя бы один общий элемент. Оператор `=` сравнивает массивы поэлементно с учётом порядка."
+    },
+    {
+      "id": "sql-postgres-014",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В каком порядке запрос вернёт id?",
+      "code": "CREATE TYPE status AS ENUM ('new', 'paid', 'shipped', 'cancelled');\nCREATE TABLE orders (id int, st status);\nINSERT INTO orders VALUES (1, 'shipped'), (2, 'cancelled'), (3, 'new'), (4, 'paid');\n\nSELECT id FROM orders ORDER BY st;",
+      "options": [
+        "2, 3, 4, 1",
+        "1, 2, 3, 4",
+        "Ошибка: по столбцу типа ENUM нельзя сортировать",
+        "3, 4, 1, 2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Значения ENUM упорядочены в порядке их объявления в CREATE TYPE, а не по алфавиту: new < paid < shipped < cancelled. Алфавитный порядок (2, 3, 4, 1) получился бы при сортировке по st::text."
+    },
+    {
+      "id": "sql-postgres-015",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT int4range(1, 5) @> 5    AS a,\n       int4range(1, 5, '[]')   AS b;",
+      "options": [
+        "a = true, b = [1,5]",
+        "a = false, b = [1,5]",
+        "a = true, b = [1,6)",
+        "a = false, b = [1,6)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "По умолчанию диапазон строится как [нижняя, верхняя) — верхняя граница не включается, поэтому 5 в int4range(1, 5) не входит. Дискретные диапазоны приводятся к канонической форме [), поэтому [1,5] выводится как [1,6)."
+    },
+    {
+      "id": "sql-postgres-016",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT to_tsvector('english', 'The cats were running')\n         @@ to_tsquery('english', 'cat & run') AS a,\n       to_tsvector('simple', 'The cats were running')\n         @@ to_tsquery('simple', 'cat & run')  AS b;",
+      "options": [
+        "a = true, b = true",
+        "a = false, b = false",
+        "a = true, b = false",
+        "a = false, b = true"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Конфигурация english приводит слова к основам (cats → cat, running → run) и выбрасывает стоп-слова, поэтому запрос находит совпадение. Конфигурация simple только переводит слова в нижний регистр: лексем cat и run в документе нет."
+    },
+    {
+      "id": "sql-postgres-017",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT regexp_replace('a1b22c333', '[0-9]+', '#')      AS r1,\n       regexp_replace('a1b22c333', '[0-9]+', '#', 'g') AS r2;",
+      "options": [
+        "r1 = a#b#c#, r2 = a#b#c#",
+        "r1 = a#b22c333, r2 = a#b##c###",
+        "r1 = a#b#c#, r2 = a#b##c###",
+        "r1 = a#b22c333, r2 = a#b#c#"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Без флага g regexp_replace заменяет только первое совпадение. С флагом g заменяются все совпадения; `[0-9]+` захватывает всю группу цифр целиком, поэтому каждая группа превращается в один символ #."
+    },
+    {
+      "id": "sql-postgres-018",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет запрос?",
+      "code": "SET TimeZone = 'Europe/Moscow';\nSELECT '2024-01-15 09:00:00+00'::timestamptz;",
+      "options": [
+        "2024-01-15 12:00:00+03",
+        "2024-01-15 09:00:00+00",
+        "2024-01-15 09:00:00+03",
+        "2024-01-15 06:00:00+03"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "timestamptz хранит момент времени (внутренне в UTC) без исходного пояса. При выводе значение переводится в часовой пояс сеанса (TimeZone): 09:00 UTC — это 12:00 по Москве."
+    },
+    {
+      "id": "sql-postgres-019",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт последний запрос?",
+      "code": "CREATE SCHEMA sales;\nCREATE TABLE public.orders (src text);\nCREATE TABLE sales.orders  (src text);\nINSERT INTO public.orders VALUES ('public');\nINSERT INTO sales.orders  VALUES ('sales');\n\nSET search_path = sales, public;\nSELECT src FROM orders;",
+      "options": [
+        "public",
+        "sales",
+        "Две строки: public и sales",
+        "Ошибка: неоднозначное имя таблицы orders"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Неквалифицированное имя ищется по схемам из search_path слева направо, и берётся первое найденное совпадение. Первой в пути указана sales, поэтому запрос читает sales.orders."
+    },
+    {
+      "id": "sql-postgres-020",
+      "topic": "postgres",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие выражения вернут true?",
+      "options": [
+        "'{\"a\": {\"b\": 1}}'::jsonb ? 'b'",
+        "'{\"a\": 1, \"b\": [1, 2]}'::jsonb @> '{\"b\": [2]}'",
+        "'[\"x\", \"y\"]'::jsonb ? 'x'",
+        "'{\"a\": 1}'::jsonb @> '{\"a\": \"1\"}'"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "`?` проверяет наличие ключа или строкового элемента массива только на верхнем уровне, поэтому вложенный ключ b не находится, а строка \"x\" в массиве находится. `@>` проверяет вхождение структуры (для массивов — подмножество) с учётом типов: число 1 не равно строке \"1\"."
+    },
+    {
+      "id": "sql-postgres-021",
+      "topic": "postgres",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SET TimeZone = 'UTC';\nSELECT '2024-03-10 12:00:00+03'::timestamp   AS a,\n       '2024-03-10 12:00:00+03'::timestamptz AS b;",
+      "options": [
+        "a = 2024-03-10 09:00:00, b = 2024-03-10 09:00:00+00",
+        "a = 2024-03-10 12:00:00, b = 2024-03-10 12:00:00+03",
+        "a = 2024-03-10 12:00:00, b = 2024-03-10 09:00:00+00",
+        "Ошибка: литерал timestamp не может содержать смещение +03"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "При разборе литерала типа timestamp (без пояса) указанное смещение молча отбрасывается — остаётся «настенное» время 12:00. Для timestamptz смещение учитывается: момент переводится в UTC и выводится в поясе сеанса, то есть 09:00+00."
+    },
+    {
+      "id": "sql-postgres-022",
+      "topic": "postgres",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Для таблицы docs(data jsonb) создан индекс. Какое условие WHERE этот индекс может ускорить?",
+      "code": "CREATE INDEX ON docs USING gin (data jsonb_path_ops);",
+      "options": [
+        "data ? 'status'",
+        "data ->> 'status' = 'active'",
+        "data @> '{\"status\": \"active\"}'",
+        "data ?| array['status', 'type']"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Класс операторов jsonb_path_ops компактнее и быстрее стандартного jsonb_ops, но поддерживает только операторы вхождения и jsonpath (`@>`, `@?`, `@@`), а не проверки ключей `?`, `?|`, `?&`. Условие по `->>` индекс по всему столбцу не использует — для него нужен B-tree индекс по выражению."
+    },
+    {
+      "id": "sql-postgres-023",
+      "topic": "postgres",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Владелец таблиц схемы reports выполнил команды ниже. Какие утверждения верны?",
+      "code": "GRANT USAGE ON SCHEMA reports TO analyst;\nGRANT SELECT ON ALL TABLES IN SCHEMA reports TO analyst;",
+      "options": [
+        "analyst сможет читать таблицы, которые существовали в reports на момент GRANT",
+        "Право SELECT распространится и на таблицы, созданные в reports позже",
+        "Для будущих таблиц этого владельца нужна команда ALTER DEFAULT PRIVILEGES IN SCHEMA reports GRANT SELECT ON TABLES TO analyst",
+        "analyst сможет и вставлять строки: USAGE на схему даёт право записи в её таблицы"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "GRANT ... ON ALL TABLES IN SCHEMA выдаёт права только на уже существующие таблицы. Для таблиц, которые будут созданы позже, задают права по умолчанию через ALTER DEFAULT PRIVILEGES (они действуют для объектов, создаваемых указанной ролью). USAGE на схему позволяет лишь обращаться к её объектам, а права на сами таблицы выдаются отдельно."
+    },
+    {
+      "id": "sql-postgres-024",
+      "topic": "postgres",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT jsonb_set('{\"a\": 1}', '{b,c}', '2') AS r1,\n       jsonb_set('{\"a\": 1}', '{b}',   '2') AS r2;",
+      "options": [
+        "r1 = {\"a\": 1}, r2 = {\"a\": 1, \"b\": 2}",
+        "r1 = {\"a\": 1, \"b\": {\"c\": 2}}, r2 = {\"a\": 1, \"b\": 2}",
+        "r1 = NULL, r2 = {\"a\": 1, \"b\": 2}",
+        "Ошибка: путь {b,c} не существует в документе"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "jsonb_set с create_missing = true (по умолчанию) создаёт только последний элемент пути, если все предыдущие уже существуют. Промежуточного ключа b нет, поэтому r1 возвращается без изменений, а в r2 ключ b добавляется."
+    },
+    {
+      "id": "sql-practice-001",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Запрос написан, чтобы найти вторую по величине зарплату. Что он вернёт?",
+      "code": "Таблица employees:\n name | salary\n------+-------\n Ann  |    100\n Bob  |    100\n Cat  |     90\n Dan  |     80\n\nSELECT salary\nFROM employees\nORDER BY salary DESC\nLIMIT 1 OFFSET 1;",
+      "options": [
+        "90",
+        "100",
+        "80",
+        "Две строки: 100 и 90"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "OFFSET 1 пропускает одну строку, а не одно значение: вторая строка после сортировки — снова 100 (у Ann и Bob одинаковые зарплаты). Для второй по величине зарплаты нужен DISTINCT, DENSE_RANK или MAX(salary) WHERE salary < MAX."
+    },
+    {
+      "id": "sql-practice-002",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой запрос выводит только те email, которые встречаются в таблице users больше одного раза?",
+      "code": "Таблица users:\n id | email\n----+------\n  1 | a@x\n  2 | b@x\n  3 | a@x\n  4 | c@x\n  5 | b@x",
+      "options": [
+        "SELECT email FROM users WHERE COUNT(*) > 1 GROUP BY email;",
+        "SELECT DISTINCT email FROM users ORDER BY email;",
+        "SELECT email FROM users GROUP BY email HAVING COUNT(*) > 1;",
+        "SELECT email, COUNT(*) FROM users GROUP BY email;"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Условие на результат агрегата пишут в HAVING — он применяется к группам после GROUP BY. В WHERE агрегатные функции запрещены, а DISTINCT и GROUP BY без HAVING выводят все адреса, включая уникальные."
+    },
+    {
+      "id": "sql-practice-003",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой запрос считает нарастающий итог платежей отдельно для каждого пользователя (в порядке day)?",
+      "code": "Таблица payments:\n user_id | day | amount\n---------+-----+-------\n       1 |   1 |     10\n       1 |   2 |     20\n       2 |   1 |      5\n       1 |   3 |     30\n       2 |   2 |     15",
+      "options": [
+        "SELECT user_id, day, SUM(amount) OVER (ORDER BY user_id, day) FROM payments;",
+        "SELECT user_id, day, SUM(amount) OVER (PARTITION BY user_id ORDER BY day) FROM payments;",
+        "SELECT user_id, day, SUM(amount) OVER (PARTITION BY user_id) FROM payments;",
+        "SELECT user_id, day, SUM(amount) FROM payments GROUP BY user_id, day;"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "PARTITION BY user_id начинает отдельный счёт для каждого пользователя, а ORDER BY day внутри окна делает сумму накопительной. Без ORDER BY в окне получится полная сумма по пользователю, без PARTITION BY итог перетечёт от одного пользователя к другому, а GROUP BY вернёт просто суммы за день."
+    },
+    {
+      "id": "sql-practice-004",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица logins:\n user_id | login_at\n---------+-----------------\n       1 | 2024-05-01 10:00\n       1 | 2024-05-03 09:00\n       2 | 2024-05-02 18:00\n       2 | 2024-05-01 08:00\n\nSELECT DISTINCT ON (user_id) user_id, login_at\nFROM logins\nORDER BY user_id, login_at DESC;",
+      "options": [
+        "(1, 2024-05-01 10:00), (2, 2024-05-01 08:00)",
+        "(1, 2024-05-01 10:00), (2, 2024-05-02 18:00)",
+        "Все 4 строки, отсортированные по user_id и login_at",
+        "(1, 2024-05-03 09:00), (2, 2024-05-02 18:00)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "DISTINCT ON (user_id) оставляет первую строку каждой группы в порядке ORDER BY. Так как внутри пользователя строки отсортированы по login_at DESC, первой оказывается последняя по времени запись."
+    },
+    {
+      "id": "sql-practice-005",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица orders:\n id | status\n----+----------\n  1 | paid\n  2 | paid\n  3 | new\n  4 | cancelled\n  5 | paid\n  6 | new\n\nSELECT COUNT(*) FILTER (WHERE status = 'paid') AS paid,\n       COUNT(*) FILTER (WHERE status = 'new')  AS new,\n       COUNT(*)                                AS total\nFROM orders;",
+      "options": [
+        "Одна строка: paid = 3, new = 2, total = 6",
+        "Одна строка: paid = 6, new = 6, total = 6",
+        "Одна строка: paid = 3, new = 2, total = 5",
+        "Три строки — по одной на каждый статус"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "FILTER ограничивает строки, которые попадают в конкретный агрегат, не влияя на остальные столбцы. Так одним проходом без GROUP BY строится «разворот» (pivot): каждый статус становится отдельным столбцом."
+    },
+    {
+      "id": "sql-practice-006",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица orders:\n id | amount\n----+-------\n  1 |     10\n  2 |     20\n  3 |     30\n  4 |    100\n\nSELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY amount)\nFROM orders;",
+      "options": [
+        "20",
+        "25",
+        "40",
+        "30"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "percentile_cont(0.5) — медиана с интерполяцией: при чётном числе значений берётся среднее двух центральных, (20 + 30) / 2 = 25. Среднее AVG равнялось бы 40, а percentile_disc(0.5) вернул бы реальное значение 20."
+    },
+    {
+      "id": "sql-practice-007",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Нужно узнать, сколько клиентов сделали два и более заказа. Что вернёт запрос?",
+      "code": "Таблица orders:\n id | customer_id\n----+------------\n  1 |          10\n  2 |          20\n  3 |          10\n  4 |          30\n  5 |          20\n  6 |          10\n\nSELECT COUNT(*)\nFROM (\n  SELECT customer_id\n  FROM orders\n  GROUP BY customer_id\n  HAVING COUNT(*) >= 2\n) t;",
+      "options": [
+        "3",
+        "5",
+        "2",
+        "6"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Подзапрос оставляет клиентов, у которых не меньше двух заказов: 10 (три заказа) и 20 (два). Внешний COUNT(*) считает строки подзапроса, то есть клиентов, а не заказы."
+    },
+    {
+      "id": "sql-practice-008",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица events:\n user_id | day\n---------+-----------\n       1 | 2024-05-01\n       1 | 2024-05-01\n       2 | 2024-05-01\n       1 | 2024-05-02\n       3 | 2024-05-02\n       3 | 2024-05-02\n\nSELECT day, COUNT(DISTINCT user_id) AS dau\nFROM events\nGROUP BY day\nORDER BY day;",
+      "options": [
+        "2024-05-01: 3, 2024-05-02: 3",
+        "2024-05-01: 2, 2024-05-02: 2",
+        "2024-05-01: 2, 2024-05-02: 1",
+        "Одна строка со значением 3"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "COUNT(DISTINCT user_id) считает уникальных пользователей в каждой группе-дне: 1 мая — пользователи 1 и 2, 2 мая — 1 и 3. Обычный COUNT(*) посчитал бы события (по 3 в день)."
+    },
+    {
+      "id": "sql-practice-009",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица orders:\n id | status\n----+----------\n  1 | paid\n  2 | new\n  3 | paid\n  4 | cancelled\n\nSELECT COUNT(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) AS a,\n       SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END)   AS b\nFROM orders;",
+      "options": [
+        "a = 2, b = 2",
+        "a = 2, b = 4",
+        "a = 4, b = 2",
+        "a = 4, b = 4"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "COUNT(выражение) считает все не-NULL значения, а 0 — это не NULL, поэтому a равно числу всех строк. Для подсчёта через COUNT ветку ELSE нужно убрать (тогда будет NULL), либо использовать SUM, как в b, или COUNT(*) FILTER (WHERE ...)."
+    },
+    {
+      "id": "sql-practice-010",
+      "topic": "practice",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица customers:        Таблица orders:\n id                         id | customer_id\n----                       ----+------------\n  1                          10 |           1\n  2                          11 |           1\n  3                          12 |           3\n  4\n\nSELECT id FROM customers\nEXCEPT\nSELECT customer_id FROM orders\nORDER BY id;",
+      "options": [
+        "2, 4",
+        "1, 3",
+        "1, 1, 3",
+        "2"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "EXCEPT возвращает строки первого запроса, которых нет во втором, — здесь это клиенты без заказов. Как и UNION, EXCEPT без ALL убирает дубликаты из результата."
+    },
+    {
+      "id": "sql-practice-011",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Нужно вывести долю каждого региона в общей сумме в процентах с двумя знаками после запятой (ожидается 33.33 и 66.67). Столбец amount имеет тип int. Какой запрос решает задачу?",
+      "code": "Таблица sales:\n region | amount\n--------+-------\n North  |     10\n South  |     20",
+      "options": [
+        "SELECT region, ROUND(amount * 100 / SUM(amount) OVER (), 2) FROM sales;",
+        "SELECT region, ROUND(amount * 100.0 / SUM(amount) OVER (), 2) FROM sales;",
+        "SELECT region, ROUND(amount * 100.0 / SUM(amount), 2) FROM sales GROUP BY region;",
+        "SELECT region, ROUND(amount * 100.0 / COUNT(*) OVER (), 2) FROM sales;"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SUM(amount) OVER () даёт общую сумму в каждой строке, а множитель 100.0 делает деление дробным. С целым 100 получится целочисленное деление (33.00 и 66.00), с GROUP BY region — ошибка (amount не в группировке), а COUNT(*) считает строки, а не сумму."
+    },
+    {
+      "id": "sql-practice-012",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие запросы вернут товары, которые ни разу не продавались (B и C)?",
+      "code": "Таблица products:        Таблица sales:\n id | name                  id | product_id\n----+------                ----+-----------\n  1 | A                     10 |          1\n  2 | B                     11 |       NULL\n  3 | C                     12 |          1",
+      "options": [
+        "SELECT name FROM products\nWHERE id NOT IN (SELECT product_id FROM sales);",
+        "SELECT p.name FROM products p\nWHERE NOT EXISTS (SELECT 1 FROM sales s WHERE s.product_id = p.id);",
+        "SELECT p.name FROM products p\nLEFT JOIN sales s ON s.product_id = p.id\nWHERE s.id IS NULL;",
+        "SELECT p.name FROM products p\nLEFT JOIN sales s ON s.product_id = p.id\nWHERE s.product_id = NULL;"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Из-за NULL в sales.product_id условие NOT IN даёт UNKNOWN для каждого товара, и запрос возвращает пустой результат. NOT EXISTS и LEFT JOIN ... IS NULL корректно работают с NULL, а сравнение `= NULL` всегда даёт UNKNOWN."
+    },
+    {
+      "id": "sql-practice-013",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сколько строк вернёт запрос?",
+      "code": "Таблица employees:\n name | dept | salary\n------+------+-------\n Ann  | IT   |    100\n Bob  | IT   |     90\n Cat  | IT   |     90\n Dan  | IT   |     80\n Eve  | HR   |     70\n Fox  | HR   |     60\n\nSELECT name FROM (\n  SELECT name,\n         RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS r\n  FROM employees\n) t\nWHERE r <= 2;",
+      "options": [
+        "5",
+        "4",
+        "6",
+        "3"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "В IT ранги такие: Ann — 1, Bob и Cat — 2, Dan — 4, поэтому из IT попадают трое; в HR — Eve и Fox. С ROW_NUMBER получилось бы 4 строки — ровно по две на отдел, без учёта равенства зарплат."
+    },
+    {
+      "id": "sql-practice-014",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Нужно для каждого отдела найти сотрудников со второй по величине зарплатой в этом отделе (ожидается Cat и Eve). Какой запрос решает задачу?",
+      "code": "Таблица employees:\n name | dept | salary\n------+------+-------\n Ann  | IT   |    100\n Bob  | IT   |    100\n Cat  | IT   |     90\n Dan  | HR   |     80\n Eve  | HR   |     70",
+      "options": [
+        "SELECT name FROM (\n  SELECT name, ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS r\n  FROM employees\n) t WHERE r = 2;",
+        "SELECT name FROM (\n  SELECT name, RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS r\n  FROM employees\n) t WHERE r = 2;",
+        "SELECT name FROM employees\nWHERE salary = (SELECT MAX(salary) FROM employees\n                WHERE salary < (SELECT MAX(salary) FROM employees));",
+        "SELECT name FROM (\n  SELECT name, DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS r\n  FROM employees\n) t WHERE r = 2;"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "DENSE_RANK присваивает равным зарплатам один ранг без пропусков, поэтому ранг 2 — это вторая по величине зарплата. ROW_NUMBER вернёт в IT Ann или Bob, RANK после двух первых мест сразу даёт 3 (IT выпадает), а последний запрос ищет вторую зарплату по всей компании, а не в каждом отделе."
+    },
+    {
+      "id": "sql-practice-015",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какие id останутся в таблице после выполнения?",
+      "code": "Таблица users:\n id | email\n----+------\n  1 | a@x\n  2 | b@x\n  3 | a@x\n  4 | a@x\n  5 | b@x\n\nDELETE FROM users a\nUSING users b\nWHERE a.email = b.email\n  AND a.id < b.id;\n\nSELECT id FROM users ORDER BY id;",
+      "options": [
+        "1, 2",
+        "3, 4, 5",
+        "4, 5",
+        "Ни одного: удалятся все строки с повторяющимся email"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Строка a удаляется, если существует строка b с тем же email и большим id. Поэтому в каждой группе дубликатов выживает только строка с максимальным id; чтобы оставить минимальный, условие меняют на a.id > b.id."
+    },
+    {
+      "id": "sql-practice-016",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие запросы вернут пользователей, купивших и товар A, и товар B (ожидаются 1 и 4)?",
+      "code": "Таблица purchases:\n user_id | product\n---------+--------\n       1 | A\n       1 | B\n       2 | A\n       2 | A\n       3 | B\n       4 | A\n       4 | B\n       4 | C",
+      "options": [
+        "SELECT user_id FROM purchases\nWHERE product = 'A' AND product = 'B';",
+        "SELECT user_id FROM purchases\nWHERE product IN ('A', 'B')\nGROUP BY user_id HAVING COUNT(DISTINCT product) = 2;",
+        "SELECT user_id FROM purchases\nWHERE product IN ('A', 'B')\nGROUP BY user_id HAVING COUNT(*) = 2;",
+        "SELECT user_id FROM purchases WHERE product = 'A'\nINTERSECT\nSELECT user_id FROM purchases WHERE product = 'B';"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Одна строка не может иметь сразу два значения product, поэтому условие с AND ничего не находит. HAVING COUNT(DISTINCT product) = 2 и INTERSECT работают правильно, а COUNT(*) = 2 ошибочно засчитывает пользователя 2, дважды купившего A."
+    },
+    {
+      "id": "sql-practice-017",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Нужно найти пары пересекающихся бронирований. Интервалы полуоткрытые: [start_h, end_h), касание границ пересечением не считается. Какие условия, подставленные в запрос, дают ровно пары (1, 2) и (1, 4)?",
+      "code": "Таблица bookings:\n id | start_h | end_h\n----+---------+------\n  1 |      10 |    14\n  2 |      11 |    12\n  3 |      14 |    15\n  4 |       8 |    11\n\nSELECT a.id AS a_id, b.id AS b_id\nFROM bookings a\nJOIN bookings b ON a.id < b.id AND <условие>;",
+      "options": [
+        "a.start_h < b.end_h AND b.start_h < a.end_h",
+        "a.start_h BETWEEN b.start_h AND b.end_h",
+        "int4range(a.start_h, a.end_h) && int4range(b.start_h, b.end_h)",
+        "a.start_h <= b.end_h AND b.start_h <= a.end_h"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Два полуоткрытых интервала пересекаются, когда каждый начинается раньше, чем заканчивается другой; то же проверяет оператор && для диапазонов (по умолчанию [)). BETWEEN пропускает случай, когда первый интервал целиком содержит второй, а нестрогие <= засчитывают касание границ (1–3 и 2–4)."
+    },
+    {
+      "id": "sql-practice-018",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица t:\n id\n----\n  1\n  2\n  5\n  6\n  9\n\nSELECT id + 1 AS gap_start, next_id - 1 AS gap_end\nFROM (\n  SELECT id, LEAD(id) OVER (ORDER BY id) AS next_id\n  FROM t\n) s\nWHERE next_id - id > 1;",
+      "options": [
+        "(2, 5) и (6, 9)",
+        "(3, 4), (7, 8) и (10, NULL)",
+        "Только (3, 4)",
+        "(3, 4) и (7, 8)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "LEAD даёт следующий id, и разница больше 1 означает пропуск между id и next_id. Для последней строки next_id равен NULL, условие даёт UNKNOWN, и строка отбрасывается."
+    },
+    {
+      "id": "sql-practice-019",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернут запросы, если второй по величине зарплаты в таблице нет?",
+      "code": "Таблица employees:\n name | salary\n------+-------\n Ann  |    100\n Bob  |    100\n\n-- Запрос 1\nSELECT MAX(salary) FROM employees\nWHERE salary < (SELECT MAX(salary) FROM employees);\n\n-- Запрос 2\nSELECT DISTINCT salary FROM employees\nORDER BY salary DESC\nLIMIT 1 OFFSET 1;",
+      "options": [
+        "Оба запроса вернут ноль строк",
+        "Оба запроса вернут одну строку с NULL",
+        "Запрос 1 — ноль строк, запрос 2 — одну строку со значением 100",
+        "Запрос 1 — одну строку с NULL, запрос 2 — ноль строк"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Агрегат без GROUP BY всегда возвращает ровно одну строку, и MAX по пустому набору равен NULL. LIMIT/OFFSET после DISTINCT пропускает единственную строку 100, и результат пуст — это различие важно, когда задача требует вернуть NULL."
+    },
+    {
+      "id": "sql-practice-020",
+      "topic": "practice",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой запрос вернёт ровно одну последнюю по времени строку заказа на каждого пользователя — даже если у пользователя два заказа в одно и то же время (тогда берётся заказ с большим id)?",
+      "code": "Таблица orders:\n id | user_id | created_at       | amount\n----+---------+------------------+-------\n  1 |       1 | 2024-05-01 10:00 |     50\n  2 |       1 | 2024-05-02 12:00 |     70\n  3 |       1 | 2024-05-02 12:00 |     20\n  4 |       2 | 2024-05-01 09:00 |     30",
+      "options": [
+        "SELECT DISTINCT ON (user_id) id, user_id, amount\nFROM orders\nORDER BY user_id, created_at DESC, id DESC;",
+        "SELECT o.id, o.user_id, o.amount FROM orders o\nJOIN (SELECT user_id, MAX(created_at) AS m\n      FROM orders GROUP BY user_id) x\n  ON x.user_id = o.user_id AND x.m = o.created_at;",
+        "SELECT DISTINCT ON (user_id) id, user_id, amount\nFROM orders\nORDER BY created_at DESC, id DESC;",
+        "SELECT MAX(id), user_id, amount\nFROM orders\nGROUP BY user_id\nHAVING created_at = MAX(created_at);"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "DISTINCT ON берёт первую строку группы по ORDER BY, а id DESC разрешает ничью по времени. Соединение с MAX(created_at) вернёт обе строки с одинаковым временем, DISTINCT ON без user_id в начале ORDER BY вызывает ошибку, а в последнем запросе amount и created_at не входят в GROUP BY."
+    },
+    {
+      "id": "sql-practice-021",
+      "topic": "practice",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос (самая длинная серия посещений подряд по дням)?",
+      "code": "Таблица visits (не больше одной строки на пользователя в день):\n user_id | day\n---------+-----------\n       1 | 2024-05-01\n       1 | 2024-05-02\n       1 | 2024-05-03\n       1 | 2024-05-05\n       1 | 2024-05-06\n       2 | 2024-05-01\n       2 | 2024-05-03\n\nSELECT user_id, MAX(len) AS best_streak\nFROM (\n  SELECT user_id, COUNT(*) AS len\n  FROM (\n    SELECT user_id,\n           day - ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY day)::int AS grp\n    FROM visits\n  ) s\n  GROUP BY user_id, grp\n) g\nGROUP BY user_id\nORDER BY user_id;",
+      "options": [
+        "(1, 5), (2, 2)",
+        "(1, 2), (2, 1)",
+        "(1, 3), (2, 1)",
+        "(1, 3), (2, 2)"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Приём gaps and islands: у дней, идущих подряд, разность «дата минус номер строки» одинакова, поэтому она служит ключом серии. У пользователя 1 серии длиной 3 и 2, у пользователя 2 — две серии по одному дню."
+    },
+    {
+      "id": "sql-practice-022",
+      "topic": "practice",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Для каждой когорты (месяца регистрации) нужно посчитать долю пользователей, активных в следующем месяце после регистрации. Ожидается: 2024-01-01 → 0.33 (1 из 3), 2024-02-01 → 1.00 (1 из 1). Какой запрос решает задачу?",
+      "code": "Таблица users:            Таблица activity (возможны повторы):\n id | signup_month           user_id | month\n----+-------------          ---------+-----------\n  1 | 2024-01-01                   1 | 2024-02-01\n  2 | 2024-01-01                   1 | 2024-02-01\n  3 | 2024-01-01                   2 | 2024-03-01\n  4 | 2024-02-01                   4 | 2024-03-01",
+      "options": [
+        "SELECT u.signup_month,\n       ROUND(COUNT(a.user_id)::numeric / COUNT(*), 2)\nFROM users u\nLEFT JOIN activity a\n  ON a.user_id = u.id AND a.month = u.signup_month + interval '1 month'\nGROUP BY u.signup_month;",
+        "SELECT u.signup_month,\n       ROUND(COUNT(DISTINCT a.user_id)::numeric / COUNT(DISTINCT u.id), 2)\nFROM users u\nLEFT JOIN activity a ON a.user_id = u.id\nWHERE a.month = u.signup_month + interval '1 month'\nGROUP BY u.signup_month;",
+        "SELECT u.signup_month,\n       ROUND(COUNT(DISTINCT a.user_id)::numeric / COUNT(DISTINCT u.id), 2)\nFROM users u\nLEFT JOIN activity a\n  ON a.user_id = u.id AND a.month > u.signup_month\nGROUP BY u.signup_month;",
+        "SELECT u.signup_month,\n       ROUND(COUNT(DISTINCT a.user_id)::numeric / COUNT(DISTINCT u.id), 2)\nFROM users u\nLEFT JOIN activity a\n  ON a.user_id = u.id AND a.month = u.signup_month + interval '1 month'\nGROUP BY u.signup_month;"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Условие на месяц должно стоять в ON, чтобы неактивные пользователи остались в знаменателе, а COUNT(DISTINCT) защищает от повторов в activity. COUNT(a.user_id)/COUNT(*) считает дубли (0.50), фильтр в WHERE превращает LEFT JOIN во внутренний (1.00), а a.month > signup_month засчитывает любую будущую активность (0.67)."
+    },
+    {
+      "id": "sql-practice-023",
+      "topic": "practice",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Запрос объединяет пересекающиеся и соприкасающиеся интервалы [s, e]. Что он вернёт?",
+      "code": "Таблица intervals:\n s  | e\n----+----\n  1 |  3\n  2 |  5\n  7 |  8\n  8 | 10\n 12 | 13\n\nSELECT MIN(s), MAX(e)\nFROM (\n  SELECT s, e, SUM(is_new) OVER (ORDER BY s) AS grp\n  FROM (\n    SELECT s, e,\n           CASE WHEN s <= MAX(e) OVER (ORDER BY s\n                         ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)\n                THEN 0 ELSE 1 END AS is_new\n    FROM intervals\n  ) a\n) b\nGROUP BY grp\nORDER BY 1;",
+      "options": [
+        "(1, 5), (7, 10), (12, 13)",
+        "(1, 5), (7, 8), (8, 10), (12, 13)",
+        "(1, 13)",
+        "(1, 5), (7, 13)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Интервал начинает новую группу (is_new = 1), если его начало больше максимального конца всех предыдущих; для первой строки MAX по пустой рамке равен NULL, и сравнение даёт ELSE 1. Нарастающая сумма is_new нумерует группы: 7 ≤ 8, поэтому [7,8] и [8,10] сливаются, а 12 > 10 начинает новую группу."
+    },
+    {
+      "id": "sql-practice-024",
+      "topic": "practice",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Нужно вывести самые продаваемые товары в каждой категории, а при равенстве сумм — все такие товары (ожидаются A, B и D). Какие запросы решают задачу?",
+      "code": "Таблица sales:\n category | product | amount\n----------+---------+-------\n books    | A       |     50\n books    | B       |     50\n books    | C       |     30\n toys     | D       |     70\n toys     | E       |     20",
+      "options": [
+        "SELECT product FROM (\n  SELECT product, RANK() OVER (PARTITION BY category ORDER BY amount DESC) AS r\n  FROM sales\n) t WHERE r = 1;",
+        "SELECT product FROM (\n  SELECT product, ROW_NUMBER() OVER (PARTITION BY category ORDER BY amount DESC) AS r\n  FROM sales\n) t WHERE r = 1;",
+        "SELECT product FROM sales\nWHERE (category, amount) IN (\n  SELECT category, MAX(amount) FROM sales GROUP BY category\n);",
+        "SELECT DISTINCT ON (category) product\nFROM sales\nORDER BY category, amount DESC;"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "RANK даёт всем лидерам с одинаковой суммой ранг 1, а сравнение с MAX(amount) по категории тоже оставляет все равные строки. ROW_NUMBER и DISTINCT ON всегда выбирают ровно одну строку на категорию, поэтому теряют A или B."
+    }
+  ]
+}
