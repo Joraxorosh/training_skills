@@ -1,0 +1,2144 @@
+{
+  "topics": [
+    {
+      "id": "basics",
+      "title": "Синтаксис, типы и нулевые значения"
+    },
+    {
+      "id": "slices",
+      "title": "Slices, maps и строки"
+    },
+    {
+      "id": "interfaces",
+      "title": "Структуры, методы и интерфейсы"
+    },
+    {
+      "id": "errors",
+      "title": "Ошибки, defer, panic и recover"
+    },
+    {
+      "id": "concurrency",
+      "title": "Горутины, каналы и sync"
+    },
+    {
+      "id": "runtime",
+      "title": "Context, runtime и инструменты"
+    }
+  ],
+  "questions": [
+    {
+      "id": "go-basics-001",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "var a int\nvar s string\nvar p *int\nfmt.Println(a, s == \"\", p == nil)",
+      "options": [
+        "0 false true",
+        "0 true true",
+        "nil true true",
+        "Ошибка компиляции: переменные не инициализированы"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Каждая переменная без явного значения получает нулевое значение своего типа: `0` для чисел, `\"\"` для строк, `nil` для указателей. Неинициализированной памяти в Go не бывает."
+    },
+    {
+      "id": "go-basics-002",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт, если `x` объявлена как `x := 10`, а затем написать `var y float64 = x`?",
+      "options": [
+        "y станет равна 10.0 — int неявно расширяется до float64",
+        "Паника во время выполнения",
+        "y станет равна 0",
+        "Ошибка компиляции: нужно явное преобразование `float64(x)`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "В Go нет неявных преобразований между разными типами, даже «безопасных» int → float64. Нужно явно написать `float64(x)`."
+    },
+    {
+      "id": "go-basics-003",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const (\n    A = iota\n    B\n    _\n    D\n)\nfmt.Println(A, B, D)",
+      "options": [
+        "0 1 3",
+        "0 1 2",
+        "1 2 4",
+        "0 0 0"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`iota` равен номеру строки в блоке `const`, начиная с 0, и увеличивается на каждой строке, включая пропущенную через `_`. Поэтому D = 3."
+    },
+    {
+      "id": "go-basics-004",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Где нельзя использовать короткое объявление `:=`?",
+      "options": [
+        "Внутри `if` и `for` в секции инициализации",
+        "Внутри замыкания",
+        "На уровне пакета, вне функций",
+        "При объявлении нескольких переменных сразу"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`:=` работает только внутри функций. На уровне пакета каждое объявление должно начинаться с ключевого слова: `var`, `const`, `func`, `type`."
+    },
+    {
+      "id": "go-basics-005",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чему равно `len(\"привет\")`?",
+      "options": [
+        "6",
+        "7",
+        "12",
+        "Ошибка компиляции: строка содержит не-ASCII символы"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`len` для строки возвращает число байтов, а не символов. Строка хранится в UTF-8, каждая кириллическая буква занимает 2 байта. Число символов — `utf8.RuneCountInString(s)`."
+    },
+    {
+      "id": "go-basics-006",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "x := 1\nswitch x {\ncase 1:\n    fmt.Print(\"one \")\ncase 2:\n    fmt.Print(\"two \")\ndefault:\n    fmt.Print(\"default\")\n}",
+      "options": [
+        "one",
+        "one two",
+        "one two default",
+        "default"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "В Go `case` не «проваливается» в следующий: после выполнения ветки `switch` завершается. Чтобы перейти дальше, нужно явно написать `fallthrough`."
+    },
+    {
+      "id": "go-basics-007",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как в Go сделать функцию или поле структуры доступными из другого пакета?",
+      "options": [
+        "Добавить ключевое слово `public`",
+        "Перечислить в секции `export` файла `go.mod`",
+        "Объявить в файле с суффиксом `_export.go`",
+        "Назвать с заглавной буквы"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Видимость определяется регистром первой буквы: `Name` экспортируется, `name` виден только внутри пакета. Модификаторов доступа в Go нет."
+    },
+    {
+      "id": "go-basics-008",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие пары «тип — нулевое значение» верны?",
+      "options": [
+        "`int` — `0`",
+        "`string` — `nil`",
+        "`map[string]int` — `nil`",
+        "`bool` — `false`"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "Нулевое значение строки — пустая строка `\"\"`, а не `nil`: строка в Go не может быть nil. У map, slice, channel, pointer, func и interface нулевое значение — `nil`."
+    },
+    {
+      "id": "go-basics-009",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "for i := range \"héllo\" {\n    fmt.Print(i, \" \")\n}",
+      "options": [
+        "0 1 2 3 4",
+        "0 1 3 4 5",
+        "0 1 2 3 4 5",
+        "1 2 4 5 6"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`range` по строке перебирает руны, а индекс — это байтовое смещение начала руны. Буква «é» занимает в UTF-8 два байта (1 и 2), поэтому после 1 сразу идёт 3."
+    },
+    {
+      "id": "go-basics-010",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при компиляции кода `s := \"hello\"; s[0] = 'H'`?",
+      "options": [
+        "Ошибка компиляции: элементы строки нельзя присваивать",
+        "s станет \"Hello\": строки в Go изменяемы по индексу",
+        "Паника во время выполнения: строка лежит в read-only памяти",
+        "Изменится копия байтов, а s останется \"hello\""
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Строки в Go неизменяемы. Чтобы изменить содержимое, строку конвертируют в `[]byte` или `[]rune`, меняют и собирают обратно — это создаёт копию."
+    },
+    {
+      "id": "go-basics-011",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Пусть `s` — строка. Какие типы у `s[0]` и у `r` в `for _, r := range s`?",
+      "options": [
+        "`rune` (int32) и `rune` (int32)",
+        "`byte` (uint8) и `byte` (uint8)",
+        "`byte` (uint8) и `rune` (int32)",
+        "`string` и `rune` (int32)"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Индексация строки возвращает отдельный байт, а `range` декодирует UTF-8 и выдаёт руны — кодовые точки Unicode. `byte` — псевдоним `uint8`, `rune` — псевдоним `int32`."
+    },
+    {
+      "id": "go-basics-012",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "x := 1\nif x := 2; x > 1 {\n    x++\n}\nfmt.Println(x)",
+      "options": [
+        "2",
+        "1",
+        "3",
+        "Ошибка компиляции: x уже объявлена"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`x := 2` в заголовке `if` объявляет новую переменную в области видимости блока и затеняет внешнюю (shadowing). Внешняя `x` не меняется."
+    },
+    {
+      "id": "go-basics-013",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что верно про объявление `const big = 1 << 100`?",
+      "options": [
+        "Ошибка компиляции: значение не помещается ни в один целый тип, даже в `uint64`",
+        "Значение молча обрежется до 0 при объявлении, как при переполнении `int`",
+        "Константа автоматически получит тип `float64`, чтобы вместить значение",
+        "Корректная нетипизированная константа; ошибка будет лишь при использовании как `int`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Нетипизированные константы вычисляются компилятором с произвольной точностью. Ошибка возникает лишь при преобразовании к конкретному типу, где значение не помещается, а `big >> 98` = 4 уже можно использовать как `int`."
+    },
+    {
+      "id": "go-basics-014",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В каком порядке инициализируется программа?",
+      "options": [
+        "`main()` → функции `init()` → переменные пакета",
+        "Функции `init()` → импортированные пакеты → переменные пакета → `main()`",
+        "Переменные пакета → `main()` → функции `init()` по требованию",
+        "Импортированные пакеты → переменные уровня пакета → функции `init()` → `main()`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Сначала (один раз) инициализируются зависимости, затем в пакете вычисляются переменные уровня пакета, потом вызываются все `init()` в порядке появления, и только после этого запускается `main`."
+    },
+    {
+      "id": "go-basics-015",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чему станет равна `x` после `var x int8 = 127` и `x++`?",
+      "options": [
+        "128",
+        "-128",
+        "Паника: integer overflow",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Переполнение знаковых целых во время выполнения в Go определено: значение «заворачивается» по модулю 2⁸. Ошибкой компиляции было бы только константное переполнение, например `var x int8 = 128`."
+    },
+    {
+      "id": "go-basics-016",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про `switch` в Go?",
+      "options": [
+        "После выполнения ветки `case` управление не переходит в следующую",
+        "`fallthrough` передаёт управление в следующий `case` без проверки его условия",
+        "`switch` без выражения эквивалентен `switch true` и заменяет цепочку `if-else`",
+        "`break` обязателен в конце каждого `case`"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "В Go неявного проваливания нет, поэтому `break` не нужен. `fallthrough` переходит безусловно, а `switch { case x > 0: ... }` — идиоматичная замена длинного `if-else`."
+    },
+    {
+      "id": "go-basics-017",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const c = 10\nvar f float64 = c / 4\nfmt.Println(f)",
+      "options": [
+        "2.5",
+        "2.0",
+        "2",
+        "Ошибка компиляции: нельзя присвоить int переменной float64"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`c / 4` — деление двух нетипизированных целых констант, оно целочисленное: 10 / 4 = 2. Результат затем без ошибки преобразуется в `float64`. Чтобы получить 2.5, нужна `c / 4.0`."
+    },
+    {
+      "id": "go-basics-018",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код в Go 1.22+?",
+      "code": "var fs []func()\nfor i := 0; i < 3; i++ {\n    fs = append(fs, func() { fmt.Print(i) })\n}\nfor _, f := range fs {\n    f()\n}",
+      "options": [
+        "012",
+        "333",
+        "222",
+        "000"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "С Go 1.22 переменная цикла `for` создаётся заново на каждой итерации, и каждое замыкание захватывает свою копию. До 1.22 все замыкания разделяли одну `i` и печатали `333`."
+    },
+    {
+      "id": "go-basics-019",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const (\n    a = iota * 10\n    b\n    c = \"x\"\n    d\n    e = iota\n)\nfmt.Println(b, d, e)",
+      "options": [
+        "1 x 4",
+        "10 x 4",
+        "10 3 4",
+        "10 x 2"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Строка без выражения повторяет предыдущее выражение: `b = iota * 10` = 10, `d = \"x\"`. `iota` продолжает считать строки независимо от выражений, поэтому `e` = 4."
+    },
+    {
+      "id": "go-basics-020",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что из перечисленного приведёт к ошибке компиляции?",
+      "options": [
+        "Неиспользуемый импорт",
+        "Неиспользуемая локальная переменная",
+        "Неиспользуемая переменная уровня пакета",
+        "Несколько функций `init()` в одном файле"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Компилятор запрещает неиспользуемые импорты и локальные переменные. Неиспользуемые переменные пакета разрешены, а функций `init()` может быть сколько угодно, даже в одном файле."
+    },
+    {
+      "id": "go-slices-001",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "s := make([]int, 3, 10)\nfmt.Println(len(s), cap(s), s)",
+      "options": [
+        "10 3 [0 0 0]",
+        "3 10 []",
+        "3 10 [0 0 0]",
+        "3 10 [0 0 0 0 0 0 0 0 0 0]"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`make([]T, len, cap)` выделяет массив на `cap` элементов, а слайс видит первые `len` из них. Элементы инициализированы нулевыми значениями."
+    },
+    {
+      "id": "go-slices-002",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Чем отличаются `var a []int` и `b := []int{}`?",
+      "options": [
+        "`a == nil`, а `b != nil`",
+        "`len(a)` и `len(b)` обе равны 0",
+        "`json.Marshal` даст `null` для a и `[]` для b",
+        "К `a` нельзя применить `append`"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Nil-слайс и пустой слайс ведут себя одинаково для `len`, `range` и `append`. Отличаются они сравнением с `nil` и сериализацией: например, JSON даёт `null` против `[]`."
+    },
+    {
+      "id": "go-slices-003",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт?",
+      "code": "var m map[string]int\nfmt.Println(m[\"a\"])\nm[\"a\"] = 1",
+      "options": [
+        "Panic уже при чтении `m[\"a\"]`: map равна nil",
+        "Выведет 0, запись создаст map автоматически и пройдёт",
+        "Выведет 0, затем panic: assignment to entry in nil map",
+        "Ошибка компиляции: map объявлена, но не инициализирована"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Чтение из nil map безопасно и возвращает нулевое значение, а запись вызывает панику. Map нужно создать через `make` или литерал `map[string]int{}`."
+    },
+    {
+      "id": "go-slices-004",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В каком порядке `for k, v := range m` перебирает элементы map?",
+      "options": [
+        "Порядок не определён и намеренно рандомизируется",
+        "В порядке вставки",
+        "По возрастанию ключей",
+        "По возрастанию хешей, одинаково при каждом запуске"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Спецификация не гарантирует порядок, а рантайм специально рандомизирует начальную позицию, чтобы на порядок не полагались. Для детерминированного вывода ключи сортируют, например `slices.Sorted(maps.Keys(m))`."
+    },
+    {
+      "id": "go-slices-005",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Из чего состоит заголовок слайса (slice header)?",
+      "options": [
+        "Только указатель на первый элемент",
+        "Длина и копия элементов",
+        "Указатель на массив и хеш содержимого",
+        "Указатель на массив, длина и ёмкость"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Слайс — это маленькая структура из трёх полей: `ptr`, `len`, `cap`. При передаче в функцию копируется именно заголовок, а массив остаётся общим."
+    },
+    {
+      "id": "go-slices-006",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт `v, ok := m[\"b\"]` для `m := map[string]int{\"a\": 1}`?",
+      "options": [
+        "`v == 0`, `ok == true`",
+        "`v == 0`, `ok == false`",
+        "Panic: ключ не найден",
+        "`v == nil`, `ok == false`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Идиома «comma ok» отличает отсутствующий ключ от ключа с нулевым значением. Для отсутствующего ключа возвращается нулевое значение типа и `false`."
+    },
+    {
+      "id": "go-slices-007",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем при сборке длинной строки в цикле использовать `strings.Builder` вместо `s += part`?",
+      "options": [
+        "Каждый `+=` копирует неизменяемую строку целиком, и сборка становится квадратичной",
+        "`+=` для строк внутри цикла не компилируется без явного преобразования",
+        "`strings.Builder` потокобезопасен, а `+=` из нескольких горутин — нет",
+        "`+=` теряет символы не из ASCII при конкатенации UTF-8 строк"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Каждая конкатенация создаёт новую строку и копирует в неё старое содержимое. `strings.Builder` дописывает в растущий буфер, и итоговое `String()` обходится без лишней копии."
+    },
+    {
+      "id": "go-slices-008",
+      "topic": "slices",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие типы можно использовать как ключ map?",
+      "options": [
+        "`string`",
+        "`[]int`",
+        "`[2]int`",
+        "`map[string]int`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Ключ должен быть сравнимым (`==`). Массивы сравнимы, а слайсы, map и функции — нет, и такие ключи вызывают ошибку компиляции."
+    },
+    {
+      "id": "go-slices-009",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a := []int{1, 2, 3, 4}\nb := a[1:3]\nb[0] = 20\nfmt.Println(a, len(b), cap(b))",
+      "options": [
+        "[1 2 3 4] 2 3",
+        "[1 20 3 4] 2 2",
+        "[1 20 3 4] 2 3",
+        "[20 2 3 4] 2 4"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Подслайс разделяет массив с исходным, поэтому `b[0]` — это `a[1]`. Ёмкость считается от начала подслайса до конца массива: 4 − 1 = 3."
+    },
+    {
+      "id": "go-slices-010",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a := []int{1, 2, 3}\nb := append(a, 4)\nb[0] = 100\nfmt.Println(a[0])",
+      "options": [
+        "100",
+        "1",
+        "4",
+        "Panic: index out of range"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "У `a` len = cap = 3, поэтому `append` не помещается в массив: выделяется новый, и элементы копируются. `b` смотрит на новый массив, и `a` не меняется."
+    },
+    {
+      "id": "go-slices-011",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт `copy(dst, src)`, если `len(dst) == 2`, а `len(src) == 3`?",
+      "options": [
+        "3, и dst расширится до трёх элементов",
+        "Panic: dst слишком короткий",
+        "0: копирования не будет, потому что длины разные",
+        "2: копируется `min(len(dst), len(src))` элементов"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`copy` никогда не меняет длину приёмника и копирует столько элементов, сколько помещается. Возвращает число скопированных элементов."
+    },
+    {
+      "id": "go-slices-012",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем нужно полное выражение среза `a[low:high:max]`?",
+      "options": [
+        "Чтобы скопировать элементы в новый массив и отвязать срез от исходного",
+        "Чтобы задать шаг среза, как в Python: третий индекс — это шаг",
+        "Чтобы срез работал быстрее за счёт выравнивания по границе `max`",
+        "Чтобы ограничить ёмкость, и `append` не перезаписал хвост исходного массива"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Третий индекс ограничивает `cap`. Тогда `append` к такому срезу сразу выделяет новый массив и не затирает данные, которые видят другие слайсы."
+    },
+    {
+      "id": "go-slices-013",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт, если несколько горутин одновременно пишут в обычную map без синхронизации?",
+      "options": [
+        "Ничего страшного: встроенная map в Go потокобезопасна по умолчанию",
+        "Гонка данных; рантайм может упасть с `fatal error: concurrent map writes`",
+        "Ошибка компиляции: писать в общую map из горутин без мьютекса нельзя",
+        "Записи выполнятся по очереди благодаря внутренней блокировке"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Map не защищена от конкурентного доступа. Рантайм пытается обнаружить такие записи и падает с fatal error, которую нельзя перехватить через `recover`. Нужны `sync.Mutex`/`RWMutex` или `sync.Map`."
+    },
+    {
+      "id": "go-slices-014",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему функция `func add(m map[string]int) { m[\"x\"] = 1 }` меняет map, которую передали снаружи?",
+      "options": [
+        "Map всегда передаётся по ссылке, компилятор неявно берёт `&m`",
+        "Go передаёт все аргументы по ссылке, копии делаются только для чисел",
+        "Значение map — указатель на внутреннюю структуру, копируется только он",
+        "Не меняет: внутри функции изменяется собственная копия map"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Всё в Go передаётся по значению, но значение map — это указатель на рантайм-структуру `hmap`. Поэтому изменения содержимого видны снаружи. Присваивание `m = make(...)` внутри функции наружу уже не попадёт."
+    },
+    {
+      "id": "go-slices-015",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие функции есть в стандартных пакетах `slices` и `maps` (Go 1.21+)?",
+      "options": [
+        "`slices.Sort(s)`",
+        "`slices.Contains(s, v)`",
+        "`slices.Map(s, f)`",
+        "`maps.Clone(m)`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "В `slices` есть `Sort`, `Contains`, `Index`, `BinarySearch` и другие, в `maps` — `Clone`, `Copy`, `DeleteFunc`, а с 1.23 ещё итераторы `Keys`/`Values`. Функции `Map` в стандартной библиотеке нет."
+    },
+    {
+      "id": "go-slices-016",
+      "topic": "slices",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "items := []struct{ n int }{{1}, {2}}\nfor _, it := range items {\n    it.n *= 10\n}\nfmt.Println(items)",
+      "options": [
+        "[{1} {2}]",
+        "[{10} {20}]",
+        "[{10} {2}]",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`it` — копия элемента, поэтому изменение не попадает в слайс. Чтобы изменить элемент, обращаются по индексу: `items[i].n *= 10`."
+    },
+    {
+      "id": "go-slices-017",
+      "topic": "slices",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a := make([]int, 3, 4)\nb := append(a, 1)\nc := append(a, 2)\nfmt.Println(b[3], c[3])",
+      "options": [
+        "1 2",
+        "2 2",
+        "1 1",
+        "Panic: index out of range"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Ёмкости хватает, поэтому оба `append` пишут в один и тот же элемент `[3]` общего массива. Второй перезаписывает первый, и `b` с `c` видят одно и то же."
+    },
+    {
+      "id": "go-slices-018",
+      "topic": "slices",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "func f(s []int) {\n    s = append(s, 4)\n    s[0] = 100\n}\n\nfunc main() {\n    s := make([]int, 3, 10)\n    f(s)\n    fmt.Println(s)\n}",
+      "options": [
+        "[100 0 0]",
+        "[0 0 0]",
+        "[100 0 0 4]",
+        "[0 0 0 4]"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "В функцию копируется заголовок, но массив общий. Ёмкости хватает, поэтому `append` пишет в тот же массив, и `s[0] = 100` видно снаружи. Длина внешнего слайса осталась 3, поэтому 4 не печатается."
+    },
+    {
+      "id": "go-slices-019",
+      "topic": "slices",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a := []int{1, 2, 3, 4}\nb := a[0:2:2]\nb = append(b, 99)\nfmt.Println(a[2], len(b))",
+      "options": [
+        "99 3",
+        "3 3",
+        "3 2",
+        "99 2"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`a[0:2:2]` ограничивает ёмкость двумя элементами, поэтому `append` выделяет новый массив, и `a[2]` не меняется. Без третьего индекса `a[2]` стал бы 99."
+    },
+    {
+      "id": "go-slices-020",
+      "topic": "slices",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно про map в Go?",
+      "options": [
+        "Нельзя взять адрес элемента: `&m[k]` не компилируется",
+        "Для `map[string]Point` нельзя написать `m[k].X = 1`",
+        "`delete(m, k)` для отсутствующего ключа вызывает панику",
+        "`len(m)` для nil map вызывает панику"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Элементы map не адресуемы, потому что при росте map они перемещаются. Поэтому нельзя ни взять их адрес, ни изменить поле на месте. `delete` отсутствующего ключа и `len` nil map безопасны."
+    },
+    {
+      "id": "go-interfaces-001",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как тип реализует интерфейс в Go?",
+      "options": [
+        "Через ключевое слово `implements`",
+        "Через встраивание интерфейса в структуру",
+        "Через регистрацию в `init()`",
+        "Неявно: достаточно иметь все методы интерфейса"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Интерфейсы в Go удовлетворяются структурно: если у типа есть нужные методы с правильными сигнатурами, он реализует интерфейс. Это позволяет объявлять интерфейс там, где он используется."
+    },
+    {
+      "id": "go-interfaces-002",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое `any`?",
+      "options": [
+        "Специальный тип для дженериков, несовместимый с `interface{}`",
+        "Псевдоним `interface{}`: интерфейс, которому удовлетворяет любой тип",
+        "Аналог `void*` без проверки типов",
+        "Тип, отключающий проверку типов компилятором"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "С Go 1.18 `any` — встроенный псевдоним `interface{}`. В таком значении можно хранить что угодно, но для использования нужен type assertion или type switch."
+    },
+    {
+      "id": "go-interfaces-003",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой метод нужно определить у типа, чтобы `fmt.Println` печатал его в своём формате?",
+      "options": [
+        "`String() string` (`fmt.Stringer`)",
+        "`ToString() string` (как в Java и C#)",
+        "`Format() string` (вызывается для `%v`)",
+        "`Print()` (вызывается внутри `fmt.Println`)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Пакет `fmt` проверяет, реализует ли значение `fmt.Stringer`, и вызывает `String()`. Для ошибок аналогично используется `Error()`."
+    },
+    {
+      "id": "go-interfaces-004",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт `n, ok := i.(int)`, если `var i any = \"hi\"`?",
+      "options": [
+        "Panic: interface conversion",
+        "`0 true`",
+        "`0 false`",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Форма с двумя результатами не паникует: при несовпадении типа возвращается нулевое значение и `false`."
+    },
+    {
+      "id": "go-interfaces-005",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при `n := i.(int)`, если в `i` лежит `string`?",
+      "options": [
+        "n станет 0",
+        "Panic: interface conversion",
+        "n станет длиной строки",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Утверждение типа с одним результатом паникует при несовпадении. Если тип заранее не известен, используйте форму `v, ok := i.(T)` или type switch."
+    },
+    {
+      "id": "go-interfaces-006",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как в Go переиспользуют поведение вместо наследования классов?",
+      "options": [
+        "Через ключевое слово `extends` при объявлении структуры",
+        "Через абстрактные классы с методами по умолчанию",
+        "Через макросы и шаблоны, раскрываемые `go generate`",
+        "Через композицию: встраивание (embedding) и интерфейсы"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Классов и наследования в Go нет. Тип встраивает другой тип и получает его поля и методы (promotion), а полиморфизм обеспечивают интерфейсы."
+    },
+    {
+      "id": "go-interfaces-007",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "type C struct{ n int }\n\nfunc (c C) Inc() { c.n++ }\n\nfunc main() {\n    c := C{}\n    c.Inc()\n    c.Inc()\n    fmt.Println(c.n)\n}",
+      "options": [
+        "1",
+        "2",
+        "Ошибка компиляции",
+        "0"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "У метода получатель-значение, поэтому он работает с копией структуры. Чтобы изменять поля, нужен получатель-указатель: `func (c *C) Inc()`."
+    },
+    {
+      "id": "go-interfaces-008",
+      "topic": "interfaces",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "В каких случаях стоит выбрать получатель-указатель (`func (t *T)`)?",
+      "options": [
+        "Метод должен изменять поля получателя",
+        "Структура большая, и копировать её дорого",
+        "Чтобы методы точно попали в набор методов значения `T`",
+        "Структура содержит `sync.Mutex`, который нельзя копировать"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Указатель нужен для мутаций, больших структур и типов, которые нельзя копировать (мьютексы). Методы на `*T`, наоборот, не входят в набор методов `T`, так что третий вариант неверен."
+    },
+    {
+      "id": "go-interfaces-009",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт?",
+      "code": "type Speaker interface{ Speak() string }\n\ntype Dog struct{}\n\nfunc (d *Dog) Speak() string { return \"woof\" }\n\nfunc main() {\n    var s Speaker = Dog{}\n    fmt.Println(s.Speak())\n}",
+      "options": [
+        "Выведет woof: Go автоматически возьмёт адрес `Dog{}`",
+        "Ошибка компиляции: метод `Speak` есть только у `*Dog`",
+        "Panic: nil pointer dereference при вызове `Speak`",
+        "Выведет пустую строку, так как у `Dog` нет полей"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Набор методов `Dog` не включает методы с получателем `*Dog`, поэтому интерфейсу удовлетворяет только `&Dog{}`. Значение в интерфейсе не адресуемо, и компилятор не может взять его адрес сам."
+    },
+    {
+      "id": "go-interfaces-010",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "func kind(v any) string {\n    switch v.(type) {\n    case int, int64:\n        return \"int\"\n    case string:\n        return \"string\"\n    case nil:\n        return \"nil\"\n    default:\n        return \"other\"\n    }\n}\n\nfunc main() {\n    fmt.Println(kind(3.14), kind(nil), kind(int64(1)))\n}",
+      "options": [
+        "other other int",
+        "int nil int",
+        "other nil int",
+        "other nil other"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`3.14` по умолчанию имеет тип `float64` и попадает в `default`. `case nil` ловит nil-интерфейс, а `int64` перечислен в первом `case`."
+    },
+    {
+      "id": "go-interfaces-011",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "type MyErr struct{}\n\nfunc (*MyErr) Error() string { return \"boom\" }\n\nfunc get() error {\n    var p *MyErr = nil\n    return p\n}\n\nfunc main() {\n    fmt.Println(get() == nil)\n}",
+      "options": [
+        "false",
+        "true",
+        "boom",
+        "Panic: nil pointer dereference"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Значение интерфейса — пара (тип, значение). Здесь тип `*MyErr`, а значение nil, и такой интерфейс не равен `nil`. Из функций с результатом `error` нужно явно возвращать `nil`."
+    },
+    {
+      "id": "go-interfaces-012",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "type Animal struct{ Name string }\n\nfunc (a Animal) Hello() string { return \"I am \" + a.Name }\n\ntype Dog struct{ Animal }\n\nfunc main() {\n    d := Dog{Animal{\"Rex\"}}\n    fmt.Println(d.Hello(), d.Name)\n}",
+      "options": [
+        "Ошибка компиляции: у Dog нет метода Hello",
+        "I am Rex Rex",
+        "I am  Rex",
+        "I am Rex Animal"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Поля и методы встроенного типа продвигаются (promotion) во внешний тип. `d.Hello()` — это сокращение для `d.Animal.Hello()`."
+    },
+    {
+      "id": "go-interfaces-013",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означает ограничение `comparable` в дженериках?",
+      "options": [
+        "Тип-параметр поддерживает `==` и `!=`, поэтому годится как ключ map",
+        "Тип-параметр поддерживает `<` и `>`, поэтому его можно сортировать",
+        "Тип-параметр обязан реализовать метод `Compare(other T) int`",
+        "Тип-параметр — любой числовой тип: целый или с плавающей точкой"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`comparable` — встроенное ограничение для типов с `==` и `!=`. Для упорядочивания (`<`, `>`) используют `cmp.Ordered`."
+    },
+    {
+      "id": "go-interfaces-014",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Из чего состоит значение интерфейса во время выполнения?",
+      "options": [
+        "Только из указателя на значение, без информации о типе",
+        "Из пары: динамический тип и указатель на значение",
+        "Из имени интерфейса и списка методов, заданного при компиляции",
+        "Из копии значения и его хеша для сравнения"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Интерфейс хранит информацию о динамическом типе (itab или type) и данные. Интерфейс равен `nil` только тогда, когда пусты обе части."
+    },
+    {
+      "id": "go-interfaces-015",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "func Max[T int | float64](a, b T) T {\n    if a > b {\n        return a\n    }\n    return b\n}\n\nfunc main() {\n    fmt.Println(Max(3, 7), Max(2.5, 1.0))\n}",
+      "options": [
+        "7 2",
+        "7.0 2.5",
+        "Ошибка компиляции: нужно указать тип Max[int]",
+        "7 2.5"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Компилятор выводит тип-параметр из аргументов: для целых констант — `int`, для `2.5` и `1.0` — `float64`. Ограничение `int | float64` разрешает оператор `>`."
+    },
+    {
+      "id": "go-interfaces-016",
+      "topic": "interfaces",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что считается идиоматичным при работе с интерфейсами в Go?",
+      "options": [
+        "Принимать интерфейсы, возвращать конкретные типы",
+        "Делать интерфейсы маленькими, на 1–2 метода",
+        "Объявлять интерфейс рядом с реализацией заранее, «на всякий случай»",
+        "Встраивать одни интерфейсы в другие (`io.ReadWriter`)"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Интерфейс обычно объявляют на стороне потребителя, когда он действительно нужен. Маленькие интерфейсы вроде `io.Reader` легко реализовать и комбинировать встраиванием."
+    },
+    {
+      "id": "go-interfaces-017",
+      "topic": "interfaces",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "type Base struct{}\n\nfunc (Base) Name() string { return \"base\" }\nfunc (b Base) Hello() string { return \"hello from \" + b.Name() }\n\ntype Derived struct{ Base }\n\nfunc (Derived) Name() string { return \"derived\" }\n\nfunc main() {\n    fmt.Println(Derived{}.Hello())\n}",
+      "options": [
+        "hello from base",
+        "hello from derived",
+        "Ошибка компиляции: неоднозначный метод Name",
+        "hello from "
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Встраивание — это не наследование: виртуальной диспетчеризации нет. `Hello` вызывается с получателем `Base`, и `b.Name()` — метод `Base`. `Derived.Name` лишь затеняет его для внешних вызовов."
+    },
+    {
+      "id": "go-interfaces-018",
+      "topic": "interfaces",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт?",
+      "code": "var a any = []int{1}\nvar b any = []int{1}\nfmt.Println(a == b)",
+      "options": [
+        "true",
+        "false",
+        "Panic: comparing uncomparable type []int",
+        "Ошибка компиляции: слайсы нельзя сравнивать"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Интерфейсы сравнивать можно, поэтому код компилируется. Но если динамические типы совпадают и они несравнимы (слайс, map, func), сравнение паникует во время выполнения."
+    },
+    {
+      "id": "go-interfaces-019",
+      "topic": "interfaces",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о наборах методов (method sets) верны?",
+      "options": [
+        "Набор методов `T` включает методы с получателем `T`",
+        "Набор методов `*T` включает методы с получателями `T` и `*T`",
+        "Набор методов `T` включает методы с получателем `*T`",
+        "Для адресуемой переменной `v` типа `T` можно вызвать `v.PtrMethod()` — компилятор подставит `(&v)`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Через указатель доступны все методы, через значение — только методы на `T`. Вызов `v.PtrMethod()` разрешён как синтаксический сахар для адресуемых переменных, но на наборы методов при проверке интерфейсов это не влияет."
+    },
+    {
+      "id": "go-interfaces-020",
+      "topic": "interfaces",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Почему не компилируется `func Sum[T any](xs []T) T { var s T; for _, x := range xs { s += x }; return s }`?",
+      "options": [
+        "Дженерик-функции не могут возвращать значение типа-параметра `T`",
+        "Нельзя объявить `var s T`: нулевое значение типа-параметра неизвестно",
+        "Для `any` не определён `+`; нужно ограничение вроде `~int | ~float64`",
+        "Нельзя использовать `range` по срезу `[]T` с тип-параметром"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Над тип-параметром доступны только операции, разрешённые всеми типами из ограничения. `~int` включает и пользовательские типы с базовым `int`, например `type ID int`."
+    },
+    {
+      "id": "go-errors-001",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как определён встроенный тип `error`?",
+      "options": [
+        "`type error struct { Msg string }`",
+        "`type error string`",
+        "`type error interface { Error() string }`",
+        "Это класс исключений, как в Java"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`error` — обычный интерфейс с одним методом. Ошибкой может быть любой тип с методом `Error() string`."
+    },
+    {
+      "id": "go-errors-002",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "for i := 0; i < 3; i++ {\n    defer fmt.Print(i)\n}",
+      "options": [
+        "012",
+        "210",
+        "333",
+        "222"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Отложенные вызовы складываются в стек и выполняются в порядке LIFO при выходе из функции. Аргумент `i` вычисляется в момент `defer`."
+    },
+    {
+      "id": "go-errors-003",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чему равно `errors.New(\"x\") == errors.New(\"x\")`?",
+      "options": [
+        "true",
+        "Panic",
+        "Ошибка компиляции: ошибки нельзя сравнивать",
+        "false"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`errors.New` возвращает указатель на новую структуру, и интерфейсы сравниваются по этому указателю. Поэтому sentinel-ошибки объявляют один раз в переменной пакета."
+    },
+    {
+      "id": "go-errors-004",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает глагол `%w` в `fmt.Errorf(\"read config: %w\", err)`?",
+      "options": [
+        "Печатает `err` вместе с переносом строки и отступом, как `%+v`",
+        "Печатает только тип ошибки, например `*fs.PathError`, без текста",
+        "Подавляет ошибку и возвращает nil вместо обёртки",
+        "Оборачивает `err`, сохраняя его в цепочке для `errors.Is` и `errors.As`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`%w` добавляет контекст к сообщению и сохраняет исходную ошибку. С `%v` текст будет тем же, но связь с исходной ошибкой потеряется."
+    },
+    {
+      "id": "go-errors-005",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Когда выполняется отложенный вызов `defer`?",
+      "options": [
+        "При выходе из текущего блока `{}`",
+        "При выходе из функции: по `return` или при панике",
+        "Сразу после следующей строки",
+        "Только при нормальном `return`, но не при панике"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`defer` привязан к функции, а не к блоку. Поэтому `defer` внутри цикла копит вызовы до конца функции, что опасно при открытии файлов в цикле."
+    },
+    {
+      "id": "go-errors-006",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как идиоматично обрабатывают ошибки в Go?",
+      "options": [
+        "Бросают исключение через `throw` и ловят `try/catch`",
+        "Вызывают `panic` и перехватывают `recover` в каждой функции",
+        "Возвращают `error` последним результатом и проверяют `if err != nil`",
+        "Возвращают код ошибки через глобальную переменную `errno`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Ошибки в Go — это значения, их явно возвращают и проверяют. `panic` оставляют для действительно исключительных ситуаций."
+    },
+    {
+      "id": "go-errors-007",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Где `recover()` останавливает панику?",
+      "options": [
+        "Только при вызове прямо из отложенной функции",
+        "В любом месте той же горутины",
+        "В любом месте программы, даже в другой горутине",
+        "Только в функции `main`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Вне отложенной функции, а также при вызове не прямо из неё, `recover` возвращает `nil` и ничего не делает. Каждая горутина должна перехватывать свои паники сама."
+    },
+    {
+      "id": "go-errors-008",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про `panic`?",
+      "options": [
+        "При панике отложенные функции текущей горутины выполняются",
+        "Неперехваченная паника завершает всю программу с трассировкой стека",
+        "Панику можно поймать конструкцией `try/catch`",
+        "Паника в другой горутине перехватывается `recover` в `main`"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Паника раскручивает стек горутины и выполняет `defer`. Если её не перехватили, падает весь процесс. `try/catch` в Go нет, а `recover` работает только в своей горутине."
+    },
+    {
+      "id": "go-errors-009",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "x := 1\ndefer fmt.Println(\"deferred:\", x)\nx = 2\nfmt.Println(\"now:\", x)",
+      "options": [
+        "now: 2, затем deferred: 2",
+        "now: 2, затем deferred: 1",
+        "deferred: 1, затем now: 2",
+        "now: 1, затем deferred: 2"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Аргументы отложенного вызова вычисляются сразу в момент `defer`, а сам вызов — при выходе из функции. Поэтому сохранилось значение 1."
+    },
+    {
+      "id": "go-errors-010",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что напечатает отложенная функция?",
+      "code": "x := 1\ndefer func() { fmt.Println(x) }()\nx = 2",
+      "options": [
+        "2",
+        "1",
+        "0",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Здесь `x` не аргумент, а захваченная замыканием переменная. Её значение читается в момент выполнения отложенной функции, когда `x` уже 2."
+    },
+    {
+      "id": "go-errors-011",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "func f() (n int) {\n    defer func() { n *= 2 }()\n    return 3\n}\n\nfunc main() {\n    fmt.Println(f())\n}",
+      "options": [
+        "3",
+        "6",
+        "0",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`return 3` сначала присваивает именованному результату `n = 3`, потом выполняются отложенные функции, и только затем функция возвращает значение. Отложенная функция может изменить именованный результат."
+    },
+    {
+      "id": "go-errors-012",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "func g() int {\n    n := 3\n    defer func() { n *= 2 }()\n    return n\n}\n\nfunc main() {\n    fmt.Println(g())\n}",
+      "options": [
+        "6",
+        "0",
+        "Ошибка компиляции",
+        "3"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Результат не именованный: `return n` копирует значение 3 в результат до запуска `defer`. Изменение локальной `n` на результат уже не влияет."
+    },
+    {
+      "id": "go-errors-013",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "var ErrNotFound = errors.New(\"not found\")\n\nfunc main() {\n    err := fmt.Errorf(\"load user: %w\", ErrNotFound)\n    fmt.Println(err == ErrNotFound, errors.Is(err, ErrNotFound))\n}",
+      "options": [
+        "false true",
+        "true true",
+        "false false",
+        "true false"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Обёрнутая ошибка — новый объект, поэтому `==` даёт false. `errors.Is` разворачивает цепочку через `Unwrap` и находит sentinel."
+    },
+    {
+      "id": "go-errors-014",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Для чего нужен `errors.As(err, &target)`?",
+      "options": [
+        "Сравнить err с конкретным значением-sentinel через `==`",
+        "Преобразовать err в строку и записать её в target",
+        "Найти в цепочке ошибку нужного типа и записать в target",
+        "Обернуть err в target, чтобы добавить контекст"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`errors.As` идёт по цепочке и ищет ошибку, которую можно присвоить переменной типа target, например `*os.PathError`. Второй аргумент — обязательно указатель на эту переменную."
+    },
+    {
+      "id": "go-errors-015",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Когда лучше создать собственный тип ошибки, а не sentinel `var ErrX = errors.New(...)`?",
+      "options": [
+        "Всегда: sentinel-ошибки устарели и не работают с `errors.Is`",
+        "Когда ошибка возникает очень часто и важна производительность",
+        "Когда вызывающему нужны данные ошибки: код, поле, путь",
+        "Когда ошибку нужно сравнивать через `==` с известным значением"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Sentinel подходит для простого признака вроде `io.EOF`. Если нужны поля, например `*os.PathError` с `Op` и `Path`, делают тип и проверяют его через `errors.As`."
+    },
+    {
+      "id": "go-errors-016",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Когда допустимо использовать `panic`?",
+      "options": [
+        "При нарушении инварианта или программной ошибке, которая «не может произойти»",
+        "При ошибке инициализации на старте, например в функциях вида `regexp.MustCompile`",
+        "Если файл, указанный пользователем, не найден",
+        "При сетевом таймауте запроса"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Ожидаемые ошибки времени выполнения (нет файла, таймаут) возвращают как `error`. `panic` оставляют для багов и невозможности стартовать."
+    },
+    {
+      "id": "go-errors-017",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "func safe() (err error) {\n    defer func() {\n        if r := recover(); r != nil {\n            err = fmt.Errorf(\"recovered: %v\", r)\n        }\n    }()\n    panic(\"boom\")\n}\n\nfunc main() {\n    fmt.Println(safe())\n}",
+      "options": [
+        "recovered: boom",
+        "<nil>",
+        "panic: boom",
+        "Ошибка компиляции: отсутствует return"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`recover` в отложенной функции останавливает панику, а присваивание именованному результату превращает её в ошибку. Функция, которая заканчивается `panic`, не обязана иметь `return`."
+    },
+    {
+      "id": "go-errors-018",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт?",
+      "code": "func helper() { recover() }\n\nfunc main() {\n    defer func() { helper() }()\n    panic(\"x\")\n}",
+      "options": [
+        "Паника будет перехвачена в `helper`, программа завершится нормально",
+        "Ошибка компиляции: результат `recover()` обязательно нужно использовать",
+        "Deadlock: отложенная функция ждёт завершения паники",
+        "Упадёт с panic: x — `recover` вызван не напрямую из отложенной функции"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`recover` действует, только если его напрямую вызывает отложенная функция. Здесь его вызывает `helper`, поэтому он возвращает `nil`, и паника продолжается."
+    },
+    {
+      "id": "go-errors-019",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно о цепочках ошибок в Go 1.20+?",
+      "options": [
+        "Для `errors.Join(e1, e2)` функция `errors.Is` находит и e1, и e2",
+        "`fmt.Errorf` может содержать несколько глаголов `%w`",
+        "`errors.Unwrap` для результата `errors.Join` возвращает первую ошибку",
+        "С `%v` вместо `%w` `errors.Is` всё равно находит исходную ошибку"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "С Go 1.20 ошибка может оборачивать несколько ошибок через метод `Unwrap() []error`. `errors.Is` и `errors.As` обходят такое дерево, а `errors.Unwrap` вызывает только `Unwrap() error` и для таких ошибок возвращает nil."
+    },
+    {
+      "id": "go-errors-020",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Выполнятся ли отложенные функции при вызове `os.Exit(1)` или `log.Fatal(...)`?",
+      "options": [
+        "Да, все `defer` во всех горутинах",
+        "Нет: процесс завершается сразу, `defer` не запускаются",
+        "Да, но только в текущей функции",
+        "Только при `log.Fatal`, потому что он вызывает `panic`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`os.Exit` завершает процесс немедленно, а `log.Fatal` печатает сообщение и вызывает `os.Exit(1)`. Поэтому, например, буферы не сбрасываются, а временные файлы не удаляются. `log.Panic`, в отличие от них, вызывает `panic`, и `defer` выполняются."
+    },
+    {
+      "id": "go-concurrency-001",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что происходит с запущенными горутинами, когда функция `main` возвращает управление?",
+      "options": [
+        "Программа ждёт завершения всех горутин",
+        "Горутины продолжают работать в фоне как демоны",
+        "Возникает panic: unfinished goroutines",
+        "Программа завершается, не дожидаясь их"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Завершение `main` завершает процесс. Дождаться горутин нужно явно: через `sync.WaitGroup`, каналы или `errgroup`."
+    },
+    {
+      "id": "go-concurrency-002",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как ведёт себя отправка в небуферизованный канал `ch <- v`?",
+      "options": [
+        "Сразу возвращается, значение ставится в очередь",
+        "Блокируется, пока другая горутина не примет значение",
+        "Паникует, если получателя нет",
+        "Отбрасывает значение, если получателя нет"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Небуферизованный канал — точка синхронизации: отправитель и получатель встречаются (rendezvous). Буфер позволяет отправить без ожидания до `cap` значений."
+    },
+    {
+      "id": "go-concurrency-003",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт?",
+      "code": "func main() {\n    ch := make(chan int)\n    ch <- 1\n    fmt.Println(<-ch)\n}",
+      "options": [
+        "Выведет 1: отправка и приём выполнятся по очереди",
+        "Выведет 0: небуферизованный канал теряет значение",
+        "fatal error: all goroutines are asleep - deadlock!",
+        "Ошибка компиляции: отправка и приём в одной горутине"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Отправка в небуферизованный канал ждёт получателя, но единственная горутина сама и блокируется. Рантайм видит, что все горутины спят, и аварийно завершает программу."
+    },
+    {
+      "id": "go-concurrency-004",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "ch := make(chan int, 2)\nch <- 1\nch <- 2\nfmt.Println(len(ch), cap(ch))",
+      "options": [
+        "2 2",
+        "0 2",
+        "2 0",
+        "Deadlock"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "В буферизованный канал можно отправить `cap` значений без получателя. `len` показывает, сколько значений сейчас в буфере."
+    },
+    {
+      "id": "go-concurrency-005",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как правильно использовать `sync.WaitGroup`?",
+      "options": [
+        "`wg.Add(1)` первой строкой внутри горутины, `wg.Wait()` в main",
+        "`wg.Add(1)` до запуска горутины, `defer wg.Done()` внутри, `wg.Wait()` снаружи",
+        "`wg.Add(1)` в main, а `wg.Wait()` внутри каждой горутины после работы",
+        "Передавать `wg` в горутину по значению, чтобы избежать гонок"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`Add` внутри горутины может не успеть выполниться до `Wait`, и тогда возникнет гонка. WaitGroup нельзя копировать, поэтому передают указатель или используют замыкание. С Go 1.25 есть удобный `wg.Go(f)`."
+    },
+    {
+      "id": "go-concurrency-006",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как запустить детектор гонок данных?",
+      "options": [
+        "Флагом `-race`: `go test -race`, `go run -race`",
+        "Командой `go vet -race` без запуска программы",
+        "Переменной окружения `GORACE=1` без пересборки",
+        "Через `go tool pprof race` на работающем процессе"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Флаг `-race` встраивает инструментацию доступа к памяти. Он находит только гонки, которые реально произошли при выполнении, поэтому тесты должны нагружать конкурентный код."
+    },
+    {
+      "id": "go-concurrency-007",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "ch := make(chan int, 1)\nch <- 5\nclose(ch)\na, ok1 := <-ch\nb, ok2 := <-ch\nfmt.Println(a, ok1, b, ok2)",
+      "options": [
+        "5 false 0 false",
+        "5 true 0 false",
+        "5 true 5 true",
+        "Panic: receive from closed channel"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Из закрытого канала сначала вычитываются оставшиеся в буфере значения. Потом приём сразу возвращает нулевое значение и `ok == false`."
+    },
+    {
+      "id": "go-concurrency-008",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие операции с каналами вызывают панику?",
+      "options": [
+        "Отправка в закрытый канал",
+        "Повторное закрытие канала",
+        "Чтение из закрытого канала",
+        "Закрытие nil-канала"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Чтение из закрытого канала безопасно: оно возвращает нулевое значение. Закрывать канал должен отправитель, причём один раз."
+    },
+    {
+      "id": "go-concurrency-009",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "ch := make(chan int)\ngo func() {\n    for i := 1; i <= 3; i++ {\n        ch <- i\n    }\n    close(ch)\n}()\nsum := 0\nfor v := range ch {\n    sum += v\n}\nfmt.Println(sum)",
+      "options": [
+        "3",
+        "Deadlock",
+        "0",
+        "6"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`for range` по каналу читает значения, пока канал не закрыт и не опустел. Без `close(ch)` цикл ждал бы вечно, и случился бы deadlock."
+    },
+    {
+      "id": "go-concurrency-010",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как ведут себя отправка и приём для nil-канала (`var ch chan int`)?",
+      "options": [
+        "Блокируются навсегда; в `select` такой case не выбирается",
+        "Сразу паникуют с ошибкой о nil-канале, как при закрытом",
+        "Приём возвращает нулевое значение, отправка ничего не делает",
+        "Ошибка компиляции: канал нужно создать через `make`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Операции с nil-каналом блокируются навсегда. Этим пользуются в `select`: присваивают каналу `nil`, чтобы отключить ветку, например после закрытия источника."
+    },
+    {
+      "id": "go-concurrency-011",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "ch := make(chan int)\nselect {\ncase v := <-ch:\n    fmt.Println(\"got\", v)\ndefault:\n    fmt.Println(\"empty\")\n}",
+      "options": [
+        "got 0",
+        "Deadlock",
+        "empty",
+        "Ничего: select ждёт вечно"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Если ни одна ветка `select` не готова, выполняется `default`, и `select` не блокируется. Если готовы несколько веток, выбор между ними случаен."
+    },
+    {
+      "id": "go-concurrency-012",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как в worker pool сообщить воркерам, читающим `for job := range jobs`, что задач больше не будет?",
+      "options": [
+        "Каждый воркер закрывает `jobs` после своей последней задачи",
+        "Отправить в канал `nil` или нулевое значение как маркер конца",
+        "Отправитель вызывает `close(jobs)`, и циклы `range` завершаются",
+        "Воркеры сами проверяют `len(jobs) == 0` и выходят из цикла"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Закрытие канала — это широковещательный сигнал для всех получателей. Проверка `len == 0` ненадёжна: следующая задача может ещё не быть отправлена."
+    },
+    {
+      "id": "go-concurrency-013",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как ограничить время ожидания ответа из канала?",
+      "options": [
+        "`select` с `case <-time.After(d)` или `case <-ctx.Done()`",
+        "Вызвать `time.Sleep(d)` и затем прочитать из канала",
+        "Указать таймаут вторым аргументом: `make(chan T, d)`",
+        "Вызвать `runtime.Gosched()` перед приёмом из канала"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`select` ждёт первую готовую ветку. `time.After` или контекст с дедлайном дают ветку, которая сработает по таймауту."
+    },
+    {
+      "id": "go-concurrency-014",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем `sync.RWMutex` отличается от `sync.Mutex`?",
+      "options": [
+        "Он реентерабельный: горутина может повторно взять ту же блокировку",
+        "Он работает без блокировок, только на атомарных операциях CAS",
+        "Он автоматически снимается при выходе из функции, как `defer`",
+        "Много читателей (`RLock`) одновременно или один писатель (`Lock`)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "RWMutex выгоден, когда чтений намного больше, чем записей. Мьютексы в Go не реентерабельны: повторный `Lock` в той же горутине приводит к deadlock."
+    },
+    {
+      "id": "go-concurrency-015",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что гарантирует `once.Do(f)` у `sync.Once`?",
+      "options": [
+        "f выполняется по одному разу в каждой горутине, вызвавшей `Do`",
+        "f выполнится ровно один раз даже при конкурентных вызовах, остальные ждут",
+        "f выполнится повторно при следующем вызове, если запаниковала",
+        "f запускается асинхронно в новой горутине, и `Do` сразу возвращается"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`sync.Once` — стандартный способ потокобезопасной ленивой инициализации. Если f запаниковала, Once всё равно считается выполненным. С Go 1.21 есть `sync.OnceFunc` и `sync.OnceValue`."
+    },
+    {
+      "id": "go-concurrency-016",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что может привести к утечке горутин?",
+      "options": [
+        "Горутина навсегда заблокирована на отправке в канал, который никто не читает",
+        "Горутина ждёт `<-ctx.Done()`, а контекст никогда не отменяют",
+        "Горутина завершилась через `return`",
+        "Буфер канала рассчитан под все результаты, поэтому отправки не блокируются"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Горутина, которая заблокирована навсегда, никогда не освобождается сборщиком мусора. У каждой горутины должен быть понятный путь завершения: закрытие канала, отмена контекста или буфер нужного размера."
+    },
+    {
+      "id": "go-concurrency-017",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "var n int\nvar wg sync.WaitGroup\nfor i := 0; i < 1000; i++ {\n    wg.Add(1)\n    go func() {\n        defer wg.Done()\n        n++\n    }()\n}\nwg.Wait()\nfmt.Println(n)",
+      "options": [
+        "Не определено: из-за гонки данных часто меньше 1000",
+        "Всегда 1000: `wg.Wait` синхронизирует все `n++`",
+        "Всегда 0: `n` копируется в каждую горутину",
+        "Deadlock: `wg.Wait` никогда не дождётся"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`n++` — это неатомарные чтение, сложение и запись, и параллельные инкременты теряются. По модели памяти Go программа с гонкой некорректна, и `-race` её обнаружит."
+    },
+    {
+      "id": "go-concurrency-018",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие способы корректно устраняют гонку в счётчике из горутин?",
+      "options": [
+        "Защитить `n++` с помощью `sync.Mutex`",
+        "Использовать `atomic.Int64` и `n.Add(1)`",
+        "Вызвать `runtime.Gosched()` перед `n++`",
+        "Объявить `n` как `volatile`"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Мьютекс и атомарные операции дают и атомарность, и видимость изменений. `Gosched` лишь уступает процессор, а ключевого слова `volatile` в Go нет."
+    },
+    {
+      "id": "go-concurrency-019",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что делает `errgroup.WithContext` из `golang.org/x/sync/errgroup`?",
+      "options": [
+        "`Wait` возвращает срез всех ошибок, а контекст живёт до конца",
+        "При ошибке одной горутины остальные получают panic через контекст",
+        "`Wait` возвращает первую ошибку, а контекст отменяется при первой ошибке",
+        "Повторно запускает горутину, вернувшую ошибку, пока она не преуспеет"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "errgroup объединяет WaitGroup, сбор первой ошибки и отмену контекста. `g.SetLimit(n)` дополнительно ограничивает число одновременно работающих горутин."
+    },
+    {
+      "id": "go-concurrency-020",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт?",
+      "code": "func worker(wg sync.WaitGroup) {\n    defer wg.Done()\n}\n\nfunc main() {\n    var wg sync.WaitGroup\n    wg.Add(1)\n    go worker(wg)\n    wg.Wait()\n}",
+      "options": [
+        "Программа корректно завершится",
+        "Deadlock: worker вызывает Done у копии WaitGroup, а main ждёт вечно",
+        "Panic: negative WaitGroup counter",
+        "Ошибка компиляции: WaitGroup нельзя передавать в функцию"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "WaitGroup передан по значению, и `Done` уменьшает счётчик копии. Счётчик в `main` остаётся 1, `Wait` блокируется навсегда. `go vet` предупреждает о копировании такого значения (copylocks)."
+    },
+    {
+      "id": "go-runtime-001",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Когда используют `context.TODO()` вместо `context.Background()`?",
+      "options": [
+        "Как временную заглушку, когда неясно, какой контекст передать",
+        "Для контекста с таймаутом по умолчанию в несколько секунд",
+        "Для фоновых задач, которые нельзя отменить ни при каких условиях",
+        "В тестах вместо реального контекста HTTP-запроса"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Оба контекста пустые и никогда не отменяются. `Background` — корень для `main`, инициализации и тестов, а `TODO` помечает место, где контекст ещё предстоит протянуть."
+    },
+    {
+      "id": "go-runtime-002",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как по соглашению передают `context.Context` в функцию?",
+      "options": [
+        "Последним параметром",
+        "Первым параметром с именем `ctx`",
+        "Полем структуры, которая живёт долго",
+        "Через глобальную переменную"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Контекст передают явно первым аргументом: `func Fetch(ctx context.Context, url string)`. Хранить его в долгоживущих структурах не рекомендуется."
+    },
+    {
+      "id": "go-runtime-003",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем нужен файл `go.sum`?",
+      "options": [
+        "Хранит хеши модулей-зависимостей для проверки их целостности",
+        "Описывает путь модуля и прямые зависимости с их версиями",
+        "Содержит итоги последнего прогона тестов для кеша `go test`",
+        "Кэширует скомпилированные пакеты для ускорения сборки"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`go.mod` объявляет модуль, версию Go и требования к зависимостям, а `go.sum` фиксирует их хеши. Оба файла коммитят в репозиторий."
+    },
+    {
+      "id": "go-runtime-004",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как оформить тест, чтобы его нашёл `go test`?",
+      "options": [
+        "Файл `test_*.go`, функция `func test_xxx()`",
+        "Файл `*_test.go`, функция `func TestXxx(t *testing.T)`",
+        "Любой файл, функция с аннотацией `@Test`",
+        "Файл в папке `tests/`, функция `func Test() bool`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`go test` компилирует файлы с суффиксом `_test.go` и запускает функции `Test` + имя с заглавной буквы. Ошибки сообщают через `t.Error`/`t.Fatal`."
+    },
+    {
+      "id": "go-runtime-005",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает `go vet`?",
+      "options": [
+        "Форматирует код по стандарту `gofmt` и упорядочивает импорты",
+        "Проверяет уязвимости в зависимостях по базе Go vulnerability",
+        "Запускает тесты с детектором гонок и выводит найденные гонки",
+        "Ищет подозрительный код: ошибки форматов `Printf`, копии мьютексов"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`go vet` находит то, что компилируется, но почти наверняка является ошибкой. Форматирует код `gofmt`, а уязвимости ищет `govulncheck`."
+    },
+    {
+      "id": "go-runtime-006",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что задаёт `GOMAXPROCS`?",
+      "options": [
+        "Сколько потоков ОС одновременно выполняют Go-код (число P)",
+        "Максимальное число одновременно живущих горутин",
+        "Максимальное число потоков ОС в процессе, включая заблокированные",
+        "Начальный размер стека каждой горутины в килобайтах"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "По умолчанию равно числу доступных CPU (с Go 1.25 учитываются и cgroup-лимиты контейнера). Потоков, заблокированных в системных вызовах, может быть больше."
+    },
+    {
+      "id": "go-runtime-007",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое `b.N` в бенчмарке?",
+      "code": "func BenchmarkRepeat(b *testing.B) {\n    for i := 0; i < b.N; i++ {\n        _ = strings.Repeat(\"a\", 100)\n    }\n}",
+      "options": [
+        "Число ядер процессора, на которых параллельно идёт бенчмарк",
+        "Количество повторов бенчмарка, переданное флагом `-count`",
+        "Число итераций, которое фреймворк подбирает до стабильного замера",
+        "Фиксированная константа 1000, если не задан `-benchtime`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`go test -bench=.` запускает бенчмарк с растущим `b.N` и выводит время на операцию (ns/op). С Go 1.24 можно писать `for b.Loop() { ... }`."
+    },
+    {
+      "id": "go-runtime-008",
+      "topic": "runtime",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие методы есть у интерфейса `context.Context`?",
+      "options": [
+        "`Done() <-chan struct{}`",
+        "`Err() error`",
+        "`Cancel()`",
+        "`Value(key any) any`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Интерфейс состоит из `Deadline`, `Done`, `Err` и `Value`. Функцию отмены возвращают `WithCancel`/`WithTimeout`, и её вызывает тот, кто создал контекст."
+    },
+    {
+      "id": "go-runtime-009",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "ctx, cancel := context.WithCancel(context.Background())\ncancel()\n<-ctx.Done()\nfmt.Println(ctx.Err())",
+      "options": [
+        "context deadline exceeded",
+        "<nil>",
+        "context canceled",
+        "Deadlock"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "После `cancel()` канал `Done()` закрывается, и приём из него не блокируется. `Err()` возвращает `context.Canceled`."
+    },
+    {
+      "id": "go-runtime-010",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)\ndefer cancel()\n\nselect {\ncase <-time.After(time.Second):\n    fmt.Println(\"done\")\ncase <-ctx.Done():\n    fmt.Println(ctx.Err())\n}",
+      "options": [
+        "context deadline exceeded",
+        "done",
+        "context canceled",
+        "<nil>"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Дедлайн наступит через 10 мс, раньше секундного таймера, и `Err()` вернёт `context.DeadlineExceeded`. `defer cancel()` всё равно нужен, чтобы сразу освободить ресурсы таймера."
+    },
+    {
+      "id": "go-runtime-011",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "parent, cancelParent := context.WithCancel(context.Background())\ndefer cancelParent()\nchild, cancelChild := context.WithCancel(parent)\ncancelChild()\nfmt.Println(parent.Err(), child.Err())",
+      "options": [
+        "context canceled context canceled",
+        "<nil> <nil>",
+        "context canceled <nil>",
+        "<nil> context canceled"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Отмена распространяется только вниз по дереву: родитель отменяет детей, а отмена ребёнка на родителя не влияет."
+    },
+    {
+      "id": "go-runtime-012",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означают буквы в модели планировщика GMP?",
+      "options": [
+        "G — сборщик мусора, M — память, P — процесс",
+        "G — горутина, M — поток ОС, P — логический процессор",
+        "G — группа потоков, M — мьютекс, P — приоритет",
+        "G — горутина, M — машинный код, P — пакет"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "M выполняет Go-код, только когда владеет P, а P хранит очередь готовых G. Свободные P «крадут» работу у других (work stealing), а при блокирующем системном вызове P передаётся другому M."
+    },
+    {
+      "id": "go-runtime-013",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт с `x`?",
+      "code": "func newInt() *int {\n    x := 42\n    return &x\n}",
+      "options": [
+        "Код корректен: escape analysis разместит x в куче",
+        "Висячий указатель: x уничтожится вместе со стеком",
+        "Ошибка компиляции: нельзя вернуть адрес локальной переменной",
+        "x будет скопирована в глобальную переменную"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Компилятор сам решает, где разместить переменную. Если ссылка переживает функцию, переменная «убегает» в кучу. Увидеть решения можно через `go build -gcflags=-m`."
+    },
+    {
+      "id": "go-runtime-014",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означает `GOGC=100` (значение по умолчанию)?",
+      "options": [
+        "GC запускается по таймеру каждые 100 мс независимо от нагрузки",
+        "GC может занимать до 100% CPU всех ядер во время фазы разметки",
+        "Сборка начнётся, когда куча вырастет на 100% от живых данных после прошлой",
+        "Под кучу выделено не больше 100 МБ, дальше включается сборка"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Больший `GOGC` означает реже GC и больше памяти, `off` отключает сборку. С Go 1.19 есть мягкий лимит `GOMEMLIMIT`."
+    },
+    {
+      "id": "go-runtime-015",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Для чего директива `replace` в `go.mod`?",
+      "options": [
+        "Обновить все зависимости до последних минорных версий",
+        "Подменить модуль другой версией или локальной копией (`=> ../lib`)",
+        "Переименовать собственный модуль без правки импортов",
+        "Исключить модуль из сборки, как директива `exclude`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`replace` применяется только в главном модуле, а в зависимостях игнорируется. Для работы с несколькими локальными модулями также есть `go.work`."
+    },
+    {
+      "id": "go-runtime-016",
+      "topic": "runtime",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про `context.WithValue`?",
+      "options": [
+        "Ключ лучше делать собственным неэкспортируемым типом, чтобы избежать коллизий",
+        "Он подходит для request-scoped данных (trace id, пользователь), а не для обычных параметров функций",
+        "Обычная строка — рекомендуемый тип ключа",
+        "`WithValue` изменяет исходный контекст"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Контексты неизменяемы: `WithValue` возвращает новый дочерний контекст. Ключ-строка может совпасть с ключом другого пакета, поэтому используют `type ctxKey struct{}`."
+    },
+    {
+      "id": "go-runtime-017",
+      "topic": "runtime",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Как устроен сборщик мусора Go?",
+      "options": [
+        "Поколенческий копирующий сборщик, как в JVM, с короткими паузами",
+        "Подсчёт ссылок с фоновым детектором циклов, как в CPython",
+        "Stop-the-world на всё время сборки, зато без барьеров записи",
+        "Конкурентный трёхцветный mark-sweep без поколений и перемещения объектов"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Разметка идёт параллельно с программой с помощью write barrier, а остановки нужны только на короткие фазы. Объекты не перемещаются, поэтому указатели остаются стабильными."
+    },
+    {
+      "id": "go-runtime-018",
+      "topic": "runtime",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие профили можно снять с помощью `pprof` (`runtime/pprof`, `net/http/pprof`)?",
+      "options": [
+        "CPU",
+        "Heap (аллокации и живая память)",
+        "Goroutine (стеки всех горутин)",
+        "Захват сетевых пакетов"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Также доступны block, mutex и threadcreate. Профиль анализируют командой `go tool pprof`, например в виде flame graph через `-http`."
+    },
+    {
+      "id": "go-runtime-019",
+      "topic": "runtime",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Как правильно ограничить сборку файла только Linux на amd64?",
+      "options": [
+        "Директива `#ifdef linux && amd64` в начале файла, как в языке C",
+        "Секция `build { os = linux }` в `go.mod` модуля",
+        "Проверка `runtime.GOOS == \"linux\"` в функции `init()`",
+        "`//go:build linux && amd64` перед `package` или суффикс `_linux_amd64.go`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Ограничения сборки задаются директивой `//go:build` (старый синтаксис `// +build` устарел) или суффиксами `_GOOS`/`_GOARCH` в имени файла. Собственные теги включают через `go build -tags`."
+    },
+    {
+      "id": "go-runtime-020",
+      "topic": "runtime",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Почему в Go 1.22+ этот тест корректен, а раньше внутри цикла добавляли `tt := tt`?",
+      "code": "for _, tt := range tests {\n    t.Run(tt.name, func(t *testing.T) {\n        t.Parallel()\n        if got := Abs(tt.in); got != tt.want {\n            t.Errorf(\"got %d, want %d\", got, tt.want)\n        }\n    })\n}",
+      "options": [
+        "`t.Parallel()` раньше копировал замыкание и терял ссылку на `tt`",
+        "Раньше переменная цикла была общей на все итерации; с 1.22 — своя на каждой",
+        "`tt := tt` нужен был для ускорения тестов за счёт локальной копии",
+        "До 1.22 `t.Run` не принимал замыкания с захватом переменных"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`t.Parallel()` откладывает выполнение подтеста до конца цикла. До 1.22 все замыкания разделяли одну `tt`, и проверялся только последний случай. Семантика per-iteration включается версией `go 1.22` в `go.mod`."
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 // Network-first: всегда берём свежую версию, кэш — только для офлайна.
-const CACHE = 'skilltrainer-v3';
+const CACHE = 'skilltrainer-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 

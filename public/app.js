@@ -82,17 +82,38 @@ async function loadCourse(course) {
   state.data[course.id] = { topics, questions, byId, topicTitle };
 }
 
+// Вопросы курса грузятся при первом входе в него. Для главной хватает index.json
+// (его генерирует scripts/validate.js): там id вопросов каждого курса.
+const courseLoads = new Map();
+function ensureCourse(courseId) {
+  if (state.data[courseId]) return Promise.resolve();
+  if (!courseLoads.has(courseId)) {
+    courseLoads.set(courseId, loadCourse(state.courses.find((c) => c.id === courseId)));
+  }
+  return courseLoads.get(courseId);
+}
+
+const hasCourse = (id) => state.courses.some((c) => c.id === id);
+
 async function init() {
   try {
     state.courses = await fetchJSON('data/courses.json');
-    await Promise.all(state.courses.map(loadCourse));
+    state.index = await fetchJSON('data/index.json').catch(() => null);
+    const complete = state.index && state.index.courses && state.courses.every((c) => state.index.courses[c.id]);
+    if (!complete) { // индекса нет или он устарел — грузим всё сразу
+      state.index = null;
+      await Promise.all(state.courses.map((c) => ensureCourse(c.id)));
+    }
+    const saved = readJSON(SESSION_KEY, null);
+    if (saved && hasCourse(saved.courseId)) {
+      await ensureCourse(saved.courseId);
+      state.quiz = saved;
+    }
   } catch (err) {
     console.error(err);
     app.innerHTML = `<div class="empty">Не удалось загрузить данные.<br>${esc(err.message)}</div>`;
     return;
   }
-  const saved = readJSON(SESSION_KEY, null);
-  if (saved && state.data[saved.courseId]) state.quiz = saved;
   route();
 }
 
@@ -149,6 +170,14 @@ function toast(msg) {
   toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
 }
 
+const CATEGORIES = [
+  ['infra', 'Инфраструктура и архитектура'],
+  ['data', 'Данные и AI'],
+  ['lang', 'Языки программирования'],
+  ['cs', 'Computer Science и практики'],
+  ['other', 'Другое'],
+];
+
 const DIFF_LABEL = { easy: 'Лёгкий', medium: 'Средний', hard: 'Сложный' };
 const LETTERS = 'ABCDEFGHIJ';
 
@@ -160,17 +189,19 @@ const ICONS = {
 };
 
 function courseStats(courseId) {
-  const { questions } = state.data[courseId];
+  const ids = state.data[courseId]
+    ? state.data[courseId].questions.map((q) => q.id)
+    : state.index.courses[courseId].ids;
   let seen = 0, correctLast = 0, mistakes = 0, attempts = 0, correct = 0;
-  for (const q of questions) {
-    const s = db.stats[q.id];
+  for (const id of ids) {
+    const s = db.stats[id];
     if (!s) continue;
     seen++;
     attempts += s.seen;
     correct += s.correct;
     if (s.last) correctLast++; else mistakes++;
   }
-  return { total: questions.length, seen, correctLast, mistakes, accuracy: pct(correct, attempts), unseen: questions.length - seen };
+  return { total: ids.length, seen, correctLast, mistakes, accuracy: pct(correct, attempts), unseen: ids.length - seen };
 }
 
 function topicStats(courseId, topicId) {
@@ -197,6 +228,12 @@ function toggleTheme() {
 function route() {
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   window.scrollTo(0, 0);
+  if ((parts[0] === 'course' || parts[0] === 'theory') && hasCourse(parts[1]) && !state.data[parts[1]]) {
+    app.innerHTML = '<div class="loading">Загрузка курса…</div>';
+    const key = location.hash;
+    ensureCourse(parts[1]).then(() => { if (location.hash === key) route(); });
+    return;
+  }
   if (parts[0] === 'course' && state.data[parts[1]]) return renderCourse(parts[1]);
   if (parts[0] === 'theory' && state.data[parts[1]]) {
     const topic = parts[2] && decodeURIComponent(parts[2]);
@@ -228,10 +265,10 @@ function renderHome() {
       </div>`
     : '';
 
-  const cards = state.courses.map((c) => {
+  const card = (c) => {
     const s = courseStats(c.id);
     return `<a class="card course-card" href="#/course/${esc(c.id)}">
-      <div class="badge" style="background:${esc(c.color)}">${esc(c.badge)}</div>
+      <div class="badge${String(c.badge).length > 4 ? ' long' : ''}" style="background:${esc(c.color)}">${esc(c.badge)}</div>
       <div>
         <h3>${esc(c.title)}</h3>
         <p>${esc(c.description)}</p>
@@ -243,16 +280,21 @@ function renderHome() {
         </div>
       </div>
     </a>`;
-  }).join('');
+  };
+  const groups = CATEGORIES.map(([id, title]) => [title, state.courses.filter((c) => (c.category || 'other') === id)])
+    .filter(([, list]) => list.length);
+  const cards = groups.map(([title, list]) => `
+    <h2 class="section">${esc(title)}</h2>
+    <div class="stack">${list.map(card).join('')}</div>`).join('');
 
   app.innerHTML = `
     <header class="topbar">
       <h1>Тренажёр скиллов</h1>
       <button class="icon-btn" data-action="theme" aria-label="Сменить тему">${ICONS.theme}</button>
     </header>
-    <p class="lead">Выберите курс, чтобы начать тренировку.</p>
+    <p class="lead">Выберите курс: в каждом есть тесты и теория по темам.</p>
     ${resume}
-    <div class="stack">${cards}</div>
+    ${cards}
 
     <h2 class="section">Прогресс</h2>
     <div class="card transfer">

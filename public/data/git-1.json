@@ -1,0 +1,2141 @@
+{
+  "topics": [
+    {
+      "id": "internals",
+      "title": "Git изнутри"
+    },
+    {
+      "id": "branching",
+      "title": "Ветвление и слияние"
+    },
+    {
+      "id": "recovery",
+      "title": "Отмена и восстановление"
+    },
+    {
+      "id": "tools",
+      "title": "Инструменты разработчика"
+    },
+    {
+      "id": "review",
+      "title": "Код-ревью и качество кода"
+    },
+    {
+      "id": "team",
+      "title": "Командная работа и soft skills"
+    }
+  ],
+  "questions": [
+    {
+      "id": "gitc-internals-001",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие типы объектов хранятся в объектной базе Git (`.git/objects`)?",
+      "options": [
+        "blob",
+        "tag (аннотированный)",
+        "diff",
+        "commit",
+        "tree",
+        "branch"
+      ],
+      "correct": [
+        0,
+        1,
+        3,
+        4
+      ],
+      "explanation": "В объектной базе ровно четыре типа: blob (содержимое файла), tree (каталог), commit и аннотированный tag. Ветка — это не объект, а ссылка (ref), а диффы Git вычисляет на лету."
+    },
+    {
+      "id": "gitc-internals-002",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что хранится в blob-объекте?",
+      "options": [
+        "Содержимое файла вместе с его именем и путём",
+        "Дифф файла относительно предыдущей версии",
+        "Только содержимое файла — без имени, прав и даты",
+        "Содержимое файла и SHA коммита, в котором он появился"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Имя и права файла хранит tree, ссылающийся на blob. Поэтому переименование файла без изменения содержимого не создаёт новый blob."
+    },
+    {
+      "id": "gitc-internals-003",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем физически является локальная ветка `feature` в Git?",
+      "options": [
+        "Отдельной копией всех файлов проекта, которая хранится в каталоге `.git/branches/feature`",
+        "Файлом `.git/refs/heads/feature` (или строкой в `packed-refs`) с SHA коммита",
+        "Объектом типа branch в `.git/objects`, где перечислены SHA всех коммитов этой ветки",
+        "Записью в `.git/config` в секции `[branch \"feature\"]` со списком коммитов ветки"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Ветка — это просто подвижный указатель на коммит. Поэтому создание ветки в Git мгновенно и почти ничего не стоит: записывается 40 символов хеша."
+    },
+    {
+      "id": "gitc-internals-004",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает такой вывод?",
+      "code": "cat .git/HEAD\nref: refs/heads/main",
+      "options": [
+        "HEAD — символическая ссылка на ветку `main`: новые коммиты будут передвигать `main`",
+        "Репозиторий находится в состоянии detached HEAD: HEAD указывает прямо на коммит `main`",
+        "Ветка `main` указывает на HEAD удалённого репозитория и обновляется при каждом fetch",
+        "В репозитории идёт незавершённое слияние с веткой `main`, и HEAD временно указывает на неё"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Когда HEAD содержит `ref: ...`, он указывает на ветку, а ветка — на коммит. В detached HEAD файл содержит сразу SHA коммита."
+    },
+    {
+      "id": "gitc-internals-005",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "От чего вычисляется SHA-1 blob-объекта?",
+      "options": [
+        "От заголовка `blob <размер>\\0` и содержимого файла",
+        "От имени файла, его пути и содержимого",
+        "От содержимого файла и времени коммита",
+        "От содержимого файла и SHA родительского коммита"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Git — контентно-адресуемое хранилище: одинаковое содержимое всегда даёт одинаковый хеш, где бы и как бы ни назывался файл. Это легко проверить: `git hash-object` и `sha1sum` от `blob 6\\0hello\\n` совпадают."
+    },
+    {
+      "id": "gitc-internals-006",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое `origin/main`?",
+      "options": [
+        "Ветка `main` на сервере, к которой команды `log` и `diff` обращаются напрямую по сети",
+        "Remote-tracking ветка: локальная копия `main` с `origin` на момент последнего fetch",
+        "Обычная локальная ветка, в которую удобно коммитить перед push, чтобы не трогать `main`",
+        "Тег, который Git автоматически ставит на последний запушенный в `main` коммит"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Remote-tracking ветки обновляются только при `fetch`/`pull`/`push` и не меняются при коммитах. Сравнение с ними (`ahead/behind`) показывает расхождение с сервером на момент последней синхронизации."
+    },
+    {
+      "id": "gitc-internals-007",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое индекс (staging area) с точки зрения устройства Git?",
+      "options": [
+        "Каталог `.git/staging` с полными копиями изменённых файлов, подготовленных к коммиту",
+        "Список коммитов, ожидающих отправки на сервер при следующем `git push`",
+        "Бинарный файл `.git/index`: пути, SHA их blob-ов и метаданные — основа следующего tree",
+        "Кэш диффов между рабочей директорией и последним коммитом, который обновляет `git status`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`git add` записывает blob в объектную базу и обновляет запись в `.git/index`. `git commit` превращает индекс в tree-объекты, поэтому коммит фиксирует именно индекс, а не рабочую директорию."
+    },
+    {
+      "id": "gitc-internals-008",
+      "topic": "internals",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Для чего используется команда `git cat-file`?",
+      "options": [
+        "Выводит содержимое файла из рабочей директории с подсветкой незакоммиченных изменений",
+        "Склеивает несколько коммитов в один, объединяя их сообщения и содержимое",
+        "Проверяет целостность всех объектов в репозитории и выводит повреждённые SHA",
+        "Показывает тип (`-t`), размер (`-s`) или содержимое (`-p`) объекта по SHA"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`git cat-file -p HEAD` покажет tree, parent, author и сообщение коммита, а `git cat-file -p HEAD^{tree}` — содержимое корневого каталога. Целостность проверяет `git fsck`."
+    },
+    {
+      "id": "gitc-internals-009",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сколько blob-объектов будет создано для этих двух файлов?",
+      "code": "echo hello > a.txt\ncp a.txt b.txt\ngit add a.txt b.txt\ngit commit -m \"two files\"\ngit cat-file -p HEAD^{tree}",
+      "options": [
+        "Два: blob создаётся отдельно для каждого пути в индексе",
+        "Ни одного: blob-ы создаются только при `git commit` или `git push`",
+        "Один: у файлов одинаковое содержимое, а значит и одинаковый SHA",
+        "Два blob-а и один delta-объект, хранящий разницу между ними"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Хеш зависит только от содержимого, поэтому оба имени в tree указывают на один и тот же blob. Дедупликация одинаковых файлов происходит автоматически."
+    },
+    {
+      "id": "gitc-internals-010",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что будет выведено после этих команд в свежем репозитории (до коммита)?",
+      "code": "git init demo && cd demo\necho hello > a.txt\ngit add a.txt\nfind .git/objects -type f | wc -l\ngit cat-file -t $(git hash-object a.txt)",
+      "options": [
+        "`1` и `blob`: объект создаётся уже при `git add`",
+        "`0` и ошибка: объекты появляются только при коммите",
+        "`3` и `blob`: сразу создаются blob, tree и commit",
+        "`1` и `tree`: `add` сохраняет каталог целиком"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`git add` записывает содержимое файла в объектную базу и обновляет индекс. Tree и commit появятся только при `git commit`. Поэтому даже незакоммиченные, но добавленные в индекс данные иногда можно найти через `git fsck`."
+    },
+    {
+      "id": "gitc-internals-011",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что хранит tree-объект?",
+      "options": [
+        "Полное содержимое всех файлов каталога, упакованное одним сжатым архивом",
+        "Список коммитов, изменявших этот каталог, с SHA каждого коммита и датой",
+        "Только имена и права файлов каталога, без ссылок на их содержимое",
+        "Записи вида: режим, тип, SHA объекта и имя — для файлов и подкаталогов"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Tree — это снимок каталога: записи `100644 blob <sha> a.txt` или `040000 tree <sha> src`. Вложенные каталоги — это вложенные tree, так строится снимок всего проекта."
+    },
+    {
+      "id": "gitc-internals-012",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие данные непосредственно записаны в commit-объект?",
+      "options": [
+        "Имя ветки, в которой сделан коммит",
+        "SHA родительских коммитов",
+        "Автор и коммиттер с датами",
+        "SHA корневого tree",
+        "Список изменённых файлов с диффами"
+      ],
+      "correct": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "Коммит хранит tree, parent(ы), author, committer и сообщение. Диффа в нём нет — Git вычисляет его, сравнивая tree коммита и родителя. Имя ветки тоже не хранится: ветка — внешний указатель."
+    },
+    {
+      "id": "gitc-internals-013",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведут эти команды?",
+      "code": "git tag v1\ngit tag -a v2 -m \"release\"\ngit cat-file -t v1\ngit cat-file -t v2",
+      "options": [
+        "`tag`, затем `tag`",
+        "`commit`, затем `tag`",
+        "`commit`, затем `commit`",
+        "`tag`, затем `commit`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Лёгкий тег (`git tag v1`) — просто ссылка на коммит, отдельного объекта нет. Аннотированный (`-a`) создаёт объект tag с автором, датой и сообщением, поэтому для релизов используют именно его."
+    },
+    {
+      "id": "gitc-internals-014",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что делает `git gc`?",
+      "options": [
+        "Удаляет все локальные ветки, которые уже слиты в `main`, и чистит их reflog",
+        "Упаковывает loose-объекты в packfile с дельта-сжатием и удаляет старые недостижимые объекты",
+        "Удаляет из истории все коммиты старше 90 дней и переписывает SHA оставшихся, чтобы уменьшить размер",
+        "Сжимает рабочую директорию и индекс в архив, освобождая место на диске"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "После `git gc` loose-объекты из `.git/objects/xx/` оказываются в `.git/objects/pack/*.pack` (+ `.idx`). Недостижимые объекты удаляются только после grace-периода (по умолчанию 2 недели) и если на них не ссылается reflog."
+    },
+    {
+      "id": "gitc-internals-015",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означает refspec в конфиге remote?",
+      "code": "[remote \"origin\"]\n    fetch = +refs/heads/*:refs/remotes/origin/*",
+      "options": [
+        "Все локальные ветки при push отправляются на сервер в `refs/remotes/origin/*`, `+` включает force",
+        "Fetch скачивает только ветку `main`, а `+` означает «добавить к уже существующим ссылкам»",
+        "Локальные ветки автоматически сливаются с одноимёнными удалёнными, `+` разрешает конфликты",
+        "При fetch `refs/heads/*` сервера пишутся в `refs/remotes/origin/*`; `+` разрешает не-fast-forward"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Refspec имеет вид `[+]<источник>:<назначение>`. Знак `+` нужен, потому что удалённую ветку могли переписать force-push-ем, и remote-tracking ветку нужно обновить безусловно."
+    },
+    {
+      "id": "gitc-internals-016",
+      "topic": "internals",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "После `git fetch` нужно посмотреть коммиты, которые пришли с сервера и ещё не попали в вашу ветку `main`. Какая команда это покажет?",
+      "options": [
+        "`git log main..origin/main`",
+        "`git log origin/main..main`",
+        "`git log origin/main`",
+        "`git diff main origin/main --stat`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Запись `A..B` означает «коммиты, достижимые из B, но не из A». `origin/main..main` — наоборот, ваши незапушенные коммиты. `git diff` показывает разницу снимков, а не список коммитов."
+    },
+    {
+      "id": "gitc-internals-017",
+      "topic": "internals",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Почему изменение одного байта в старом коммите меняет хеши всех последующих коммитов?",
+      "options": [
+        "Git пересчитывает хеши всех коммитов ветки при каждом новом `git commit`",
+        "Хеш коммита вычисляется от порядкового номера коммита в истории ветки",
+        "Каждый коммит содержит SHA родителя, поэтому меняется содержимое, а значит и хеш, потомков",
+        "Хеши коммитов не меняются — пересчитываются только хеши изменённых blob-ов и tree, на которые они ссылаются"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "История — это цепочка хешей (дерево Меркла): изменение в любой точке каскадно меняет всё, что ниже. Поэтому amend, rebase и filter-repo всегда «переписывают историю»."
+    },
+    {
+      "id": "gitc-internals-018",
+      "topic": "internals",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Вы сделали коммит в состоянии detached HEAD, а потом выполнили `git switch main`. Как можно найти этот коммит?",
+      "code": "git switch --detach HEAD~1\necho x > c && git add c\ngit commit -m \"experiment\"\ngit switch main\n# Warning: you are leaving 1 commit behind...",
+      "options": [
+        "По хешу из предупреждения Git при переключении («you are leaving 1 commit behind»)",
+        "Через `git log --all` — он показывает все объекты в базе",
+        "Через `git reflog` — там есть запись о коммите",
+        "Через `git fsck --lost-found` — он покажет его как dangling commit",
+        "Через `git branch -a`"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "Коммит не привязан ни к одной ветке, поэтому `log --all` и `branch -a` его не увидят — они обходят только ссылки. Найдя хеш, создайте ветку: `git branch rescue <sha>`, пока gc его не удалил."
+    },
+    {
+      "id": "gitc-internals-019",
+      "topic": "internals",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какое утверждение о хранении данных в Git верно?",
+      "options": [
+        "Git хранит только диффы между соседними коммитами, а полные снимки восстанавливает при checkout",
+        "Каждый коммит физически хранит полную несжатую копию всех файлов проекта",
+        "Дельта в packfile всегда строится относительно предыдущей версии того же файла",
+        "Логически коммит — полный снимок, а в packfile объекты хранятся с дельта-сжатием"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Модель данных — снимки (tree), но одинаковые файлы переиспользуются, а `git gc`/`repack` дельта-сжимает похожие объекты. База для дельты выбирается эвристикой и не обязана быть предыдущей версией файла."
+    },
+    {
+      "id": "gitc-internals-020",
+      "topic": "internals",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Коллега force-push-ем затёр ветку `feature` на сервере (GitHub), и нужные коммиты пропали. Где их проще всего найти?",
+      "options": [
+        "В reflog на сервере: `git reflog origin/feature` по сети читает журнал ссылки в удалённом репозитории",
+        "Нигде: после force-push объекты сразу удаляются у всех клонов",
+        "У любого, кто делал fetch до force-push: старый SHA есть в reflog `origin/feature` или его локальной ветки",
+        "В `git log --all` у коллеги, сделавшего force-push"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Reflog локален и не передаётся по сети, зато ведётся и для remote-tracking веток. Получив SHA (`git reflog origin/feature`), коммиты восстанавливают `git branch restore <sha>` и пушат обратно."
+    },
+    {
+      "id": "gitc-branching-001",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько родителей у обычного merge-коммита, созданного `git merge feature`?",
+      "options": [
+        "Один: последний коммит сливаемой ветки",
+        "Ноль: merge-коммит не имеет родителей",
+        "Два: текущая ветка и сливаемая",
+        "Столько, сколько коммитов было в feature"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Merge-коммит связывает две линии истории, поэтому у него два parent (у octopus-merge — больше). Это видно в `git cat-file -p HEAD`."
+    },
+    {
+      "id": "gitc-branching-002",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что находится между `<<<<<<< HEAD` и `=======` в этом конфликте (выполнялся `git merge feat` на ветке `main`)?",
+      "code": "<<<<<<< HEAD\ntimeout = 30\n=======\ntimeout = 60\n>>>>>>> feat",
+      "options": [
+        "Версия из ветки `feat`",
+        "Версия строки из текущей ветки `main`",
+        "Версия из общего предка",
+        "Итоговая версия, которую предложил Git"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Верхний блок — «наша» сторона (HEAD, текущая ветка), нижний после `=======` — сливаемая ветка. Нужно оставить правильный вариант, удалить маркеры и сделать `git add`."
+    },
+    {
+      "id": "gitc-branching-003",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой принцип лежит в основе GitHub Flow?",
+      "options": [
+        "`main` всегда готов к деплою; работа идёт в короткоживущих ветках через pull request",
+        "Есть отдельные долгоживущие ветки `develop`, `release/*` и `hotfix/*`",
+        "Все коммитят прямо в `main` без код-ревью, а откаты делают через revert",
+        "Для каждой поддерживаемой версии продукта ведётся своя долгоживущая ветка, куда бэкпортят исправления"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "GitHub Flow — облегчённая модель: ветка от main → PR → ревью и CI → слияние → деплой. Ветки develop/release/hotfix — это Git Flow."
+    },
+    {
+      "id": "gitc-branching-004",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что характерно для trunk-based development?",
+      "options": [
+        "Частые небольшие слияния в общий ствол, короткоживущие ветки и feature flags",
+        "Долгоживущие feature-ветки, которые сливаются в ствол один раз за релиз",
+        "Отдельная постоянная ветка на каждого разработчика с еженедельным слиянием",
+        "Запрет на ветки: каждый коммит сразу деплоится в прод без прогона CI"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Цель — минимизировать расхождение веток и боль слияний. Незаконченная функциональность попадает в ствол, но скрыта за флагом."
+    },
+    {
+      "id": "gitc-branching-005",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем нужны feature flags?",
+      "options": [
+        "Чтобы помечать коммиты, относящиеся к одной задаче, и группировать их в changelog",
+        "Чтобы отделить деплой кода от включения функциональности для пользователей",
+        "Чтобы запретить слияние ветки в `main` до прохождения всех проверок CI",
+        "Чтобы автоматически версионировать релизы по семантическому версионированию"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Код с выключенным флагом безопасно лежит в продакшене. Включать можно постепенно (на % пользователей), а выключение работает как kill switch без отката деплоя."
+    },
+    {
+      "id": "gitc-branching-006",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Вы разрешили конфликт в файле при `git merge`. Какие действия корректно завершат слияние?",
+      "options": [
+        "`git rebase --continue`",
+        "`git merge --skip`",
+        "`git add file && git merge --continue`",
+        "`git add file && git commit`"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "После правки файл помечают разрешённым через `git add`, затем завершают merge коммитом — напрямую или через `merge --continue`. `rebase --continue` относится к rebase, а `merge --skip` не существует."
+    },
+    {
+      "id": "gitc-branching-007",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Слияние привело к множеству конфликтов, и вы хотите вернуться к состоянию до `git merge`. Что выполнить?",
+      "options": [
+        "`git revert HEAD`",
+        "`git merge --undo`",
+        "`git merge --abort`",
+        "`git stash`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`--abort` восстанавливает ветку, индекс и рабочую директорию как до начала слияния. `revert HEAD` отменил бы уже существующий коммит, а слияние ещё не закоммичено."
+    },
+    {
+      "id": "gitc-branching-008",
+      "topic": "branching",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "PR влили через «Squash and merge». Какое следствие нужно учитывать?",
+      "options": [
+        "Все коммиты feature-ветки попадут в `main` с исходными хешами и авторами",
+        "В `main` появится merge-коммит с двумя родителями, а история ветки сохранится",
+        "Feature-ветка автоматически перебазируется на `main` и её можно продолжать",
+        "В `main` будет один новый коммит; ветка не считается слитой — её лучше удалить"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Squash создаёт новый коммит с одним родителем, история ветки в main не попадает. Если продолжить работу в той же ветке и снова влить её, старые изменения вызовут лишние конфликты."
+    },
+    {
+      "id": "gitc-branching-009",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Идёт `git rebase main` на ветке `feat`, возник конфликт. Какая версия окажется в файле после `git checkout --ours f`?",
+      "code": "git switch feat\ngit rebase main\n# CONFLICT (content): Merge conflict in f\ngit checkout --ours f",
+      "options": [
+        "Версия из `feat`",
+        "Версия общего предка",
+        "Версия из `main`",
+        "Файл с маркерами конфликта"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "При rebase Git переключается на main и по одному применяет ваши коммиты, поэтому «ours» — это база (main), а «theirs» — ваш применяемый коммит. При merge всё наоборот."
+    },
+    {
+      "id": "gitc-branching-010",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какая стратегия слияния используется по умолчанию в современных версиях Git (2.34+) при слиянии двух веток?",
+      "options": [
+        "`ort`",
+        "`recursive`",
+        "`octopus`",
+        "`resolve`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`ort` (Ostensibly Recursive's Twin) заменила `recursive` как стратегию по умолчанию: она быстрее и лучше обрабатывает переименования. `octopus` используется при слиянии более двух веток."
+    },
+    {
+      "id": "gitc-branching-011",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем `git merge -X ours feature` отличается от `git merge -s ours feature`?",
+      "options": [
+        "Ничем, это синонимы: оба варианта берут нашу версию во всех файлах",
+        "`-X ours` игнорирует feature целиком, а `-s ours` решает в нашу пользу только конфликты",
+        "`-s ours` дополнительно удаляет ветку feature после успешного слияния",
+        "`-X ours` берёт feature, но в конфликтах выбирает нашу версию; `-s ours` игнорирует feature"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`-X` — опция стратегии ort, влияющая только на конфликтные ханки. `-s ours` — отдельная стратегия: создаёт merge-коммит, но дерево берёт из текущей ветки без изменений."
+    },
+    {
+      "id": "gitc-branching-012",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что делает `git rerere` (включается через `rerere.enabled=true`)?",
+      "options": [
+        "Повторяет последний rebase с теми же параметрами, если он был прерван конфликтом или вручную",
+        "Запоминает разрешение конфликта и само применяет его, когда конфликт повторится",
+        "Откатывает неудачное слияние и возвращает ветку в состояние до merge",
+        "Повторно отправляет отклонённый сервером push после `git pull`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Rerere (reuse recorded resolution) полезен при многократных rebase долгоживущей ветки. При повторе Git пишет «Resolved 'f' using previous resolution», но результат стоит проверить перед `git add`."
+    },
+    {
+      "id": "gitc-branching-013",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Вы заметили ошибку в коммите `a1b2c3d`, который не последний в ветке. Какой способ удобнее всего «вклеить» исправление в этот коммит?",
+      "options": [
+        "`git commit --amend` — он позволяет исправить любой коммит текущей ветки",
+        "`git commit --fixup a1b2c3d`, затем `git rebase -i --autosquash a1b2c3d~1`",
+        "`git cherry-pick a1b2c3d`, внеся исправление при разрешении изменений",
+        "`git revert a1b2c3d` и затем новый коммит с исправленной версией"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`--fixup` создаёт коммит с сообщением `fixup! ...`, а `--autosquash` сам ставит его сразу после целевого с действием fixup. `--amend` меняет только последний коммит."
+    },
+    {
+      "id": "gitc-branching-014",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что будет в сообщении нового коммита после этой команды?",
+      "code": "git cherry-pick -x 0fb75b9",
+      "options": [
+        "Только строка `cherry-pick of 0fb75b9` вместо исходного сообщения",
+        "Исходное сообщение без изменений, причём хеш коммита тоже останется прежним",
+        "Пустое сообщение — Git откроет редактор, и его нужно ввести вручную",
+        "Исходное сообщение и строка `(cherry picked from commit <полный sha>)`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`-x` дописывает ссылку на исходный коммит — удобно при бэкпортах в релизные ветки. Хеш нового коммита всегда отличается: у него другой родитель."
+    },
+    {
+      "id": "gitc-branching-015",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Ветки `main` и `feat` разошлись (в каждой есть свои новые коммиты). Что произойдёт?",
+      "code": "git switch main\ngit merge --ff-only feat",
+      "options": [
+        "Ошибка `Not possible to fast-forward, aborting`, и ничего не изменится",
+        "Git создаст merge-коммит с двумя родителями, как при обычном `git merge`",
+        "Git автоматически сделает rebase `main` на `feat`, чтобы получить fast-forward",
+        "Git передвинет `main` на `feat`, отбросив уникальные коммиты `main`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`--ff-only` разрешает только перемотку указателя. Это полезно в скриптах и для `pull`, чтобы случайно не плодить merge-коммиты."
+    },
+    {
+      "id": "gitc-branching-016",
+      "topic": "branching",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие ветки в Git Flow являются долгоживущими (существуют постоянно)?",
+      "options": [
+        "`main` (master)",
+        "`hotfix/*`",
+        "`release/*`",
+        "`feature/*`",
+        "`develop`"
+      ],
+      "correct": [
+        0,
+        4
+      ],
+      "explanation": "В main лежат только релизы (с тегами), develop — ветка интеграции. Ветки feature, release и hotfix создаются под задачу и удаляются после слияния."
+    },
+    {
+      "id": "gitc-branching-017",
+      "topic": "branching",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Конфликт показан в стиле `zdiff3`. Что находится между `|||||||` и `=======`?",
+      "code": "<<<<<<< HEAD\nmain\n||||||| f526a0f\nbase\n=======\nfeat\n>>>>>>> feat",
+      "options": [
+        "Версия текущей ветки",
+        "Версия сливаемой ветки",
+        "Версия общего предка (merge base)",
+        "Автоматически смёрженный вариант"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "diff3/zdiff3 (`git config merge.conflictStyle zdiff3`) дополнительно показывают базу. Видя, что было изначально, легче понять, что изменила каждая сторона."
+    },
+    {
+      "id": "gitc-branching-018",
+      "topic": "branching",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Вы переписали свою ветку и делаете `git push --force-with-lease`. Коллега тем временем запушил в неё коммит, а ваша IDE сама выполнила `git fetch` в фоне. Что произойдёт?",
+      "options": [
+        "Push будет отклонён: lease всегда сверяется с сервером и видит чужие коммиты",
+        "Git автоматически сделает rebase вашей ветки на запушенный коммит коллеги",
+        "Push пройдёт, а коммит коллеги будет автоматически добавлен поверх ваших",
+        "Push затрёт коммит коллеги: lease сверяется с `origin/<branch>`, а его обновил fetch"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Без fetch Git отклонил бы push с `(stale info)`, но фоновый fetch делает проверку бесполезной. Защита — `--force-with-lease=<branch>:<ожидаемый sha>` или `--force-if-includes`."
+    },
+    {
+      "id": "gitc-branching-019",
+      "topic": "branching",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Ветка `feature-b` создана от `feature-a`. Что сделает команда?",
+      "code": "git rebase --onto main feature-a feature-b",
+      "options": [
+        "Перенесёт на `main` все коммиты `feature-a` и `feature-b`",
+        "Перенесёт коммиты `main` поверх `feature-b`",
+        "Перенесёт на `main` только коммиты `feature-b`, которых нет в `feature-a`",
+        "Сольёт `feature-a` в `main`, а затем `feature-b` в `feature-a`, создав два отдельных merge-коммита"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`git rebase --onto <новая база> <старая база> <ветка>` берёт диапазон `feature-a..feature-b` и пересаживает его на main. Так поступают, когда feature-a влили через squash или она больше не нужна."
+    },
+    {
+      "id": "gitc-branching-020",
+      "topic": "branching",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о feature flags верны?",
+      "options": [
+        "Делают ненужными тесты: выключенный код не влияет на продакшен",
+        "Требуют отдельной долгоживущей ветки на каждый флаг",
+        "Устаревшие флаги — технический долг, их нужно удалять после полного включения",
+        "Работают как kill switch: функцию можно выключить без отката деплоя",
+        "Позволяют вливать незаконченный код в основную ветку, не показывая его пользователям"
+      ],
+      "correct": [
+        2,
+        3,
+        4
+      ],
+      "explanation": "Флаги — основа trunk-based development и постепенных раскаток. Но каждый флаг удваивает число путей выполнения, поэтому обе ветки кода нужно тестировать, а старые флаги — вычищать."
+    },
+    {
+      "id": "gitc-recovery-001",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что сделает последняя команда?",
+      "code": "echo \"debug\" >> app.py\ngit add app.py\ngit restore --staged app.py",
+      "options": [
+        "Отменит изменения `app.py` и в индексе, и в рабочей директории, вернув файл к версии из HEAD",
+        "Удалит `app.py` из репозитория и с диска",
+        "Вернёт `app.py` к версии из предыдущего коммита",
+        "Уберёт `app.py` из индекса, изменения в рабочей директории сохранятся"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`restore --staged` переносит в индекс версию из HEAD, не трогая рабочую копию. Чтобы отменить и правки на диске, нужен ещё `git restore app.py`."
+    },
+    {
+      "id": "gitc-recovery-002",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Вы закоммитили, но забыли добавить файл `config.yml`. Коммит ещё не запушен. Как поправить его, не создавая второй коммит?",
+      "options": [
+        "`git add config.yml && git commit --fixup HEAD`",
+        "`git revert HEAD && git commit -a -m \"add config\"`",
+        "`git add config.yml && git commit --amend --no-edit`",
+        "`git add config.yml && git push --amend --no-edit`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`--amend` заменяет последний коммит новым (с новым хешем), а `--no-edit` сохраняет сообщение. Если коммит уже запушен, после amend потребуется force-push."
+    },
+    {
+      "id": "gitc-recovery-003",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает `git clean -n`?",
+      "options": [
+        "Удаляет все неотслеживаемые файлы сразу, без запроса подтверждения",
+        "Показывает, какие неотслеживаемые файлы будут удалены, ничего не удаляя",
+        "Удаляет из рабочей директории файлы, указанные в `.gitignore`",
+        "Отменяет все незакоммиченные изменения в отслеживаемых файлах"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`-n` (dry run) — безопасный предпросмотр. Удаление выполняет `git clean -f`, каталоги — `-fd`, игнорируемые файлы — `-x`."
+    },
+    {
+      "id": "gitc-recovery-004",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что покажет `git status --short` в конце?",
+      "code": "echo draft > notes.txt     # новый файл\necho fix >> app.py        # отслеживаемый файл\ngit stash\ngit status --short",
+      "options": [
+        "`?? notes.txt`: по умолчанию stash не прячет неотслеживаемые файлы",
+        "Пустой вывод: `git stash` спрятал все изменения и новые файлы",
+        "` M app.py` и `?? notes.txt`: stash ничего не спрятал без `-m`",
+        "`A  notes.txt`: stash добавил новый файл в индекс перед сохранением"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Обычный `git stash` сохраняет только изменения отслеживаемых файлов. Чтобы прихватить и новые файлы, используйте `git stash -u` (`--include-untracked`)."
+    },
+    {
+      "id": "gitc-recovery-005",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что показывает `git blame app.py`?",
+      "options": [
+        "Для каждой строки — коммит, автора и дату последнего изменения",
+        "Список всех ошибок в файле, найденных линтером, с номерами строк",
+        "Кто из разработчиков чаще всего ломал сборку из-за этого файла",
+        "Полную историю файла с диффами каждого коммита и их авторами"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Blame отвечает на вопрос «откуда взялась эта строка». Полезные флаги: `-L 10,20` для диапазона строк и `-w`, чтобы игнорировать изменения пробелов."
+    },
+    {
+      "id": "gitc-recovery-006",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В каком состоянии окажутся изменения последнего коммита после этой команды?",
+      "code": "git reset HEAD~1",
+      "options": [
+        "В индексе, готовые к повторному коммиту (`--soft` — режим по умолчанию)",
+        "В рабочей директории, но не в индексе (`--mixed` — режим по умолчанию)",
+        "Удалены безвозвратно вместе с коммитом (`--hard` — режим по умолчанию)",
+        "В stash: reset автоматически сохраняет изменения отменённого коммита"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Без флага `reset` работает как `--mixed`: двигает ветку и сбрасывает индекс, не трогая файлы. `--soft` оставил бы изменения в индексе, `--hard` — стёр."
+    },
+    {
+      "id": "gitc-recovery-007",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие команды отменят незакоммиченные изменения файла `app.py` в рабочей директории (вернут версию из индекса)?",
+      "options": [
+        "`git restore app.py`",
+        "`git reset app.py`",
+        "`git switch app.py`",
+        "`git checkout -- app.py`"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "`restore` — современная команда для файлов, `checkout --` — классическая. `git reset app.py` только убирает файл из индекса, а `switch` работает лишь с ветками."
+    },
+    {
+      "id": "gitc-recovery-008",
+      "topic": "recovery",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как найти коммиты, в которых в коде появилась или исчезла строка `API_KEY`?",
+      "options": [
+        "`git grep API_KEY`",
+        "`git blame API_KEY`",
+        "`git log -S \"API_KEY\"`",
+        "`git log --grep=\"API_KEY\"`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`-S` (pickaxe) ищет коммиты, где изменилось число вхождений строки. `--grep` ищет по сообщениям коммитов, а `git grep` — в текущих файлах."
+    },
+    {
+      "id": "gitc-recovery-009",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт после последней команды?",
+      "code": "git reset --hard HEAD~3\ngit reflog -2\n# aeb6e1f HEAD@{0}: reset: moving to HEAD~3\n# b211adf HEAD@{1}: commit: c4\ngit reset --hard HEAD@{1}",
+      "options": [
+        "Ветка откатится ещё на один коммит назад",
+        "Команда завершится ошибкой: reflog нельзя использовать в reset",
+        "Будет восстановлено только содержимое рабочей директории, но не коммиты",
+        "Ветка вернётся к коммиту, на котором была до `reset --hard HEAD~3`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`HEAD@{1}` — положение HEAD на один шаг раньше по reflog, то есть до последнего reset. Тот же эффект сразу после reset даёт `ORIG_HEAD`."
+    },
+    {
+      "id": "gitc-recovery-010",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Вы случайно запушили AWS-ключ в публичный репозиторий. Что нужно сделать в первую очередь?",
+      "options": [
+        "Сделать `git revert` коммита с ключом",
+        "Переписать историю через `git filter-repo` и сделать force-push",
+        "Немедленно отозвать (ротировать) ключ — он уже скомпрометирован",
+        "Сделать репозиторий приватным и считать инцидент закрытым"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Ботам нужны секунды, чтобы найти ключ в публичном репозитории, а копии могли остаться в форках и кэшах. Чистка истории важна, но вторична; revert вообще оставляет ключ в истории."
+    },
+    {
+      "id": "gitc-recovery-011",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой инструмент сейчас рекомендуют для удаления файла из всей истории репозитория?",
+      "options": [
+        "`git filter-repo`",
+        "`git rm --cached`",
+        "`git revert`",
+        "`git gc --aggressive`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Документация Git сама советует filter-repo вместо медленного и опасного `filter-branch` (альтернатива — BFG). `rm --cached` и `revert` влияют только на новые коммиты."
+    },
+    {
+      "id": "gitc-recovery-012",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Файл `.env` уже отслеживается. Что сделают эти команды?",
+      "code": "echo \".env\" >> .gitignore\ngit rm --cached .env\ngit commit -m \"stop tracking .env\"",
+      "options": [
+        "Удалят `.env` и с диска, и из всей истории коммитов репозитория",
+        "Ничего не изменят: `.gitignore` уже исключает этот файл из отслеживания",
+        "Удалят `.env` из всех прошлых коммитов, но оставят файл на диске",
+        "Снимут `.env` с отслеживания, файл останется на диске, а в коммите — удалён"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`.gitignore` действует только на неотслеживаемые файлы, поэтому нужен `git rm --cached`. Секрет при этом остаётся в старых коммитах — для чистки истории нужен filter-repo."
+    },
+    {
+      "id": "gitc-recovery-013",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Вы делаете `git stash pop`, и возникает конфликт. Что будет со stash-записью?",
+      "options": [
+        "Она удалится, а конфликтующие изменения из неё будут потеряны",
+        "Останется в списке stash: Git удаляет её только при успешном применении",
+        "Она удалится, но изменения можно будет найти в reflog текущей ветки",
+        "Git откатит pop, а рабочая директория останется чистой, как до команды"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "При конфликте Git пишет «The stash entry is kept in case you need it again». После разрешения конфликта запись удаляют вручную: `git stash drop`."
+    },
+    {
+      "id": "gitc-recovery-014",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как `git bisect run ./test.sh` интерпретирует код выхода скрипта?",
+      "options": [
+        "0 — коммит плохой, любой другой код — коммит хороший",
+        "0 — хороший, 125 — пропустить, 1–127 (кроме 125) — плохой",
+        "1 — коммит хороший, 0 — плохой, остальные коды — пропустить",
+        "Код выхода игнорируется, учитывается только вывод в stdout"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Это позволяет полностью автоматизировать поиск коммита с регрессией. Код 125 нужен для коммитов, которые нельзя проверить (например, не собираются)."
+    },
+    {
+      "id": "gitc-recovery-015",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении команды, если `HEAD` — merge-коммит?",
+      "code": "git revert HEAD",
+      "options": [
+        "Git отменит изменения обеих веток, вернув состояние до их расхождения",
+        "Git отменит только последний коммит из сливаемой ветки, остальное сохранит",
+        "Git удалит merge-коммит из истории, как это сделал бы `git reset HEAD~1`",
+        "Ошибка: для merge-коммита нужен `-m 1` — какой родитель считать основным"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "У merge-коммита два родителя, и Git не знает, относительно какого считать дифф. `git revert -m 1 <merge>` отменяет всё, что принесла ветка, относительно первого родителя (main)."
+    },
+    {
+      "id": "gitc-recovery-016",
+      "topic": "recovery",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие команды переписывают историю (создают коммиты с новыми хешами вместо существующих)?",
+      "options": [
+        "`git commit --amend`",
+        "`git filter-repo`",
+        "`git revert`",
+        "`git rebase -i`",
+        "`git merge`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Revert и merge только добавляют новые коммиты поверх, не трогая существующие, поэтому безопасны для общих веток. После amend/rebase/filter-repo запушенную ветку придётся обновлять force-push."
+    },
+    {
+      "id": "gitc-recovery-017",
+      "topic": "recovery",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Merge ветки `feature` в `main` откатили через `git revert -m 1`. Позже в `feature` исправили баг и снова влили её в `main`. Что окажется в `main`?",
+      "options": [
+        "Только новые коммиты feature: старые уже в истории main, их изменения отменены",
+        "Все изменения feature, включая старые: при новом merge Git заново применяет все коммиты ветки целиком",
+        "Ничего: Git откажется сливать уже однажды слитую и откаченную ветку",
+        "Конфликт во всех файлах ветки, которые затрагивал откаченный merge"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Revert отменяет изменения, но не историю: Git считает старые коммиты уже слитыми. Чтобы вернуть их, сначала делают revert самого revert-коммита, а затем сливают ветку."
+    },
+    {
+      "id": "gitc-recovery-018",
+      "topic": "recovery",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Вы сделали `git add report.txt` (новый файл), а затем `git reset --hard` без коммита. Можно ли вернуть содержимое файла?",
+      "options": [
+        "Нет: `reset --hard` удаляет всё незакоммиченное, включая индекс, безвозвратно",
+        "Да, через `git reflog` — там остаётся отдельная запись о каждом `git add`",
+        "Да: blob создан при `git add`, `git fsck --lost-found` покажет его как dangling",
+        "Да, через `git stash list` — `reset --hard` автоматически делает stash"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Reflog фиксирует только перемещения ссылок, не `git add`. Но blob уже лежит в объектной базе, и `fsck --lost-found` сохранит его в `.git/lost-found/other/`. Изменения, не попавшие в индекс, действительно теряются."
+    },
+    {
+      "id": "gitc-recovery-019",
+      "topic": "recovery",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Вы удалили секрет из истории через `git filter-repo`. Что ещё необходимо сделать?",
+      "options": [
+        "Попросить коллег переклонировать репозиторий, иначе старые коммиты вернутся при их push",
+        "Ротировать секрет, если он когда-либо был опубликован",
+        "Ничего: filter-repo автоматически обновляет сервер и клоны",
+        "Запустить `git revert` на коммит с секретом",
+        "Force-push всех переписанных веток и тегов"
+      ],
+      "correct": [
+        0,
+        1,
+        4
+      ],
+      "explanation": "Переписанная история — это новые хеши, их нужно принудительно отправить. Старые копии живут в клонах, форках и кэшах хостинга (например, refs pull request-ов), поэтому ротация обязательна."
+    },
+    {
+      "id": "gitc-recovery-020",
+      "topic": "recovery",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "В чём разница между этими командами?",
+      "code": "git restore --source=HEAD~2 config.py\ngit checkout HEAD~2 -- config.py",
+      "options": [
+        "Никакой разницы, это синонимы: обе меняют и индекс, и рабочую директорию",
+        "`checkout` переключает HEAD на `HEAD~2` и файл, а `restore` меняет только файл",
+        "`restore` обновляет только индекс, а `checkout` — только рабочую директорию",
+        "`restore --source` меняет только рабочую директорию, `checkout` — ещё и индекс"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "По умолчанию `restore` трогает только worktree (`--staged` — индекс, оба флага — оба места). `checkout <commit> -- path` HEAD не двигает, но сразу помещает версию файла в индекс."
+    },
+    {
+      "id": "gitc-tools-001",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет эта команда?",
+      "code": "cat app.log | grep ERROR | wc -l",
+      "options": [
+        "Все строки с `ERROR`",
+        "Количество слов `ERROR` в файле",
+        "Количество строк файла, не содержащих `ERROR`",
+        "Количество строк файла, содержащих `ERROR`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Pipe `|` передаёт stdout одной команды на stdin следующей: grep фильтрует строки, `wc -l` их считает. Короче то же самое делает `grep -c ERROR app.log`."
+    },
+    {
+      "id": "gitc-tools-002",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем нужен lockfile (`package-lock.json`, `poetry.lock`, `Cargo.lock`)?",
+      "options": [
+        "Фиксирует точные версии всех зависимостей, включая транзитивные",
+        "Запрещает другим разработчикам добавлять и обновлять зависимости",
+        "Хранит токены и пароли от приватных реестров пакетов проекта",
+        "Ускоряет запуск приложения за счёт кэша разрешённых модулей"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Манифест задаёт диапазоны (`^1.2.0`), а lockfile — то, что реально установилось. Для приложений lockfile коммитят, чтобы у всех и в CI был одинаковый набор пакетов."
+    },
+    {
+      "id": "gitc-tools-003",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Версия библиотеки изменилась с `1.4.2` на `2.0.0`. Что это означает по semver?",
+      "options": [
+        "Добавлена новая функциональность без поломок обратной совместимости",
+        "Исправлены только баги",
+        "Есть обратно несовместимые изменения публичного API",
+        "Изменилась только документация"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Semver: MAJOR.MINOR.PATCH. MAJOR — несовместимые изменения, MINOR — новые возможности с обратной совместимостью, PATCH — исправления."
+    },
+    {
+      "id": "gitc-tools-004",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие версии допускает диапазон `^1.2.3` в npm?",
+      "options": [
+        "`>=1.2.3 <1.3.0`",
+        "Только `1.2.3`",
+        "Любую версию `>=1.2.3`",
+        "`>=1.2.3 <2.0.0`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Caret разрешает обновления, не меняющие самую левую ненулевую цифру. Тильда `~1.2.3` уже: только патчи, `>=1.2.3 <1.3.0`."
+    },
+    {
+      "id": "gitc-tools-005",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Для чего нужен файл `.editorconfig`?",
+      "options": [
+        "Хранит настройки отладчика IDE: точки останова и конфигурации запуска",
+        "Описывает правила линтера, которые проверяются в CI при каждом PR",
+        "Задаёт единые настройки редакторов: отступы, кодировку, перевод строки",
+        "Содержит список расширений, которые нужно установить в VS Code"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Большинство редакторов понимают `.editorconfig` из коробки или через плагин, поэтому мелкие различия в отступах и EOL не попадают в диффы."
+    },
+    {
+      "id": "gitc-tools-006",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем линтер отличается от форматтера?",
+      "options": [
+        "Это одно и то же: оба инструмента только переформатируют код",
+        "Форматтер приводит код к единому стилю; линтер ищет подозрительные места и баги",
+        "Линтер переписывает код под стиль, а форматтер только выводит предупреждения",
+        "Форматтер работает только в CI, а линтер — только в IDE разработчика"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Prettier, Black, gofmt — форматтеры; ESLint, Ruff, golangci-lint — линтеры. Часто их используют вместе, отключив в линтере стилевые правила."
+    },
+    {
+      "id": "gitc-tools-007",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как правильно хранить переменные окружения для локальной разработки с `.env`?",
+      "options": [
+        "`.env` — в `.gitignore`, а в репозиторий кладут `.env.example` без значений",
+        "Коммитить `.env` как есть, но только в приватный репозиторий",
+        "Хранить `.env` в отдельной защищённой ветке `secrets`, доступ к которой есть только у тимлида",
+        "Зашифровать содержимое `.env` в base64 и закоммитить результат"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Base64 — это кодирование, а не шифрование. `.env.example` документирует нужные переменные, а реальные секреты в продакшене берут из secret manager или переменных CI."
+    },
+    {
+      "id": "gitc-tools-008",
+      "topic": "tools",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое условная точка останова (conditional breakpoint) в отладчике?",
+      "options": [
+        "Точка останова, срабатывающая только при истинном условии, например `id == 42`",
+        "Точка останова, которая срабатывает только при выбрасывании исключения",
+        "Точка останова, которая выводит сообщение в лог без остановки программы",
+        "Точка останова, которая автоматически удаляется после первого срабатывания"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Это незаменимо в циклах и горячих путях, где обычная точка сработает тысячи раз. Логирующие точки (logpoints) и остановка на исключениях — отдельные виды."
+    },
+    {
+      "id": "gitc-tools-009",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет команда?",
+      "code": "echo '{\"items\":[{\"name\":\"a\"},{\"name\":\"b\"}]}' | jq -r '.items[].name'",
+      "options": [
+        "`[\"a\",\"b\"]`",
+        "Две строки: `a` и `b`",
+        "Две строки: `\"a\"` и `\"b\"`",
+        "Ошибку: `jq` не умеет обходить массивы"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`.items[]` разворачивает массив в поток элементов, `.name` берёт поле, а `-r` (raw output) убирает кавычки у строк — удобно для передачи значений дальше в shell."
+    },
+    {
+      "id": "gitc-tools-010",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем в Makefile пишут `.PHONY: test`?",
+      "options": [
+        "Чтобы цель `test` запускалась параллельно с другими целями при `make -j`",
+        "Чтобы скрыть служебную цель `test` из вывода `make help`",
+        "Чтобы `make test` выполнялся, даже если в каталоге есть файл `test`",
+        "Чтобы цель `test` выполнялась по умолчанию при запуске `make` без аргументов"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Make считает цели файлами и пропускает их, если файл «актуален». Без `.PHONY` наличие каталога `test/` приведёт к сообщению `make: 'test' is up to date`."
+    },
+    {
+      "id": "gitc-tools-011",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем `npm ci` отличается от `npm install`?",
+      "options": [
+        "`npm ci` обновляет все зависимости до последних версий и переписывает lockfile",
+        "`npm ci` устанавливает только dev-зависимости, нужные для тестов в CI",
+        "Ничем, `npm ci` — просто короткий алиас для `npm install` в CI-скриптах",
+        "`npm ci` ставит строго по lockfile и падает при расхождении с `package.json`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`npm install` может обновить lockfile, если диапазоны позволяют. `npm ci` даёт воспроизводимую сборку и удаляет существующий `node_modules` перед установкой."
+    },
+    {
+      "id": "gitc-tools-012",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В `docker-compose.yml` у сервиса `app` указано `depends_on: [db]`, но приложение падает при старте, потому что БД ещё не принимает соединения. Как правильно это исправить?",
+      "options": [
+        "Поставить `restart: never` для `app`, чтобы он не стартовал раньше БД",
+        "Указать `depends_on: [app]` у `db`, чтобы порядок запуска стал обратным",
+        "Добавить `db` healthcheck и `depends_on: { db: { condition: service_healthy } }`",
+        "Добавить `sleep 60` в Dockerfile `db`, чтобы БД успела инициализироваться до старта приложения"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Простой `depends_on` ждёт только запуска контейнера, а не готовности сервиса. Healthcheck с условием `service_healthy` (плюс retry в самом приложении) решает проблему надёжно."
+    },
+    {
+      "id": "gitc-tools-013",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие инструменты управляют версиями самого интерпретатора/рантайма, а не пакетами проекта?",
+      "options": [
+        "pyenv",
+        "npm",
+        "nvm",
+        "pip",
+        "asdf / mise"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "pyenv, nvm и asdf/mise позволяют держать на машине несколько версий Python/Node и переключать их по проекту (`.python-version`, `.nvmrc`, `.tool-versions`). pip и npm ставят пакеты."
+    },
+    {
+      "id": "gitc-tools-014",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В команде используют фреймворк pre-commit. Почему проверки всё равно нужно дублировать в CI?",
+      "options": [
+        "Локальные хуки можно не установить или обойти через `--no-verify`",
+        "pre-commit не умеет запускать линтеры и тесты, только форматтеры",
+        "Хуки pre-commit работают только на Linux и не срабатывают на Windows",
+        "CI запускает хуки быстрее и параллельно на нескольких машинах"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Хуки — удобная ранняя обратная связь, но не гарантия. Источник правды — обязательные проверки в CI на pull request."
+    },
+    {
+      "id": "gitc-tools-015",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения относятся к преимуществам монорепозитория?",
+      "options": [
+        "Проще выдавать разные права доступа к разным проектам",
+        "CI автоматически становится быстрее без дополнительных инструментов",
+        "Проще рефакторинг и переиспользование общего кода",
+        "Атомарные изменения сразу в нескольких сервисах/библиотеках одним PR"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "В монорепо нет «ада версий» между внутренними пакетами. Но для быстрого CI нужны инструменты селективной сборки (Nx, Turborepo, Bazel), а гранулярный доступ проще в polyrepo."
+    },
+    {
+      "id": "gitc-tools-016",
+      "topic": "tools",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему `rg TODO` в корне проекта не показывает совпадения внутри `node_modules`?",
+      "options": [
+        "ripgrep по умолчанию не ищет в каталогах глубже трёх уровней вложенности",
+        "В `node_modules` нет текстовых файлов — там только скомпилированный код",
+        "ripgrep ищет только в файлах, которые отслеживаются Git, как `git grep`",
+        "ripgrep по умолчанию учитывает `.gitignore` и пропускает игнорируемые файлы"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Это делает rg быстрым и удобным в репозиториях. Чтобы искать везде, используют `rg -uu` или `--no-ignore`."
+    },
+    {
+      "id": "gitc-tools-017",
+      "topic": "tools",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какие версии допускает диапазон `^0.2.3` в npm?",
+      "options": [
+        "`>=0.2.3 <1.0.0`",
+        "`>=0.2.3 <0.3.0`",
+        "`>=0.2.3 <0.2.4`",
+        "Любые `0.x.y`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Для `0.y.z` semver считает любое изменение потенциально несовместимым, поэтому caret фиксирует самую левую ненулевую цифру — здесь minor. Для `^0.0.3` разрешена только `0.0.3`."
+    },
+    {
+      "id": "gitc-tools-018",
+      "topic": "tools",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Вы хотите, чтобы у всей команды автоматически работал общий pre-commit хук, написанный в виде shell-скрипта. Как это сделать без сторонних инструментов?",
+      "options": [
+        "Закоммитить скрипт в `.git/hooks/pre-commit` — он скачается у всех при clone",
+        "Положить скрипт в `.githooks/` и выполнить `git config core.hooksPath .githooks`",
+        "Прописать путь к хуку в `.gitattributes`, чтобы Git подхватил его автоматически",
+        "Указать хук в `.gitignore` с префиксом `!`, чтобы Git его не игнорировал"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Каталог `.git` не версионируется и не передаётся при клонировании. `core.hooksPath` указывает Git на версионируемый каталог; husky и pre-commit делают это за вас."
+    },
+    {
+      "id": "gitc-tools-019",
+      "topic": "tools",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Для сборки образа нужен токен приватного реестра пакетов. Какой способ не оставит токен в образе?",
+      "options": [
+        "`ARG NPM_TOKEN` и передать значение через `docker build --build-arg`",
+        "`ENV NPM_TOKEN=...` и удалить переменную через `unset` в следующем слое",
+        "`COPY .npmrc .` и `RUN rm .npmrc` в следующей инструкции Dockerfile",
+        "BuildKit secret: `RUN --mount=type=secret,id=npmrc` и `--secret` при сборке"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "ARG/ENV видны в `docker history`, а файл, удалённый в следующем слое, остаётся в предыдущем. Secret mount монтируется только на время одной инструкции и в слои не попадает."
+    },
+    {
+      "id": "gitc-tools-020",
+      "topic": "tools",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о `set -euo pipefail` в bash-скрипте верны?",
+      "options": [
+        "`-e` — скрипт завершается, если команда вернула ненулевой код",
+        "`pipefail` — пайплайн возвращает ошибку, если упала любая команда в нём, а не только последняя",
+        "`-o` отключает вывод команд в консоль",
+        "`-u` — обращение к неопределённой переменной считается ошибкой",
+        "Без `pipefail` код возврата `false | true` будет равен 1"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Без pipefail код выхода пайплайна — код последней команды, поэтому `false | true` вернёт 0 и ошибка останется незамеченной. `-o` здесь просто способ задать опцию по имени."
+    },
+    {
+      "id": "gitc-review-001",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Почему рекомендуют делать небольшие pull request-ы?",
+      "options": [
+        "Их легче внимательно проверить, они быстрее вливаются и реже конфликтуют",
+        "Чтобы увеличить количество коммитов и PR в статистике команды",
+        "Потому что GitHub по умолчанию ограничивает размер PR 200 изменёнными строками и блокирует больше",
+        "Чтобы ревьюеру не нужно было запускать тесты и смотреть CI"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Качество ревью резко падает с размером изменения: 50 строк читают внимательно, 2000 — по диагонали. Маленькие PR ещё и проще откатывать."
+    },
+    {
+      "id": "gitc-review-002",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой тип коммита по Conventional Commits подходит для исправления ошибки?",
+      "options": [
+        "`feat: handle empty cart in checkout`",
+        "`bug(checkout): empty cart`",
+        "`fix: handle empty cart in checkout`",
+        "`chore!: handle empty cart`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Формат `<type>(<scope>)?: <описание>`. `fix` соответствует PATCH-версии, `feat` — MINOR, а `!` или футер `BREAKING CHANGE:` — MAJOR."
+    },
+    {
+      "id": "gitc-review-003",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что стоит включить в описание pull request-а?",
+      "options": [
+        "Ссылку на задачу или issue",
+        "Пересказ всех коммитов по порядку",
+        "Как проверить изменения / как тестировалось",
+        "Что и зачем изменено (контекст задачи)",
+        "Полный список изменённых файлов"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "Ревьюеру важнее всего «зачем» — это не видно из кода. Список файлов и коммитов платформа и так показывает."
+    },
+    {
+      "id": "gitc-review-004",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Для чего нужен файл `CODEOWNERS`?",
+      "options": [
+        "Хранит список людей, у которых есть право push в репозиторий",
+        "Определяет лицензию и авторов для разных частей кода репозитория",
+        "Ограничивает, кто из организации может клонировать репозиторий",
+        "Автоматически назначает ревьюеров для изменений в указанных путях"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Например, `/infra/ @org/platform-team`. В сочетании с branch protection («Require review from Code Owners») PR не вольётся без одобрения владельцев."
+    },
+    {
+      "id": "gitc-review-005",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что обычно настраивают в branch protection для `main`?",
+      "options": [
+        "Автоматическое удаление ветки `main` и её пересоздание после релиза",
+        "Запрет создавать любые новые ветки, кроме веток релизов",
+        "Обязательный PR с одобрением, обязательные проверки CI и запрет force-push",
+        "Шифрование содержимого ветки и подпись каждого коммита ключом сервера"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Защита ветки гарантирует, что код попадает в main только через ревью и зелёный CI, а историю нельзя переписать."
+    },
+    {
+      "id": "gitc-review-006",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает принцип DRY?",
+      "options": [
+        "Не пишите код и абстракции, которые пока реально не нужны",
+        "Каждое знание — в одном авторитетном месте, без дублирования логики",
+        "Делайте решения как можно проще, избегая лишней сложности",
+        "Каждый класс должен иметь только одну причину для изменения"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "DRY — Don't Repeat Yourself. Важно, что речь о дублировании знания: похожий по виду, но разный по смыслу код объединять не стоит. Остальные варианты описывают YAGNI, KISS и SRP."
+    },
+    {
+      "id": "gitc-review-007",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает YAGNI?",
+      "options": [
+        "Не реализуйте функциональность «на будущее», пока она не понадобилась",
+        "Повторно используйте существующий код вместо написания нового",
+        "Пишите тесты до кода, чтобы они задавали требования к функциональности",
+        "Каждая функция должна делать одну вещь и делать её хорошо"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "You Aren't Gonna Need It. Преждевременные абстракции и опции усложняют код и часто оказываются не такими, какими понадобились бы на самом деле."
+    },
+    {
+      "id": "gitc-review-008",
+      "topic": "review",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое технический долг?",
+      "options": [
+        "Накопленные компромиссы в коде, которые ускорили работу сейчас, но замедляют изменения потом",
+        "Задолженность компании перед подрядчиками за неоплаченную разработку",
+        "Баги, найденные пользователями в продакшене и ещё не исправленные командой, с учётом их приоритета",
+        "Задачи, не попавшие в текущий спринт и перенесённые в бэклог"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Как и финансовый долг, он бывает осознанным и оправданным, но на него начисляются «проценты» — замедление каждой следующей задачи."
+    },
+    {
+      "id": "gitc-review-009",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "С момента релиза `1.4.2` в main появились коммиты ниже. Какую версию выставит semantic-release по Conventional Commits?",
+      "code": "fix: correct rounding in totals\nfeat(api): add /orders/export endpoint\ndocs: update README",
+      "options": [
+        "`1.4.3`",
+        "`1.5.0`",
+        "`2.0.0`",
+        "`1.4.5`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Версия поднимается по самому «старшему» типу изменений: есть `feat` → MINOR. `docs` версию не меняет, а `fix` в присутствии `feat` поглощается MINOR-повышением."
+    },
+    {
+      "id": "gitc-review-010",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какую версию после `1.4.2` даст коммит ниже?",
+      "code": "feat(api)!: remove deprecated v1 endpoints",
+      "options": [
+        "`1.5.0`",
+        "`1.4.3`",
+        "`2.0.0`",
+        "`1.4.2` — служебный коммит не меняет версию"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Восклицательный знак после типа/скоупа (или футер `BREAKING CHANGE:`) помечает несовместимое изменение, что означает MAJOR-повышение."
+    },
+    {
+      "id": "gitc-review-011",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "На ревью вы заметили, что переменную можно назвать понятнее, но в остальном PR хороший. Как лучше оформить комментарий?",
+      "options": [
+        "Запросить изменения (Request changes) и не одобрять до исправления",
+        "Ничего не писать: мелочи не стоят времени",
+        "Переименовать самому в ветке автора без обсуждения",
+        "Пометить как необязательный (`nit:`), предложить вариант и одобрить PR"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Явное разделение блокирующих замечаний и пожеланий экономит время и снижает напряжение. Блокировать стоит баги, проблемы безопасности и архитектуры, а не вкусовщину."
+    },
+    {
+      "id": "gitc-review-012",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Ревьюеры в команде тратят много времени на комментарии про отступы, кавычки и порядок импортов. Какое решение лучше?",
+      "options": [
+        "Написать подробный стайлгайд в wiki и просить всех внимательно перечитывать его перед каждым PR",
+        "Перестать обращать внимание на стиль",
+        "Внедрить автоформаттер и линтер в pre-commit и обязательные проверки CI",
+        "Назначить одного ревьюера, отвечающего только за стиль"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Всё, что можно проверить машиной, должна проверять машина. Ревью людей стоит фокусировать на логике, архитектуре, читаемости и тестах."
+    },
+    {
+      "id": "gitc-review-013",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что такое рефакторинг?",
+      "options": [
+        "Изменение внутренней структуры кода без изменения его внешнего поведения",
+        "Переписывание модуля с нуля на новом фреймворке",
+        "Добавление новой функциональности с одновременной чисткой кода, который она затрагивает",
+        "Оптимизация производительности любой ценой"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Ключевое — неизменное поведение, которое подтверждают тесты. Рефакторинг делают маленькими шагами и лучше отдельными коммитами/PR от изменения функциональности."
+    },
+    {
+      "id": "gitc-review-014",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Большая legacy-система работает и приносит деньги, но код тяжело поддерживать. Команда хочет «переписать всё с нуля». Какой подход обычно надёжнее?",
+      "options": [
+        "Заморозить старую систему и год писать новую параллельно с нуля, а затем переключиться разом",
+        "Переписать всё на новом стеке и выкатить за один большой релиз",
+        "Ничего не трогать, пока система не сломается, и чинить по факту",
+        "Постепенная замена частей (strangler fig) с тестами вокруг изменяемых мест"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Полное переписывание теряет скрытые знания старого кода, требует двойной поддержки и долго не приносит ценности. Инкрементальная замена даёт результат на каждом шаге и снижает риск."
+    },
+    {
+      "id": "gitc-review-015",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие из инструментов относятся к статическому анализу кода?",
+      "options": [
+        "Selenium",
+        "SonarQube",
+        "mypy",
+        "ESLint",
+        "JMeter"
+      ],
+      "correct": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "Статический анализ проверяет код без запуска: качество, типы, уязвимости (SAST). JMeter — нагрузочное тестирование, Selenium — UI/e2e-тесты, оба требуют работающего приложения."
+    },
+    {
+      "id": "gitc-review-016",
+      "topic": "review",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Коллега в PR ввёл абстрактную фабрику, интерфейс и три слоя обёрток для единственной реализации отправки email «на случай, если появятся другие провайдеры». Какой комментарий уместен?",
+      "options": [
+        "Одобрить: чем больше абстракций, тем гибче и расширяемее будет код",
+        "Предложить упростить до одной реализации (YAGNI) и абстрагировать позже",
+        "Попросить сразу добавить ещё два провайдера, чтобы абстракция окупилась",
+        "Отклонить PR без объяснения, чтобы автор сам догадался, что не так"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Абстракция, придуманная для одного случая, обычно угадывает будущее неправильно. Простой код проще изменить, когда реальные требования появятся."
+    },
+    {
+      "id": "gitc-review-017",
+      "topic": "review",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "В репозитории включено «Require branches to be up to date before merging», и в часы пик PR-ы постоянно приходится обновлять и ждать CI заново. Что решает эту проблему?",
+      "options": [
+        "Отключить обязательные проверки CI в часы пик, оставив только ревью",
+        "Merge queue: проверяет PR поверх актуального main и вливает по очереди",
+        "Разрешить всем force-push в main, чтобы не ждать повторного прогона CI",
+        "Объединять все PR в один большой и вливать его раз в день вечером"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Требование «up to date» гарантирует, что CI проверил именно итоговое состояние, но создаёт гонку. Merge queue (GitHub, GitLab merge trains) сохраняет гарантию и убирает ручные перезапуски."
+    },
+    {
+      "id": "gitc-review-018",
+      "topic": "review",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о семантическом версионировании верны?",
+      "options": [
+        "Пре-релиз `1.0.0-rc.1` имеет меньший приоритет, чем `1.0.0`",
+        "Метаданные сборки (`1.0.0+build.5`) не учитываются при сравнении версий",
+        "`1.10.0` меньше `1.9.0`, потому что версии сравниваются как строки",
+        "Несовместимое изменение API при исправлении бага — это PATCH",
+        "В версиях `0.y.z` публичный API может меняться в любой момент"
+      ],
+      "correct": [
+        0,
+        1,
+        4
+      ],
+      "explanation": "Части версии сравниваются как числа, поэтому `1.10.0 > 1.9.0`. Любая несовместимость — MAJOR, даже если это «просто фикс»."
+    },
+    {
+      "id": "gitc-review-019",
+      "topic": "review",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Вам на ревью пришёл PR на 2500 строк с рефакторингом и новой функциональностью вперемешку, релиз завтра. Как лучше поступить?",
+      "options": [
+        "Одобрить не читая: автор опытный, а сроки горят, разберёмся после релиза",
+        "Оставить 150 комментариев о стиле и отклонить PR целиком до исправления",
+        "Молча проигнорировать PR до релиза, а потом попросить автора переделать",
+        "Предложить разбить PR (рефакторинг отдельно), а срочное разобрать вместе"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Формальный аппрув большого PR даёт ложное чувство безопасности. Разбиение и синхронный walkthrough — честный способ получить реальное ревью, а на будущее стоит договориться о размере PR."
+    },
+    {
+      "id": "gitc-review-020",
+      "topic": "review",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Продакт-менеджер не хочет выделять время на технический долг: «пользователи этого не видят». Как аргументировать лучше всего?",
+      "options": [
+        "Перевести долг в метрики бизнеса (скорость фич, инциденты) и выделить долю спринта",
+        "Тихо чинить долг в рамках других задач, не говоря об этом продакту",
+        "Остановить разработку всех фич, пока технический долг не будет устранён",
+        "Сказать, что это вопрос только разработчиков, и не обсуждать его с продактом, а решать внутри команды"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Долг, видимый в бэклоге и связанный с метриками (lead time, инциденты), конкурирует с фичами на равных. Регулярная доля (например, 15–20%) работает лучше, чем «стоп-кран» раз в год."
+    },
+    {
+      "id": "gitc-team-001",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какое из утверждений является одной из четырёх ценностей Agile Manifesto?",
+      "options": [
+        "Процессы и инструменты важнее людей и взаимодействия",
+        "Работающий продукт важнее исчерпывающей документации",
+        "Следование плану важнее готовности к изменениям",
+        "Документация не нужна совсем"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Остальные ценности: люди и взаимодействие важнее процессов и инструментов, сотрудничество с заказчиком важнее согласования условий контракта, готовность к изменениям важнее следования плану. Правое при этом тоже ценно — просто левое ценнее."
+    },
+    {
+      "id": "gitc-team-002",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие роли (accountabilities) определяет Scrum Guide 2020?",
+      "options": [
+        "Scrum Master",
+        "Team Lead",
+        "Project Manager",
+        "Product Owner",
+        "Developers"
+      ],
+      "correct": [
+        0,
+        3,
+        4
+      ],
+      "explanation": "В Scrum нет менеджера проекта и тимлида как ролей: управление работой распределено между PO (что и зачем), Developers (как) и Scrum Master (эффективность процесса)."
+    },
+    {
+      "id": "gitc-team-003",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Кто отвечает за упорядочивание (приоритизацию) Product Backlog в Scrum?",
+      "options": [
+        "Scrum Master",
+        "Вся команда голосованием",
+        "Самый опытный разработчик",
+        "Product Owner"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "PO отвечает за максимизацию ценности продукта и решает, в каком порядке её достигать. Команда при этом может влиять на порядок, указывая на зависимости и риски."
+    },
+    {
+      "id": "gitc-team-004",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какова цель Daily Scrum?",
+      "options": [
+        "Разработчики сверяют прогресс к цели спринта и корректируют план на ближайшие сутки",
+        "Отчитаться менеджеру о проделанной вчера работе, потраченных часах и планах на сегодняшний день",
+        "Детально обсудить и сразу решить все технические проблемы команды",
+        "Оценить новые задачи из бэклога и добавить их в текущий спринт"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Это короткая (до 15 минут) встреча для самих разработчиков. Подробные обсуждения выносят в отдельные встречи после неё."
+    },
+    {
+      "id": "gitc-team-005",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем в Kanban вводят WIP-лимиты?",
+      "options": [
+        "Чтобы ограничить число задач в бэклоге и не перегружать планирование",
+        "Чтобы ограничить рабочие часы сотрудников и избежать переработок",
+        "Чтобы ограничить число задач в работе и сделать узкие места видимыми",
+        "Чтобы зафиксировать длину итерации, как спринт в Scrum"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Меньше параллельных задач — меньше переключений контекста и короче время выполнения (закон Литтла). Когда колонка упирается в лимит, команда помогает «протолкнуть» работу дальше, а не берёт новое."
+    },
+    {
+      "id": "gitc-team-006",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что оценивают story points?",
+      "options": [
+        "Точное количество часов, которое уйдёт у разработчика на задачу",
+        "Ценность задачи для бизнеса в условных единицах дохода",
+        "Ожидаемое количество строк кода, которое придётся написать",
+        "Относительный объём работы с учётом сложности и неопределённости"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Относительная оценка («в два раза больше, чем эталонная задача») устойчивее к ошибкам, чем часы. Пойнты имеют смысл только внутри одной команды."
+    },
+    {
+      "id": "gitc-team-007",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое Definition of Done?",
+      "options": [
+        "Список задач, которые команда взяла в текущий спринт",
+        "Критерии приёмки одной конкретной пользовательской истории, которые формулирует Product Owner",
+        "Общие для команды критерии качества, чтобы инкремент считался готовым",
+        "Дата окончания проекта, согласованная с заказчиком"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Например: код прошёл ревью, покрыт тестами, CI зелёный, задеплоено на стейджинг, обновлена документация. DoD общий для всех задач, а acceptance criteria — свои у каждой."
+    },
+    {
+      "id": "gitc-team-008",
+      "topic": "team",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает «blameless postmortem»?",
+      "options": [
+        "Отчёт об инциденте не публикуется и остаётся внутри команды",
+        "Разбор ищет системные причины ошибки, а не виноватого человека",
+        "Инцидент считается ничьей ошибкой, поэтому выводы и задачи не делаются",
+        "Разбор проводится без участия тех, кто дежурил во время инцидента"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Если за ошибки наказывают, люди скрывают информацию, и система не улучшается. Хороший postmortem содержит таймлайн, корневые причины и action items с владельцами."
+    },
+    {
+      "id": "gitc-team-009",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему в planning poker все показывают карты одновременно?",
+      "options": [
+        "Чтобы избежать эффекта якоря — подстройки под первую озвученную оценку",
+        "Чтобы сэкономить время встречи и не обсуждать каждую оценку отдельно",
+        "Чтобы сразу взять среднее арифметическое всех карт как итоговую оценку",
+        "Так требует Scrum Guide в разделе о планировании спринта"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Расхождения оценок — самое ценное: тот, кто дал 2, и тот, кто дал 13, объясняют свои рассуждения, и команда находит упущенные риски."
+    },
+    {
+      "id": "gitc-team-010",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем Sprint Review отличается от Sprint Retrospective?",
+      "options": [
+        "Review — показ инкремента стейкхолдерам; Retro — улучшение работы команды",
+        "Это одно и то же событие, просто в разных командах его называют по-разному",
+        "Review проводит Scrum Master, чтобы оценить работу каждого разработчика",
+        "Retrospective — демонстрация продукта заказчику, Review — разбор процесса"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Review смотрит на «что сделали» и адаптирует бэклог. Retro смотрит на «как работаем»: процессы, инструменты, взаимодействие."
+    },
+    {
+      "id": "gitc-team-011",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Кандидат на behavioral-интервью рассказывает: «Мы решили проблему, мы переписали сервис, всё стало хорошо». Как улучшить ответ по методу STAR?",
+      "options": [
+        "Добавить больше технических терминов, чтобы показать глубину экспертизы",
+        "Конкретизировать свою роль и действия («я сделал…») и измеримый результат",
+        "Рассказать о нескольких похожих ситуациях сразу, чтобы показать опыт",
+        "Сократить до одного предложения, чтобы не тратить время интервьюера"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "STAR — Situation, Task, Action, Result. Интервьюер оценивает именно вас, поэтому Action — от первого лица, а Result — с цифрами (время ответа −40%, инцидентов стало меньше)."
+    },
+    {
+      "id": "gitc-team-012",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В середине спринта стейкхолдер приходит к разработчику и просит срочно сделать новую фичу. Как правильно поступить?",
+      "options": [
+        "Сразу взять задачу — заказчик всегда прав, а спринт можно подвинуть",
+        "Отказать: в спринт ничего добавлять нельзя ни при каких условиях",
+        "Направить запрос к Product Owner: он решит, как это соотносится с целью",
+        "Сделать задачу втихую в нерабочее время, чтобы не срывать спринт"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "PO управляет бэклогом и защищает фокус команды. Состав спринта можно уточнять, не жертвуя целью спринта, а если цель потеряла смысл, PO может отменить спринт."
+    },
+    {
+      "id": "gitc-team-013",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Вы не согласны с техническим решением старшего коллеги. Какой подход наиболее конструктивен?",
+      "options": [
+        "Согласиться вслух на встрече, но в своей части сделать по-своему",
+        "Сразу эскалировать к руководителю, чтобы он рассудил вас со старшим коллегой и принял решение за команду",
+        "Промолчать: у старшего коллеги больше опыта, и ему виднее",
+        "Аргументировать фактами, обсудить открыто, а принятое решение поддержать"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Интервьюеры проверяют, умеете ли вы спорить о решениях, а не о людях. Если решение принято не в вашу пользу, вы реализуете его добросовестно, а аргументы фиксируете (например, в ADR)."
+    },
+    {
+      "id": "gitc-team-014",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что такое Definition of Ready?",
+      "options": [
+        "Синоним Definition of Done, который используют в Kanban-командах",
+        "Обязательный артефакт Scrum Guide, который утверждает Scrum Master",
+        "Договорённость, какой должна быть задача, чтобы её брать в спринт",
+        "Чек-лист готовности релиза к деплою в продакшен"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "DoR не входит в Scrum Guide, это популярная практика. Важно не превращать её в бюрократический барьер: цель — избежать задач, которые нельзя начать."
+    },
+    {
+      "id": "gitc-team-015",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие метрики характерны для Kanban-системы?",
+      "options": [
+        "Cycle time",
+        "Количество часов, отработанных каждым сотрудником",
+        "Lead time",
+        "Throughput (пропускная способность)"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "Kanban управляет потоком: сколько задача идёт от запроса (lead time) и от начала работы (cycle time) до готовности и сколько задач завершается за период. Учёт часов на человека к потоку не относится."
+    },
+    {
+      "id": "gitc-team-016",
+      "topic": "team",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что фиксирует Architecture Decision Record (ADR)?",
+      "options": [
+        "Контекст, принятое архитектурное решение, альтернативы и последствия",
+        "Подробную документацию публичного API для внешних клиентов",
+        "Журнал всех изменений кода с привязкой к задачам трекера",
+        "Протокол ежедневных встреч команды и принятых на них решений по текущим задачам спринта"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "ADR отвечает на вопрос «почему так сделано» через год. Записи не редактируют задним числом: изменённое решение оформляют новым ADR со статусом «supersedes»."
+    },
+    {
+      "id": "gitc-team-017",
+      "topic": "team",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Ваше изменение вызвало инцидент в продакшене. Как поступить правильно?",
+      "options": [
+        "Тихо исправить хотфиксом, пока никто не заметил, и не поднимать шум",
+        "Дождаться, пока инцидент найдут другие, чтобы не создавать панику",
+        "Сначала найти, кто из ревьюеров пропустил изменение, и сообщить об этом",
+        "Сразу сообщить дежурному, помочь откатить, затем участвовать в postmortem"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Скорость восстановления важнее репутации. Прозрачность и фокус на mitigation — именно то, что хотят услышать на интервью в вопросе «расскажите о своей ошибке»."
+    },
+    {
+      "id": "gitc-team-018",
+      "topic": "team",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие практики помогают быстрому онбордингу нового разработчика?",
+      "options": [
+        "Небольшая реальная задача, доходящая до продакшена в первые дни",
+        "Прочитать всю кодовую базу перед первой задачей",
+        "Назначенный buddy/наставник",
+        "Сразу дать критичную задачу, чтобы проверить в деле",
+        "Актуальная инструкция или скрипт локального запуска проекта"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "Хороший онбординг сокращает время до первого вклада и проверяет сам процесс: если новичок не может поднять проект по README, README надо чинить."
+    },
+    {
+      "id": "gitc-team-019",
+      "topic": "team",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Руководство решило сравнивать команды по velocity в story points и ставить цель её повышения. К чему это скорее всего приведёт?",
+      "options": [
+        "К реальному росту производительности команд за счёт здоровой конкуренции",
+        "К инфляции оценок: метрика, ставшая целью, перестаёт отражать реальность",
+        "К более точному планированию, так как оценки станут сопоставимыми",
+        "Ни к чему: velocity команды нельзя изменить административным решением"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Это закон Гудхарта. Velocity — инструмент планирования для самой команды; для сравнения результатов полезнее метрики потока и бизнес-результаты (например, DORA)."
+    },
+    {
+      "id": "gitc-team-020",
+      "topic": "team",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "На интервью спрашивают: «Расскажите о своей неудаче». Какой ответ производит лучшее впечатление?",
+      "options": [
+        "«Я перфекционист и слишком много работаю» — недостаток, похожий на достоинство",
+        "Реальная ситуация, где вы признаёте свою роль и что изменили после неё",
+        "«У меня не было серьёзных неудач» — это показывает надёжность",
+        "История о том, как ошиблась команда или менеджер, а вы это предупреждали"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Вопрос проверяет рефлексию и ответственность. Псевдослабости и перекладывание вины — красные флаги, а выводы и изменения поведения — главная часть ответа."
+    }
+  ]
+}

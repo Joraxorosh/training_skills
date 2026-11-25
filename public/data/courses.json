@@ -5,7 +5,48 @@
     "description": "Linux, Git, сети, Docker, Kubernetes, CI/CD, IaC, мониторинг, облака, безопасность, Nginx, GitOps, очереди сообщений и SRE-практики.",
     "badge": "Ops",
     "color": "#2f7de1",
-    "files": ["devops-1.json", "devops-2.json", "devops-3.json", "devops-4.json", "devops-5.json", "devops-6.json"]
+    "files": [
+      "devops-1.json",
+      "devops-2.json",
+      "devops-3.json",
+      "devops-4.json",
+      "devops-5.json",
+      "devops-6.json"
+    ],
+    "category": "infra"
+  },
+  {
+    "id": "linux",
+    "title": "Linux глубоко",
+    "description": "Процессы и сигналы, память, файловые системы, systemd, Bash-скриптинг и диагностика производительности.",
+    "badge": "Lnx",
+    "color": "#d1452e",
+    "category": "infra",
+    "files": [
+      "linux-1.json"
+    ]
+  },
+  {
+    "id": "network",
+    "title": "Сети, HTTP и API",
+    "description": "OSI и TCP/IP, TCP/UDP, DNS, HTTP/2 и HTTP/3, REST, gRPC, GraphQL, WebSocket, аутентификация и CORS.",
+    "badge": "Net",
+    "color": "#1f8fa6",
+    "category": "infra",
+    "files": [
+      "network-1.json"
+    ]
+  },
+  {
+    "id": "sysdesign",
+    "title": "System Design",
+    "description": "Оценка нагрузки, масштабирование, кэши, репликация и шардирование, очереди, микросервисы и разбор типовых задач.",
+    "badge": "SD",
+    "color": "#4a5fd1",
+    "category": "infra",
+    "files": [
+      "sysdesign-1.json"
+    ]
   },
   {
     "id": "sql",
@@ -13,7 +54,48 @@
     "description": "SELECT, JOIN, агрегация, подзапросы, оконные функции, индексы, транзакции, DDL, PostgreSQL, безопасность и аналитические запросы.",
     "badge": "SQL",
     "color": "#e0822f",
-    "files": ["sql-1.json", "sql-2.json", "sql-3.json", "sql-4.json", "sql-5.json", "sql-6.json"]
+    "files": [
+      "sql-1.json",
+      "sql-2.json",
+      "sql-3.json",
+      "sql-4.json",
+      "sql-5.json",
+      "sql-6.json"
+    ],
+    "category": "data"
+  },
+  {
+    "id": "nosql",
+    "title": "NoSQL и кэширование",
+    "description": "Redis, MongoDB, Cassandra, Elasticsearch, CAP и консистентность, паттерны кэширования.",
+    "badge": "NoSQL",
+    "color": "#c0392b",
+    "category": "data",
+    "files": [
+      "nosql-1.json"
+    ]
+  },
+  {
+    "id": "data",
+    "title": "Data и аналитика",
+    "description": "Статистика, A/B-тесты, продуктовые метрики, pandas, визуализация, DWH и ETL.",
+    "badge": "Data",
+    "color": "#16a085",
+    "category": "data",
+    "files": [
+      "data-1.json"
+    ]
+  },
+  {
+    "id": "ai",
+    "title": "AI, ML и LLM",
+    "description": "Основы ML, нейросети, LLM, промпт-инжиниринг и агенты, RAG и эмбеддинги, MLOps и оценка моделей.",
+    "badge": "AI",
+    "color": "#9b4dca",
+    "category": "data",
+    "files": [
+      "ai-1.json"
+    ]
   },
   {
     "id": "python",
@@ -21,7 +103,55 @@
     "description": "Типы и коллекции, функции и декораторы, ООП, генераторы, исключения, конкурентность (GIL, asyncio), инструменты и тестирование.",
     "badge": "Py",
     "color": "#3b9a5c",
-    "files": ["python-1.json", "python-2.json"]
+    "files": [
+      "python-1.json",
+      "python-2.json"
+    ],
+    "category": "lang"
+  },
+  {
+    "id": "go",
+    "title": "Go",
+    "description": "Типы и нулевые значения, slices и maps, интерфейсы, ошибки и defer, горутины и каналы, runtime и тестирование.",
+    "badge": "Go",
+    "color": "#00a7d0",
+    "category": "lang",
+    "files": [
+      "go-1.json"
+    ]
+  },
+  {
+    "id": "js",
+    "title": "JavaScript и TypeScript",
+    "description": "Типы и приведение, замыкания и this, прототипы, event loop и промисы, TypeScript, Node.js.",
+    "badge": "JS",
+    "color": "#d4a800",
+    "category": "lang",
+    "files": [
+      "js-1.json"
+    ]
+  },
+  {
+    "id": "java",
+    "title": "Java",
+    "description": "Основы и equals/hashCode, ООП, коллекции, Stream API, многопоточность, JVM и сборка мусора.",
+    "badge": "Java",
+    "color": "#e76f00",
+    "category": "lang",
+    "files": [
+      "java-1.json"
+    ]
+  },
+  {
+    "id": "cpp",
+    "title": "C и C++",
+    "description": "Указатели и память в C, RAII и умные указатели, ООП и vtable, STL, современный C++, многопоточность и сборка.",
+    "badge": "C++",
+    "color": "#5c6bc0",
+    "category": "lang",
+    "files": [
+      "cpp-1.json"
+    ]
   },
   {
     "id": "algo",
@@ -29,6 +159,42 @@
     "description": "Сложность (Big O), массивы и хеш-таблицы, сортировки и бинарный поиск, стеки, очереди, кучи, деревья, графы и динамическое программирование.",
     "badge": "Algo",
     "color": "#8a5cd6",
-    "files": ["algo-1.json"]
+    "files": [
+      "algo-1.json"
+    ],
+    "category": "cs"
+  },
+  {
+    "id": "appsec",
+    "title": "Безопасность приложений",
+    "description": "OWASP Top 10, инъекции, XSS и CSRF, аутентификация и JWT, криптография, SSRF и безопасность зависимостей.",
+    "badge": "Sec",
+    "color": "#b03a48",
+    "category": "cs",
+    "files": [
+      "appsec-1.json"
+    ]
+  },
+  {
+    "id": "qa",
+    "title": "Тестирование и QA",
+    "description": "Виды тестирования, тест-дизайн, баг-репорты и процесс, автоматизация, тестирование API, нагрузочное тестирование.",
+    "badge": "QA",
+    "color": "#2e9e6b",
+    "category": "cs",
+    "files": [
+      "qa-1.json"
+    ]
+  },
+  {
+    "id": "git",
+    "title": "Git, инструменты и командная работа",
+    "description": "Git изнутри, rebase и merge, восстановление, инструменты разработчика, код-ревью, Agile и behavioral-вопросы.",
+    "badge": "Git",
+    "color": "#e0533d",
+    "category": "cs",
+    "files": [
+      "git-1.json"
+    ]
   }
 ]

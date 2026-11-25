@@ -1,0 +1,2190 @@
+{
+  "topics": [
+    {
+      "id": "basics",
+      "title": "Типы, приведение и области видимости"
+    },
+    {
+      "id": "functions",
+      "title": "Функции, замыкания и this"
+    },
+    {
+      "id": "objects",
+      "title": "Объекты, прототипы и классы"
+    },
+    {
+      "id": "async",
+      "title": "Event loop, промисы и async/await"
+    },
+    {
+      "id": "ts",
+      "title": "TypeScript"
+    },
+    {
+      "id": "node",
+      "title": "Node.js, модули и экосистема"
+    }
+  ],
+  "questions": [
+    {
+      "id": "js-basics-001",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(typeof null, typeof function () {});",
+      "options": [
+        "null function",
+        "object object",
+        "object function",
+        "null object"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`typeof null === 'object'` — историческая ошибка первой реализации JS, которую оставили ради совместимости. Функции — это объекты, но `typeof` для них возвращает отдельное значение `'function'`."
+    },
+    {
+      "id": "js-basics-002",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log('5' - 2, '5' + 2);",
+      "options": [
+        "3 52",
+        "3 7",
+        "NaN 52",
+        "52 3"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Оператор `-` работает только с числами, поэтому строка `'5'` приводится к 5. Оператор `+` при наличии строки выполняет конкатенацию: `'5' + 2 === '52'`."
+    },
+    {
+      "id": "js-basics-003",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие сравнения возвращают `true`?",
+      "options": [
+        "`null == 0`",
+        "`null == undefined`",
+        "`NaN == NaN`",
+        "`'1' == 1`"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "`null` нестрого равен только `undefined` (и себе), с нулём — нет. `NaN` не равен ничему, даже себе. При сравнении строки с числом строка приводится к числу."
+    },
+    {
+      "id": "js-basics-004",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие значения являются ложными (falsy)?",
+      "options": [
+        "`NaN`",
+        "`'0'`",
+        "`''`",
+        "`[]`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Falsy-значений всего восемь: `false`, `0`, `-0`, `0n`, `''`, `null`, `undefined`, `NaN`. Непустая строка (даже `'0'`) и любой объект, включая пустой массив, истинны."
+    },
+    {
+      "id": "js-basics-005",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(NaN === NaN, Number.isNaN(NaN));",
+      "options": [
+        "true true",
+        "false false",
+        "true false",
+        "false true"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`NaN` — единственное значение, не равное самому себе. Для проверки используют `Number.isNaN()` или `Object.is(x, NaN)`."
+    },
+    {
+      "id": "js-basics-006",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "console.log(a);\nlet a = 1;",
+      "options": [
+        "Выведется `undefined`",
+        "`ReferenceError`: обращение к переменной до инициализации",
+        "Выведется `1`",
+        "Выведется `null`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`let` и `const` тоже поднимаются, но до строки объявления находятся во временной мёртвой зоне (TDZ). Любое обращение к ним в TDZ бросает `ReferenceError`."
+    },
+    {
+      "id": "js-basics-007",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(x);\nvar x = 5;\nconsole.log(x);",
+      "options": [
+        "5 5",
+        "undefined 5",
+        "ReferenceError",
+        "null 5"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Объявление `var` поднимается (hoisting) в начало функции и инициализируется `undefined`; присваивание остаётся на своём месте."
+    },
+    {
+      "id": "js-basics-008",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const obj = { a: 1 };\nobj.a = 2;\nconsole.log(obj.a);",
+      "options": [
+        "1",
+        "TypeError: Assignment to constant variable",
+        "undefined",
+        "2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`const` запрещает переприсваивать саму переменную, но не делает объект неизменяемым. Свойства можно менять; для запрета нужен `Object.freeze`."
+    },
+    {
+      "id": "js-basics-009",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(0.1 + 0.2 === 0.3, (0.1 + 0.2).toFixed(2));",
+      "options": [
+        "false 0.30",
+        "true 0.30",
+        "false 0.3",
+        "true 0.3"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Числа в JS — IEEE 754 double, и `0.1 + 0.2` даёт `0.30000000000000004`. `toFixed` возвращает строку с заданным числом знаков, поэтому `'0.30'`."
+    },
+    {
+      "id": "js-basics-010",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(JSON.stringify([] + {}), JSON.stringify([] + []));",
+      "options": [
+        "\"[object Object]\" \"[]\"",
+        "{} []",
+        "\"[object Object]\" \"\"",
+        "\"\" \"\""
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`+` приводит объекты к примитивам: `[]` превращается в `''`, а `{}` — в `'[object Object]'`. Затем строки склеиваются."
+    },
+    {
+      "id": "js-basics-011",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(null ?? 'a', 0 ?? 'b', 0 || 'c');",
+      "options": [
+        "a 0 c",
+        "a b c",
+        "null 0 c",
+        "a 0 0"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`??` подставляет правое значение только для `null` и `undefined`, поэтому `0 ?? 'b'` даёт 0. `||` срабатывает на любое falsy-значение, включая 0."
+    },
+    {
+      "id": "js-basics-012",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const user = {};\nconsole.log(user.profile?.name, user.profile?.name.length);",
+      "options": [
+        "undefined, затем TypeError",
+        "null undefined",
+        "undefined undefined",
+        "TypeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Optional chaining прерывает всю оставшуюся цепочку: если `user.profile` — `undefined`, выражение `user.profile?.name.length` целиком вернёт `undefined`, и `.length` не вычисляется."
+    },
+    {
+      "id": "js-basics-013",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "{\n  var a = 1;\n  let b = 2;\n}\nconsole.log(typeof a, typeof b);",
+      "options": [
+        "number number",
+        "number undefined",
+        "undefined undefined",
+        "number, затем ReferenceError"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`var` не знает блочной области видимости и виден снаружи блока. `let` ограничен блоком; снаружи `b` не объявлена, а `typeof` для необъявленного имени возвращает `'undefined'` без ошибки."
+    },
+    {
+      "id": "js-basics-014",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что меняет строгий режим (`'use strict'`)?",
+      "options": [
+        "`this` в обычном вызове функции равен `undefined`, а не глобальному объекту",
+        "Присваивание необъявленной переменной бросает `ReferenceError`",
+        "ES-модули и тела классов всегда работают в строгом режиме",
+        "`==` начинает работать как `===`"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Строгий режим убирает «тихие» ошибки: нет неявных глобальных переменных, `this` не подменяется глобальным объектом, запись в read-only свойство бросает исключение. Правила `==` он не меняет."
+    },
+    {
+      "id": "js-basics-015",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "console.log(typeof 10n, 10n + 1n);\nconsole.log(10n + 1);",
+      "options": [
+        "Выведется `bigint 11n`, затем `11n`",
+        "Выведется `number 11`, затем `11`",
+        "Выведется `bigint 11n`, затем `11`",
+        "Выведется `bigint 11n`, затем `TypeError`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "BigInt и Number нельзя смешивать в арифметике — это `TypeError: Cannot mix BigInt and other types`. Нужно явное приведение: `10n + BigInt(1)`."
+    },
+    {
+      "id": "js-basics-016",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const s1 = Symbol('id');\nconst s2 = Symbol('id');\nconsole.log(s1 === s2, Symbol.for('id') === Symbol.for('id'));",
+      "options": [
+        "true true",
+        "false false",
+        "true false",
+        "false true"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Каждый вызов `Symbol()` создаёт уникальный символ, описание — лишь подпись. `Symbol.for` берёт символ из глобального реестра по ключу, поэтому возвращает один и тот же."
+    },
+    {
+      "id": "js-basics-017",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log([1, 2, 3] == '1,2,3', [] == ![]);",
+      "options": [
+        "false false",
+        "true true",
+        "true false",
+        "false true"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Массив приводится к строке `'1,2,3'`. Во втором случае `![]` — `false` (объект истинен), затем `[] == false` → `'' == 0` → `0 == 0` → `true`."
+    },
+    {
+      "id": "js-basics-018",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(2 ** 53 === 2 ** 53 + 1, Number.isSafeInteger(2 ** 53));",
+      "options": [
+        "false true",
+        "false false",
+        "true false",
+        "true true"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Double хранит 53 бита мантиссы, поэтому после `Number.MAX_SAFE_INTEGER` (2⁵³ − 1) соседние целые неразличимы. Для больших целых используют `BigInt`."
+    },
+    {
+      "id": "js-basics-019",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "console.log(typeof foo);\nconsole.log(typeof bar);\nlet bar = 1;",
+      "options": [
+        "Выведется `undefined`, затем `ReferenceError`",
+        "Выведется `undefined undefined`",
+        "Сразу `ReferenceError`",
+        "Выведется `undefined`, затем `number`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`typeof` безопасен для необъявленных имён, но не для переменных в TDZ: `bar` объявлена через `let` ниже, и обращение к ней до инициализации бросает `ReferenceError`."
+    },
+    {
+      "id": "js-basics-020",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(+'', +' 12 ', +'1a', Number(null), Number(undefined));",
+      "options": [
+        "NaN 12 NaN 0 NaN",
+        "0 NaN 1 0 0",
+        "0 12 NaN 0 NaN",
+        "0 12 1 null undefined"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Пустая строка (и строка из пробелов) приводится к 0, пробелы по краям обрезаются, а любой нечисловой символ даёт `NaN`. `null` → 0, `undefined` → `NaN`."
+    },
+    {
+      "id": "js-functions-001",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "console.log(g());\nvar g = function () { return 2; };",
+      "options": [
+        "Выведется `2`",
+        "Выведется `undefined`",
+        "`TypeError: g is not a function`",
+        "`ReferenceError: g is not defined`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Поднимается только объявление `var g` (со значением `undefined`), а не function expression. Вызов `undefined()` бросает `TypeError`. Function declaration поднялась бы целиком."
+    },
+    {
+      "id": "js-functions-002",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function makeCounter() {\n  let count = 0;\n  return () => ++count;\n}\nconst a = makeCounter();\nconst b = makeCounter();\na(); a();\nconsole.log(a(), b());",
+      "options": [
+        "3 1",
+        "3 4",
+        "1 1",
+        "3 3"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Каждый вызов `makeCounter` создаёт новое лексическое окружение со своей `count`. Замыкания `a` и `b` хранят разные переменные."
+    },
+    {
+      "id": "js-functions-003",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "for (var i = 0; i < 3; i++) {\n  setTimeout(() => console.log(i));\n}",
+      "options": [
+        "0 1 2",
+        "2 2 2",
+        "undefined undefined undefined",
+        "3 3 3"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`var` создаёт одну переменную на всю функцию. Колбэки выполняются после окончания цикла, когда `i` уже равна 3, и все читают одну и ту же переменную."
+    },
+    {
+      "id": "js-functions-004",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "for (let i = 0; i < 3; i++) {\n  setTimeout(() => console.log(i));\n}",
+      "options": [
+        "3 3 3",
+        "0 1 2",
+        "2 2 2",
+        "0 0 0"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`let` в заголовке цикла создаёт новую привязку `i` на каждой итерации, поэтому каждое замыкание запоминает своё значение."
+    },
+    {
+      "id": "js-functions-005",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function f(...args) {\n  return args.length;\n}\nconsole.log(f(1, 2, 3), f());",
+      "options": [
+        "3 undefined",
+        "3 0",
+        "3 1",
+        "1 0"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Rest-параметр собирает оставшиеся аргументы в настоящий массив; без аргументов это пустой массив длины 0."
+    },
+    {
+      "id": "js-functions-006",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно для стрелочных функций?",
+      "options": [
+        "У них нет собственного `this` — он берётся из внешней области",
+        "Их нельзя вызвать с `new`",
+        "У них нет собственного объекта `arguments`",
+        "У них не может быть параметров по умолчанию"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Стрелки лексически захватывают `this` и `arguments`, у них нет `prototype` и `[[Construct]]`, поэтому `new` бросает `TypeError`. Параметры по умолчанию и rest-параметры поддерживаются."
+    },
+    {
+      "id": "js-functions-007",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(Math.max(...[1, 5, 3]), Math.max());",
+      "options": [
+        "5 0",
+        "5 undefined",
+        "5 Infinity",
+        "5 -Infinity"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Spread раскладывает массив в аргументы. `Math.max()` без аргументов возвращает `-Infinity` — нейтральный элемент для поиска максимума."
+    },
+    {
+      "id": "js-functions-008",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем используют IIFE — `(function () { ... })()`?",
+      "options": [
+        "Чтобы сразу выполнить код в собственной области видимости и не засорять глобальную",
+        "Чтобы функция поднималась (hoisting) выше остального кода",
+        "Чтобы функция выполнялась асинхронно",
+        "Чтобы привязать `this` к глобальному объекту"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "IIFE — функция, вызванная сразу после создания. До появления `let`/`const` и модулей это был основной способ изолировать переменные и создавать приватное состояние (паттерн «модуль»)."
+    },
+    {
+      "id": "js-functions-009",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function f(a, b = a * 2) {\n  return a + b;\n}\nconsole.log(f(2), f(2, undefined), f(2, null));",
+      "options": [
+        "6 2 2",
+        "6 6 6",
+        "6 6 2",
+        "6 NaN 2"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Значение по умолчанию подставляется только когда аргумент равен `undefined` (явно или отсутствует). `null` — обычное значение: `2 + null === 2`."
+    },
+    {
+      "id": "js-functions-010",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "'use strict';\nconst obj = {\n  name: 'A',\n  greet() { return this.name; },\n};\nconst g = obj.greet;\nconsole.log(obj.greet());\nconsole.log(g());",
+      "options": [
+        "Выведется `A`, затем `TypeError`",
+        "Выведется `A A`",
+        "Выведется `A undefined`",
+        "Выведется `undefined undefined`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`this` определяется способом вызова, а не местом объявления. `g()` — обычный вызов, в строгом режиме `this === undefined`, и чтение `undefined.name` бросает `TypeError`."
+    },
+    {
+      "id": "js-functions-011",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const obj = {\n  name: 'A',\n  getArrow() { return () => this.name; },\n};\nconst f = obj.getArrow();\nconst other = { name: 'B', f };\nconsole.log(f(), other.f());",
+      "options": [
+        "A B",
+        "undefined B",
+        "A A",
+        "undefined undefined"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Стрелка захватывает `this` из `getArrow` в момент создания (там `this === obj`). Неявная привязка `other.f()` на стрелку не действует."
+    },
+    {
+      "id": "js-functions-012",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие вызовы вернут `13`?",
+      "code": "function sum(a, b) { return this.base + a + b; }\nconst o = { base: 10 };",
+      "options": [
+        "`sum.call(o, 1, 2)`",
+        "`sum.apply(o, 1, 2)`",
+        "`sum.bind(o, 1)(2)`",
+        "`sum.call(o, [1, 2])`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "`call` принимает аргументы списком, `apply` — массивом (с числом вместо массива будет `TypeError`). `bind` возвращает новую функцию с привязанным `this` и частично применёнными аргументами. `call(o, [1, 2])` передаст массив как `a` и получит строку `'101,2undefined'`."
+    },
+    {
+      "id": "js-functions-013",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function A() { this.v = 1; return { v: 2 }; }\nfunction B() { this.v = 1; return 5; }\nconsole.log(new A().v, new B().v);",
+      "options": [
+        "1 1",
+        "2 1",
+        "2 5",
+        "1 5"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Если конструктор возвращает объект, `new` вернёт именно его. Возвращённый примитив игнорируется — результатом будет созданный `this`."
+    },
+    {
+      "id": "js-functions-014",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Обработчик `handler()` бросает `TypeError`. Какие варианты исправят потерю `this`?",
+      "code": "class Btn {\n  label = 'OK';\n  click() { return this.label; }\n}\nconst b = new Btn();\nconst handler = b.click;\nhandler();",
+      "options": [
+        "`const handler = b.click.bind(b);`",
+        "`const handler = () => b.click();`",
+        "Объявить метод полем-стрелкой: `click = () => this.label;`",
+        "Вызывать `handler.call()` без аргументов"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Метод, извлечённый из объекта, теряет неявную привязку; тело класса — строгий режим, поэтому `this === undefined`. Помогают `bind`, обёртка-стрелка или поле-стрелка (она захватывает `this` экземпляра). `call()` без аргумента снова передаст `undefined`."
+    },
+    {
+      "id": "js-functions-015",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const curry = (fn) => function c(...a) {\n  return a.length >= fn.length ? fn(...a) : (...b) => c(...a, ...b);\n};\nconst add = curry((a, b, c) => a + b + c);\nconsole.log(add(1)(2)(3), add(1, 2)(3), typeof add(1)(2));",
+      "options": [
+        "6 NaN function",
+        "6 6 number",
+        "6 6 NaN",
+        "6 6 function"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Каррированная функция копит аргументы, пока их не наберётся `fn.length` (3), и только тогда вызывает исходную функцию. `add(1)(2)` — всё ещё функция, ожидающая третий аргумент."
+    },
+    {
+      "id": "js-functions-016",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Поиск должен отправлять запрос, только когда пользователь перестал печатать на 300 мс. Какая техника подходит?",
+      "options": [
+        "throttle",
+        "мемоизация",
+        "`requestAnimationFrame`",
+        "debounce"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Debounce откладывает вызов и сбрасывает таймер при каждом новом событии — функция сработает один раз после паузы. Throttle гарантирует не более одного вызова за интервал и подходит для scroll или resize."
+    },
+    {
+      "id": "js-functions-017",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function f() { return this.x; }\nconst g = f.bind({ x: 1 }).bind({ x: 2 });\nconsole.log(g(), g.call({ x: 3 }));",
+      "options": [
+        "2 3",
+        "1 1",
+        "2 2",
+        "1 3"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Привязанная функция навсегда фиксирует `this`: повторный `bind` и `call` не могут его поменять. Переопределить `this` у bound-функции может только `new`."
+    },
+    {
+      "id": "js-functions-018",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function outer() {\n  const inner = () => arguments[0];\n  return inner('x');\n}\nconsole.log(outer('y'));",
+      "options": [
+        "x",
+        "undefined",
+        "y",
+        "ReferenceError: arguments is not defined"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "У стрелки нет своего `arguments`, поэтому она видит `arguments` внешней функции `outer`, где первый аргумент — `'y'`."
+    },
+    {
+      "id": "js-functions-019",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const f = function fact(n) {\n  return n <= 1 ? 1 : n * fact(n - 1);\n};\nconsole.log(f(4), typeof fact);",
+      "options": [
+        "24 undefined",
+        "24 function",
+        "ReferenceError",
+        "NaN undefined"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Имя named function expression видно только внутри самой функции — удобно для рекурсии. Во внешней области имени `fact` нет, и `typeof` возвращает `'undefined'`."
+    },
+    {
+      "id": "js-functions-020",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const obj = {\n  run() {\n    setTimeout(function () { console.log(this === obj); });\n    setTimeout(() => console.log(this === obj));\n  },\n};\nobj.run();",
+      "options": [
+        "true true",
+        "false false",
+        "false true",
+        "true false"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Колбэк-функцию таймер вызывает без объекта, поэтому её `this` — не `obj` (в Node это объект `Timeout`, в браузере — `window`). Стрелка берёт `this` из `run`, где он равен `obj`."
+    },
+    {
+      "id": "js-objects-001",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const a = { x: 1 };\nconst b = { x: 1 };\nconsole.log(a == b, a === a);",
+      "options": [
+        "true true",
+        "false false",
+        "false true",
+        "true false"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Объекты сравниваются по ссылке, а не по содержимому. `a` и `b` — разные объекты, хотя поля совпадают. Для сравнения по значению нужна своя функция или библиотека."
+    },
+    {
+      "id": "js-objects-002",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const orig = { n: 1, inner: { v: 1 } };\nconst copy = { ...orig };\ncopy.n = 2;\ncopy.inner.v = 2;\nconsole.log(orig.n, orig.inner.v);",
+      "options": [
+        "1 2",
+        "1 1",
+        "2 2",
+        "2 1"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Spread делает поверхностную копию: примитивы копируются, а вложенные объекты — по ссылке. Для глубокой копии используют `structuredClone`."
+    },
+    {
+      "id": "js-objects-003",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const { a, b = 5, ...rest } = { a: 1, c: 3, d: 4 };\nconsole.log(a, b, rest);",
+      "options": [
+        "1 undefined { c: 3, d: 4 }",
+        "1 5 [3, 4]",
+        "1 5 { a: 1, c: 3, d: 4 }",
+        "1 5 { c: 3, d: 4 }"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Отсутствующее свойство `b` берёт значение по умолчанию, а rest-элемент собирает в новый объект все свойства, которые не были деструктурированы явно."
+    },
+    {
+      "id": "js-objects-004",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "let x = 1, y = 2;\n[x, y] = [y, x];\nconsole.log(x, y);",
+      "options": [
+        "1 2",
+        "2 1",
+        "2 2",
+        "SyntaxError"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Деструктуризация массива позволяет поменять значения местами без временной переменной: справа создаётся массив `[2, 1]`, который раскладывается в `x` и `y`."
+    },
+    {
+      "id": "js-objects-005",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про `Map` по сравнению с обычным объектом?",
+      "options": [
+        "Ключом может быть значение любого типа, в том числе объект",
+        "Хранит порядок вставки и имеет свойство `size`",
+        "Ключи обычного объекта приводятся к строкам (кроме символов)",
+        "`JSON.stringify(map)` сериализует все пары ключ-значение"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "`Map` — полноценный словарь с ключами любых типов и быстрым `size`. `JSON.stringify` не знает о `Map` и вернёт `'{}'`; для сериализации нужно `Object.fromEntries(map)` или `[...map]`."
+    },
+    {
+      "id": "js-objects-006",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class Rect {\n  constructor(w, h) { this.w = w; this.h = h; }\n  get area() { return this.w * this.h; }\n}\nconst r = new Rect(2, 3);\nconsole.log(r.area, typeof r.area);",
+      "options": [
+        "[Function: area] function",
+        "6 number",
+        "6 function",
+        "undefined undefined"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Геттер вызывается при чтении свойства без скобок, поэтому `r.area` — уже вычисленное число."
+    },
+    {
+      "id": "js-objects-007",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class C {\n  static count = 0;\n  constructor() { C.count++; }\n}\nnew C();\nnew C();\nconsole.log(C.count, new C().count);",
+      "options": [
+        "3 undefined",
+        "2 2",
+        "3 3",
+        "2 undefined"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Статическое поле принадлежит самому классу, а не экземплярам, поэтому `instance.count` — `undefined`. Аргументы вычисляются слева направо: `C.count` читается до третьего `new C()`."
+    },
+    {
+      "id": "js-objects-008",
+      "topic": "objects",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет `console.log(typeof class {})`?",
+      "code": "console.log(typeof class {});",
+      "options": [
+        "function",
+        "class",
+        "object",
+        "undefined"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Класс — синтаксический сахар над функцией-конструктором и прототипами. Отличия всё же есть: класс нельзя вызвать без `new`, его тело выполняется в строгом режиме."
+    },
+    {
+      "id": "js-objects-009",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function Animal(name) { this.name = name; }\nAnimal.prototype.speak = function () { return this.name + ' speaks'; };\nconst d = new Animal('Rex');\nconsole.log(d.speak(), d.hasOwnProperty('speak'), Object.getPrototypeOf(d) === Animal.prototype);",
+      "options": [
+        "Rex speaks true true",
+        "Rex speaks false false",
+        "Rex speaks false true",
+        "TypeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Метод хранится один раз в `Animal.prototype`, а экземпляр получает его через цепочку прототипов. Собственным свойством он не является."
+    },
+    {
+      "id": "js-objects-010",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const o = Object.create(null);\nconsole.log(typeof o.toString, 'toString' in {});",
+      "options": [
+        "undefined true",
+        "function true",
+        "undefined false",
+        "function false"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`Object.create(null)` создаёт объект без прототипа — у него нет даже `toString`. Такие объекты используют как «чистые» словари. У обычного `{}` `toString` приходит из `Object.prototype`."
+    },
+    {
+      "id": "js-objects-011",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код (нестрогий режим)?",
+      "code": "const cfg = Object.freeze({ level: 1, db: { host: 'a' } });\ncfg.level = 2;\ncfg.db.host = 'b';\nconsole.log(cfg.level, cfg.db.host);",
+      "options": [
+        "1 a",
+        "2 b",
+        "1 b",
+        "TypeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`Object.freeze` поверхностный: замораживаются только собственные свойства, вложенный объект можно менять. В нестрогом режиме запись в замороженное свойство молча игнорируется, в строгом — `TypeError`."
+    },
+    {
+      "id": "js-objects-012",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "console.log(JSON.stringify({ a: undefined, b: () => 1, c: NaN, d: new Date(0) }));",
+      "options": [
+        "{\"a\":null,\"b\":null,\"c\":null,\"d\":{}}",
+        "{\"c\":null,\"d\":\"1970-01-01T00:00:00.000Z\"}",
+        "{\"a\":undefined,\"c\":NaN,\"d\":\"1970-01-01T00:00:00.000Z\"}",
+        "{\"c\":\"NaN\",\"d\":0}"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Свойства со значениями `undefined` и функциями пропускаются, `NaN` и `Infinity` становятся `null`, а `Date` сериализуется через `toJSON` в ISO-строку (и обратно сам не восстановится)."
+    },
+    {
+      "id": "js-objects-013",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A {\n  constructor() { this.name = 'A'; }\n  hi() { return 'A:' + this.name; }\n}\nclass B extends A {\n  constructor() { super(); this.name = 'B'; }\n  hi() { return super.hi() + '!'; }\n}\nconsole.log(new B().hi());",
+      "options": [
+        "A:A!",
+        "B:B!",
+        "A:B",
+        "A:B!"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`super.hi()` вызывает метод родителя, но с текущим `this` — экземпляром `B`, у которого `name === 'B'`."
+    },
+    {
+      "id": "js-objects-014",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении `new B()`?",
+      "code": "class A {}\nclass B extends A {\n  constructor() {\n    this.x = 1;\n    super();\n  }\n}\nnew B();",
+      "options": [
+        "Создастся объект `{ x: 1 }`",
+        "`SyntaxError` на этапе разбора",
+        "`this.x` молча проигнорируется",
+        "`ReferenceError`: к `this` нельзя обращаться до вызова `super()`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "В производном классе объект создаёт родительский конструктор, поэтому до `super()` `this` ещё не инициализирован. Обращение к нему бросает `ReferenceError` во время выполнения."
+    },
+    {
+      "id": "js-objects-015",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про `structuredClone(obj)`?",
+      "options": [
+        "`Date` в копии остаётся объектом `Date`",
+        "`Map` и `Set` копируются глубоко",
+        "Циклические ссылки поддерживаются",
+        "Функции в объекте копируются по ссылке"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "`structuredClone` использует алгоритм структурного клонирования: поддерживает `Date`, `Map`, `Set`, типизированные массивы и циклы. Функции, DOM-узлы и прототипы классов не клонируются — на функции будет `DataCloneError`."
+    },
+    {
+      "id": "js-objects-016",
+      "topic": "objects",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function F() {}\nconst f = new F();\nconsole.log(f.__proto__ === F.prototype, F.__proto__ === Function.prototype, f.prototype);",
+      "options": [
+        "true false undefined",
+        "true true undefined",
+        "false true {}",
+        "true true {}"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`prototype` — свойство функции: объект, который станет прототипом экземпляров. `__proto__` (или `Object.getPrototypeOf`) — ссылка любого объекта на его прототип. У обычного объекта `f` свойства `prototype` нет."
+    },
+    {
+      "id": "js-objects-017",
+      "topic": "objects",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A {\n  #x = 1;\n  static has(o) { return #x in o; }\n  getX() { return this.#x; }\n}\nconst a = new A();\nconsole.log(A.has(a), A.has({}), a.x, a.getX());",
+      "options": [
+        "true false 1 1",
+        "false false undefined 1",
+        "true false undefined 1",
+        "true true undefined 1"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Приватное поле `#x` — не свойство объекта с именем `x`, снаружи оно недоступно. Конструкция `#x in o` (ES2022) проверяет, есть ли у объекта это приватное поле, без исключения."
+    },
+    {
+      "id": "js-objects-018",
+      "topic": "objects",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const o = { b: 1, 2: 'x', a: 2, 1: 'y' };\nconsole.log(Object.keys(o).join());",
+      "options": [
+        "1,2,b,a",
+        "b,2,a,1",
+        "a,b,1,2",
+        "1,2,a,b"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Порядок ключей определён: сначала целочисленные ключи по возрастанию, затем строковые в порядке добавления, затем символы."
+    },
+    {
+      "id": "js-objects-019",
+      "topic": "objects",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const k1 = { id: 1 };\nconst k2 = { id: 2 };\nconst o = {};\no[k1] = 'a';\no[k2] = 'b';\nconsole.log(o[k1], Object.keys(o).length);",
+      "options": [
+        "a 2",
+        "a 1",
+        "b 1",
+        "b 2"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Ключи обычного объекта приводятся к строке, и оба объекта превращаются в `'[object Object]'` — второе присваивание перезаписывает первое. Для ключей-объектов нужен `Map`."
+    },
+    {
+      "id": "js-objects-020",
+      "topic": "objects",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно про `WeakMap`?",
+      "options": [
+        "Ключами могут быть только объекты (и незарегистрированные символы)",
+        "Его нельзя перебрать, и у него нет `size`",
+        "Запись может исчезнуть, когда на ключ не осталось других ссылок",
+        "`WeakMap` удерживает ключи от сборки мусора, пока запись существует"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "`WeakMap` держит ключи «слабо»: если ключ больше нигде не используется, сборщик мусора удаляет его вместе со значением. Поэтому содержимое недетерминировано, и перебор запрещён. Типичное применение — кэш или приватные данные, привязанные к объекту."
+    },
+    {
+      "id": "js-async-001",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В каком порядке выведутся буквы?",
+      "code": "console.log('A');\nsetTimeout(() => console.log('B'), 0);\nPromise.resolve().then(() => console.log('C'));\nconsole.log('D');",
+      "options": [
+        "A, B, C, D",
+        "A, D, B, C",
+        "A, D, C, B",
+        "A, C, D, B"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Сначала выполняется весь синхронный код (A, D). Затем event loop опустошает очередь микрозадач (`then` → C) и только после этого берёт макрозадачу таймера (B)."
+    },
+    {
+      "id": "js-async-002",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про состояния промиса?",
+      "options": [
+        "У промиса три состояния: pending, fulfilled и rejected",
+        "Перейдя в fulfilled или rejected, промис больше не меняет состояние",
+        "Обработчик `then`, добавленный к уже выполненному промису, всё равно будет вызван",
+        "Функция-executor в `new Promise(executor)` выполняется асинхронно, в микрозадаче"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Промис переходит из pending в settled ровно один раз. Подписаться можно и после завершения — обработчик всё равно вызовется (асинхронно). А вот executor выполняется синхронно, прямо в конструкторе."
+    },
+    {
+      "id": "js-async-003",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const p = new Promise((resolve) => {\n  console.log(1);\n  resolve(2);\n  console.log(3);\n});\np.then((v) => console.log(v));\nconsole.log(4);",
+      "options": [
+        "1, 3, 4, 2",
+        "1, 2, 3, 4",
+        "1, 3, 2, 4",
+        "4, 1, 3, 2"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Executor выполняется синхронно, и `resolve` не прерывает его — 3 выводится сразу. Обработчик `then` всегда вызывается в микрозадаче, то есть после синхронного `console.log(4)`."
+    },
+    {
+      "id": "js-async-004",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "new Promise((resolve, reject) => {\n  resolve('a');\n  resolve('b');\n  reject(new Error('c'));\n}).then(console.log, () => console.log('error'));",
+      "options": [
+        "b",
+        "error",
+        "a, error",
+        "a"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Промис фиксирует первый результат. Последующие вызовы `resolve` и `reject` игнорируются."
+    },
+    {
+      "id": "js-async-005",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "async function f() { return 1; }\nconsole.log(typeof f(), f() instanceof Promise);",
+      "options": [
+        "number false",
+        "object true",
+        "function true",
+        "promise true"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`async`-функция всегда возвращает промис: значение из `return` оборачивается в `Promise.resolve`, а исключение превращается в rejected-промис."
+    },
+    {
+      "id": "js-async-006",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие колбэки попадают в очередь микрозадач?",
+      "options": [
+        "Обработчики `.then` / `.catch` / `.finally`",
+        "Функция, переданная в `queueMicrotask`",
+        "Колбэк `setTimeout(fn, 0)`",
+        "Продолжение `async`-функции после `await`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Микрозадачи — реакции промисов, `queueMicrotask`, продолжения после `await` (и `MutationObserver` в браузере). Таймеры, I/O и события — макрозадачи, они выполняются только когда очередь микрозадач пуста."
+    },
+    {
+      "id": "js-async-007",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Promise.all([\n  Promise.resolve(1),\n  Promise.reject(new Error('x')),\n  Promise.resolve(3),\n])\n  .then((v) => console.log('ok', v))\n  .catch((e) => console.log('fail', e.message));",
+      "options": [
+        "ok [ 1, 3 ]",
+        "fail x",
+        "ok [ 1, undefined, 3 ]",
+        "fail x, ok [ 1, 3 ]"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`Promise.all` отклоняется при первой же ошибке и отдаёт её причину; результаты успешных промисов теряются. Если нужны все результаты — `Promise.allSettled`."
+    },
+    {
+      "id": "js-async-008",
+      "topic": "async",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "`wait(ms)` возвращает промис, который выполнится через `ms` миллисекунд. Сколько примерно займёт `await Promise.all([wait(1000), wait(1000)])`?",
+      "options": [
+        "Около 2 секунд",
+        "0 мс — `Promise.all` не ждёт таймеры",
+        "Зависит от числа ядер процессора",
+        "Около 1 секунды"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Оба таймера запускаются сразу, и `Promise.all` ждёт самый долгий из них. Последовательные `await wait(1000); await wait(1000);` заняли бы около 2 секунд."
+    },
+    {
+      "id": "js-async-009",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Promise.resolve(1)\n  .then(() => { throw new Error('boom'); })\n  .then(() => console.log('skip'))\n  .catch((e) => { console.log(e.message); return 5; })\n  .then((v) => console.log(v));",
+      "options": [
+        "boom, 5",
+        "boom, undefined",
+        "skip, boom, 5",
+        "boom"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Исключение в `then` отклоняет промис, и следующие `then` без обработчика ошибки пропускаются до ближайшего `catch`. `catch` возвращает обычное значение, и цепочка снова становится fulfilled."
+    },
+    {
+      "id": "js-async-010",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "async function f() {\n  console.log(2);\n  await null;\n  console.log(4);\n}\nconsole.log(1);\nf();\nconsole.log(3);",
+      "options": [
+        "1, 2, 4, 3",
+        "1, 3, 2, 4",
+        "1, 2, 3, 4",
+        "2, 1, 3, 4"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Тело `async`-функции до первого `await` выполняется синхронно. `await` приостанавливает функцию, а остаток выполняется в микрозадаче — после синхронного кода."
+    },
+    {
+      "id": "js-async-011",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Promise.allSettled([\n  Promise.resolve(1),\n  Promise.reject(new Error('x')),\n]).then((r) => console.log(r.map((x) => x.status).join()));",
+      "options": [
+        "fulfilled,rejected",
+        "fulfilled",
+        "rejected",
+        "resolved,rejected"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`allSettled` никогда не отклоняется: он ждёт все промисы и возвращает массив объектов `{ status: 'fulfilled', value }` или `{ status: 'rejected', reason }`."
+    },
+    {
+      "id": "js-async-012",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const slow = new Promise((r) => setTimeout(() => r('slow'), 20));\nconst fail = new Promise((_, j) => setTimeout(() => j(new Error('fail')), 10));\nPromise.any([slow, fail]).then((v) => console.log('any', v));\nPromise.race([slow, fail]).catch((e) => console.log('race', e.message));",
+      "options": [
+        "any slow, race slow",
+        "race fail, any fail",
+        "race fail, any slow",
+        "any slow, race fail"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`race` завершается так же, как первый завершившийся промис, — здесь это ошибка через 10 мс. `any` ждёт первый успешный и отклоняется (`AggregateError`), только если отклонились все."
+    },
+    {
+      "id": "js-async-013",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "async function main() {\n  const out = [];\n  [1, 2, 3].forEach(async (x) => {\n    await null;\n    out.push(x);\n  });\n  console.log(out.length);\n}\nmain();",
+      "options": [
+        "3",
+        "0",
+        "1",
+        "Promise { <pending> }"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`forEach` не ждёт промисы, которые возвращает async-колбэк. К моменту `console.log` ни один колбэк не дошёл до `push`. Используйте `for...of` с `await` или `await Promise.all(arr.map(...))`."
+    },
+    {
+      "id": "js-async-014",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Promise.resolve(1)\n  .then((v) => new Promise((r) => setTimeout(() => r(v + 1), 10)))\n  .then((v) => console.log(v));",
+      "options": [
+        "Promise { <pending> }",
+        "1",
+        "undefined",
+        "2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Если `then` возвращает промис, цепочка «разворачивает» его и ждёт результата. Следующий `then` получает уже значение 2, а не промис."
+    },
+    {
+      "id": "js-async-015",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "const controller = new AbortController();\ncontroller.abort();\nfetch('https://example.com', { signal: controller.signal })\n  .then(() => console.log('ok'))\n  .catch((e) => console.log(e.name));",
+      "options": [
+        "ok",
+        "TypeError",
+        "TimeoutError",
+        "AbortError"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`fetch` с уже отменённым сигналом сразу отклоняется с `DOMException` по имени `AbortError` — запрос даже не уходит. Так же отменяют запрос в процессе: `controller.abort()`."
+    },
+    {
+      "id": "js-async-016",
+      "topic": "async",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как правильно обработать ошибку `await`-выражения внутри `async`-функции?",
+      "options": [
+        "Только через `.catch` — `try/catch` с промисами не работает",
+        "Обернуть `await` в `try/catch` — отклонённый промис бросает исключение в месте `await`",
+        "Ошибку нельзя поймать внутри функции, только снаружи через `.catch`",
+        "Через `process.on('error')`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`await` превращает отклонение в обычное исключение, поэтому работает `try/catch/finally`. Без обработки исключение отклонит промис, который возвращает сама `async`-функция."
+    },
+    {
+      "id": "js-async-017",
+      "topic": "async",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "В каком порядке выведутся числа?",
+      "code": "console.log(1);\nsetTimeout(() => console.log(2));\nPromise.resolve()\n  .then(() => {\n    console.log(3);\n    setTimeout(() => console.log(4));\n  })\n  .then(() => console.log(5));\nqueueMicrotask(() => console.log(6));\nconsole.log(7);",
+      "options": [
+        "1, 7, 3, 5, 6, 2, 4",
+        "1, 7, 2, 3, 6, 5, 4",
+        "1, 7, 3, 6, 5, 2, 4",
+        "1, 7, 6, 3, 5, 2, 4"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Синхронно: 1, 7. Очередь микрозадач: `then` (3) и `queueMicrotask` (6) поставлены сразу; второй `then` (5) попадает в очередь только после выполнения первого. Затем таймеры в порядке постановки: 2, 4."
+    },
+    {
+      "id": "js-async-018",
+      "topic": "async",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "async function a() {\n  console.log('a1');\n  await b();\n  console.log('a2');\n}\nasync function b() { console.log('b'); }\na();\nPromise.resolve().then(() => console.log('p'));\nconsole.log('sync');",
+      "options": [
+        "a1, b, sync, a2, p",
+        "a1, b, a2, sync, p",
+        "a1, sync, b, a2, p",
+        "a1, b, sync, p, a2"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`b()` вызывается синхронно. `await` на уже выполненном промисе ставит продолжение `a` в очередь микрозадач раньше, чем `then` с `p`, поэтому `a2` идёт перед `p`."
+    },
+    {
+      "id": "js-async-019",
+      "topic": "async",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно про необработанные отклонения промисов (unhandled rejections)?",
+      "options": [
+        "В Node.js 15+ по умолчанию процесс завершается с ошибкой",
+        "Их можно перехватить через `process.on('unhandledRejection', ...)`",
+        "`try/catch` вокруг вызова `async`-функции без `await` поймает её ошибку",
+        "В браузере срабатывает событие `unhandledrejection` на `window`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Отклонённый промис без обработчика — частая причина падений Node. `try/catch` ловит только синхронные исключения и ошибки `await`; если промис не ожидается, ошибка «уходит» мимо блока."
+    },
+    {
+      "id": "js-async-020",
+      "topic": "async",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Сколько примерно миллисекунд выведет код?",
+      "code": "const wait = (ms) => new Promise((r) => setTimeout(r, ms));\nasync function main() {\n  const t = Date.now();\n  const a = wait(100);\n  const b = wait(100);\n  await a;\n  await b;\n  console.log(Math.round((Date.now() - t) / 100) * 100);\n}\nmain();",
+      "options": [
+        "Около 200 — `await` выполняются последовательно",
+        "0 — промисы уже созданы",
+        "Около 100 — таймеры стартовали одновременно",
+        "Около 300"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Промисы начинают работу в момент создания, а не в момент `await`. Оба таймера запущены до первого `await`, поэтому ожидание параллельное. Последовательно было бы `await wait(100); await wait(100);`."
+    },
+    {
+      "id": "js-ts-001",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем `unknown` отличается от `any`?",
+      "options": [
+        "Ничем — это синонимы",
+        "`unknown` нельзя присвоить ничего, кроме `null` и `undefined`",
+        "В `unknown` можно записать что угодно, но перед использованием значение нужно сузить проверкой типа",
+        "`unknown` отключает проверку типов, а `any` — нет"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`any` выключает проверки и «заражает» код. `unknown` — безопасный верхний тип: с ним нельзя ничего сделать, пока `typeof`, `instanceof` или type guard не сузят тип."
+    },
+    {
+      "id": "js-ts-002",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что сообщит компилятор TypeScript (`strict: true`)?",
+      "code": "let x: unknown = 'hi';\nx.toUpperCase();",
+      "options": [
+        "Ошибка: `'x' is of type 'unknown'`",
+        "Ничего — код корректен",
+        "Ошибка: `toUpperCase` не существует у `string`",
+        "Предупреждение, но код скомпилируется без ошибок"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Тип `unknown` не позволяет обращаться к свойствам, даже если фактическое значение — строка. Нужна проверка: `if (typeof x === 'string') x.toUpperCase();`."
+    },
+    {
+      "id": "js-ts-003",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает «структурная типизация» в TypeScript?",
+      "options": [
+        "Типы совместимы, только если один явно наследует другой",
+        "Типы проверяются во время выполнения по структуре объекта",
+        "Каждый класс образует уникальный, несовместимый с другими тип",
+        "Совместимость типов определяется набором свойств, а не именем типа или его объявлением"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Если у объекта есть все нужные свойства нужных типов, он подходит, даже если интерфейс нигде не упомянут («утиная типизация» на этапе компиляции)."
+    },
+    {
+      "id": "js-ts-004",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "function f(v: string | number) {\n  return typeof v === 'string' ? v.toUpperCase() : v.toFixed(1);\n}\nconsole.log(f('a'), f(2));",
+      "options": [
+        "A 2",
+        "A 2.0",
+        "a 2.0",
+        "Ошибка компиляции: `toFixed` нет у `string | number`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`typeof` — сужающая проверка: в первой ветке TypeScript знает, что `v` — `string`, во второй — `number`, поэтому оба вызова корректны."
+    },
+    {
+      "id": "js-ts-005",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "interface User { name: string }\nconst u = JSON.parse('{\"name\": 42}') as User;\nconsole.log(typeof u.name);",
+      "options": [
+        "string",
+        "number",
+        "Ошибка во время выполнения",
+        "undefined"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Типы TypeScript стираются при компиляции, а `as` — лишь утверждение для компилятора, без проверки в рантайме. Данные извне валидируют вручную или библиотеками вроде zod."
+    },
+    {
+      "id": "js-ts-006",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какому типу эквивалентен `Partial<User>`, если `type User = { id: number; name: string }`?",
+      "options": [
+        "`{ id: number | null; name: string | null }`",
+        "`{ id: number } | { name: string }`",
+        "`{ id?: number; name: string }`",
+        "`{ id?: number; name?: string }`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`Partial<T>` делает все свойства необязательными. Обратная операция — `Required<T>`, а `Readonly<T>` добавляет `readonly`."
+    },
+    {
+      "id": "js-ts-007",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой тип получит `Dir`?",
+      "code": "const dirs = ['up', 'down'] as const;\ntype Dir = typeof dirs[number];",
+      "options": [
+        "`'up' | 'down'`",
+        "`string`",
+        "`string[]`",
+        "`readonly ['up', 'down']`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`as const` делает массив readonly-кортежем литеральных типов, а индексный доступ `[number]` объединяет типы всех элементов в union."
+    },
+    {
+      "id": "js-ts-008",
+      "topic": "ts",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про `type` и `interface`?",
+      "options": [
+        "Одноимённые `interface` сливаются (declaration merging)",
+        "Через `type` можно описать union: `type Id = string | number`",
+        "Оба можно расширять: `extends` у интерфейса, `&` у типа",
+        "Через `interface` можно описать union примитивов"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Для объектных форм они почти взаимозаменяемы. `interface` умеет слияние объявлений (удобно для расширения сторонних типов), `type` — union, кортежи, mapped и conditional types."
+    },
+    {
+      "id": "js-ts-009",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем в ветке `default` пишут `const _exhaustive: never = s`?",
+      "code": "type Shape =\n  | { kind: 'circle'; r: number }\n  | { kind: 'square'; a: number };\n\nfunction area(s: Shape): number {\n  switch (s.kind) {\n    case 'circle': return Math.PI * s.r ** 2;\n    case 'square': return s.a ** 2;\n    default:\n      const _exhaustive: never = s;\n      return _exhaustive;\n  }\n}",
+      "options": [
+        "Чтобы бросить исключение во время выполнения",
+        "Чтобы отключить проверку типов в ветке `default`",
+        "Чтобы компилятор выдал ошибку, если в `Shape` добавят вариант и забудут его обработать",
+        "Это обязательный синтаксис `switch` в TypeScript"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "После обработки всех вариантов дискриминируемого union тип `s` сужается до `never`. Если появится новый `kind`, в `default` окажется не-`never`, и присваивание не скомпилируется — проверка полноты (exhaustiveness check)."
+    },
+    {
+      "id": "js-ts-010",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой тип получит `K`?",
+      "code": "type Person = { name: string; age: number };\ntype K = keyof Person;",
+      "options": [
+        "`'name' | 'age'`",
+        "`string`",
+        "`['name', 'age']`",
+        "`string | number`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`keyof` возвращает union литеральных типов ключей. В паре с индексным доступом `Person[K]` получаем тип значения: `string | number`."
+    },
+    {
+      "id": "js-ts-011",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой тип у переменной `v`?",
+      "code": "function getProp<T, K extends keyof T>(obj: T, key: K): T[K] {\n  return obj[key];\n}\nconst v = getProp({ a: 1, b: 'x' }, 'b');",
+      "options": [
+        "`string | number`",
+        "`'x'`",
+        "`string`",
+        "`unknown`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`K` выводится как литерал `'b'`, а `T[K]` — тип свойства `b`, то есть `string` (литерал расширяется, так как объект не `as const`). Вызов с несуществующим ключом не скомпилируется."
+    },
+    {
+      "id": "js-ts-012",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие типы эквивалентны `{ id: number }`, если `type U = { id: number; name: string }`?",
+      "options": [
+        "`Pick<U, 'id'>`",
+        "`Omit<U, 'name'>`",
+        "`Partial<U>`",
+        "`Record<'id', number>`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "`Pick` оставляет указанные ключи, `Omit` убирает указанные, `Record<K, V>` строит объект с ключами `K` и значениями `V`. `Partial<U>` сохранит оба поля, сделав их необязательными."
+    },
+    {
+      "id": "js-ts-013",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой тип получит `R`?",
+      "code": "function make() {\n  return { ok: true, count: 1 };\n}\ntype R = ReturnType<typeof make>;",
+      "options": [
+        "`{ ok: true; count: 1 }`",
+        "`{ ok: boolean; count: number }`",
+        "`() => { ok: boolean; count: number }`",
+        "`object`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`typeof make` берёт тип функции из значения, а `ReturnType` извлекает тип результата. Литералы в возвращаемом объекте расширяются до `boolean` и `number`, если не указать `as const`."
+    },
+    {
+      "id": "js-ts-014",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означает возвращаемый тип `pet is Fish`?",
+      "code": "function isFish(pet: Fish | Bird): pet is Fish {\n  return 'swim' in pet;\n}",
+      "options": [
+        "Функция возвращает `Fish` или бросает исключение",
+        "Это проверка `instanceof Fish` во время выполнения",
+        "Это приведение типа, аналог `pet as Fish`",
+        "Это пользовательский type guard: если функция вернула `true`, в этой ветке `pet` сужается до `Fish`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Type predicate сообщает компилятору, как сужать тип в `if (isFish(p))`. Корректность самой проверки остаётся на разработчике — компилятор ей доверяет."
+    },
+    {
+      "id": "js-ts-015",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой тип у `C['x']`?",
+      "code": "type A = { x: string };\ntype B = { x: number };\ntype C = A & B;",
+      "options": [
+        "`string | number`",
+        "`string`",
+        "Ошибка компиляции в строке `type C`",
+        "`never`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Пересечение требует, чтобы значение было одновременно `string` и `number`, а таких значений нет. Объявление допустимо, но создать объект типа `C` невозможно."
+    },
+    {
+      "id": "js-ts-016",
+      "topic": "ts",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем `enum Color { Red, Green }` отличается от `type Color = 'red' | 'green'`?",
+      "options": [
+        "Ничем — оба полностью стираются",
+        "`enum` генерирует JS-объект в рантайме, а union литералов полностью стирается при компиляции",
+        "Union нельзя использовать в `switch`",
+        "`enum` проверяется во время выполнения, а union — нет"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`enum` — одна из немногих конструкций TS с рантайм-кодом; поэтому его не поддерживает, например, удаление типов в Node.js без флагов. Union строк проще, легче и лучше сочетается с `as const`."
+    },
+    {
+      "id": "js-ts-017",
+      "topic": "ts",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "В какой строке будет ошибка компиляции?",
+      "code": "interface Opts { a: number }\nconst o1: Opts = { a: 1, b: 2 };   // строка 1\nconst tmp = { a: 1, b: 2 };\nconst o2: Opts = tmp;              // строка 2",
+      "options": [
+        "Только в строке 2",
+        "В обеих строках",
+        "Только в строке 1",
+        "Ни в одной — структурная типизация допускает лишние свойства"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Для «свежего» объектного литерала TypeScript проверяет лишние свойства (excess property check) — это ловит опечатки. Переменная `tmp` уже не свежая, и для неё работает обычная структурная совместимость."
+    },
+    {
+      "id": "js-ts-018",
+      "topic": "ts",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие проверки включает `\"strict\": true` в tsconfig?",
+      "options": [
+        "`strictNullChecks`",
+        "`noImplicitAny`",
+        "`strictFunctionTypes`",
+        "`noUnusedLocals`"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "`strict` — набор флагов: `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitThis`, `useUnknownInCatchVariables`, `alwaysStrict`. Проверки неиспользуемого кода включаются отдельно."
+    },
+    {
+      "id": "js-ts-019",
+      "topic": "ts",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какой тип получит `R`?",
+      "code": "type ToArray<T> = T extends any ? T[] : never;\ntype R = ToArray<string | number>;",
+      "options": [
+        "`string[] | number[]`",
+        "`(string | number)[]`",
+        "`never`",
+        "`string[] & number[]`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Условный тип над «голым» параметром дистрибутивен: применяется к каждому члену union отдельно. Чтобы получить `(string | number)[]`, параметр оборачивают: `[T] extends [any]`."
+    },
+    {
+      "id": "js-ts-020",
+      "topic": "ts",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A {\n  private secret = 1;\n  #real = 2;\n}\nconst a = new A() as any;\nconsole.log(a.secret, a.real);",
+      "options": [
+        "undefined undefined",
+        "1 2",
+        "1 undefined",
+        "Ошибка во время выполнения"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Модификатор `private` существует только на этапе компиляции: в рантайме `secret` — обычное свойство. `#real` — настоящее приватное поле JS, оно недоступно извне и не является свойством `real`."
+    },
+    {
+      "id": "js-node-001",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как Node.js определяет, что файл `.js` — ES-модуль?",
+      "options": [
+        "По наличию `import` в первой строке файла",
+        "Все `.js` файлы в Node.js — ES-модули",
+        "По полю `\"type\": \"module\"` в ближайшем `package.json`",
+        "По флагу `--esm`, без которого ESM недоступен"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`.mjs` — всегда ESM, `.cjs` — всегда CommonJS, а `.js` трактуется по полю `type` ближайшего `package.json` (по умолчанию CommonJS). Новые версии Node умеют распознавать ESM-синтаксис и без поля, но явное указание надёжнее."
+    },
+    {
+      "id": "js-node-002",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Куда в `package.json` следует добавить jest и eslint?",
+      "options": [
+        "В `devDependencies`",
+        "В `dependencies`",
+        "В `peerDependencies`",
+        "В `bundledDependencies`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`devDependencies` нужны только для разработки, тестов и сборки и не ставятся при `npm install --omit=dev` в продакшене. `dependencies` — то, что требуется коду во время работы."
+    },
+    {
+      "id": "js-node-003",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие версии разрешает диапазон `\"^1.2.3\"`?",
+      "options": [
+        "`>=1.2.3 <1.3.0`",
+        "Только `1.2.3`",
+        "Любую версию `>=1.2.3`",
+        "`>=1.2.3 <2.0.0`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`^` разрешает minor и patch-обновления в рамках той же major-версии. `~1.2.3` — только patch: `>=1.2.3 <1.3.0`. Для `0.x` каретка строже: `^0.2.3` — это `<0.3.0`."
+    },
+    {
+      "id": "js-node-004",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем нужен `package-lock.json`?",
+      "options": [
+        "Запрещает обновлять `package.json`",
+        "Фиксирует точные версии всего дерева зависимостей для воспроизводимой установки",
+        "Хранит кэш скачанных пакетов",
+        "Нужен только для публикации пакета в npm"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Lock-файл коммитят в репозиторий. `npm ci` ставит строго по нему (и падает при расхождении с `package.json`), поэтому его используют в CI."
+    },
+    {
+      "id": "js-node-005",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код в Node.js?",
+      "code": "Promise.resolve().then(() => console.log('promise'));\nprocess.nextTick(() => console.log('tick'));\nconsole.log('sync');",
+      "options": [
+        "sync, promise, tick",
+        "sync, tick, promise",
+        "tick, sync, promise",
+        "promise, tick, sync"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "После синхронного кода Node сначала опустошает очередь `process.nextTick`, затем очередь микрозадач промисов. Поэтому `nextTick` выполняется раньше `then`, хотя был запланирован позже."
+    },
+    {
+      "id": "js-node-006",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Клик по кнопке. В каком порядке сработают обработчики?",
+      "code": "<div id=\"box\"><button id=\"btn\">OK</button></div>\n\nbox.addEventListener('click', () => console.log('div'));\nbtn.addEventListener('click', () => console.log('button'));",
+      "options": [
+        "div, button",
+        "Только button",
+        "Только div",
+        "button, div"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "По умолчанию обработчики срабатывают на фазе всплытия (bubbling): сначала на целевом элементе, затем на родителях вверх по дереву. Остановить всплытие можно через `event.stopPropagation()`."
+    },
+    {
+      "id": "js-node-007",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про `localStorage`?",
+      "options": [
+        "Данные не отправляются на сервер автоматически",
+        "Хранит только строки — объекты нужно сериализовать",
+        "Записи удаляются по истечении срока, как cookie с `Expires`",
+        "Защищён от XSS, поэтому подходит для хранения токенов"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "`localStorage` — синхронное хранилище строк (около 5 МБ на origin) без срока жизни. Он доступен любому скрипту на странице, поэтому при XSS токен будет украден; для сессий надёжнее cookie с `HttpOnly`, `Secure`, `SameSite`."
+    },
+    {
+      "id": "js-node-008",
+      "topic": "node",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Где можно использовать `await` на верхнем уровне файла (вне функции)?",
+      "options": [
+        "Только в ES-модулях",
+        "Только в CommonJS-модулях",
+        "Везде, начиная с Node.js 12",
+        "Нигде — `await` допустим только внутри `async`-функций"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Top-level await поддерживается в ESM: загрузка модуля (и всех, кто его импортирует) ждёт промис. В CommonJS `require` синхронный, поэтому там это `SyntaxError`."
+    },
+    {
+      "id": "js-node-009",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код в Node.js?",
+      "code": "const fs = require('fs');\nfs.readFile(__filename, () => {\n  setTimeout(() => console.log('timeout'), 0);\n  setImmediate(() => console.log('immediate'));\n});",
+      "options": [
+        "timeout, immediate",
+        "Порядок недетерминирован",
+        "immediate, timeout",
+        "Только immediate"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Колбэк `readFile` выполняется в фазе poll. Следующая фаза цикла — check (`setImmediate`), и только на новой итерации — timers. Внутри I/O-колбэка порядок всегда такой."
+    },
+    {
+      "id": "js-node-010",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему рекурсивный `process.nextTick` опасен?",
+      "code": "function loop() { process.nextTick(loop); }\nloop();",
+      "options": [
+        "Очередь `nextTick` опустошается целиком до перехода к следующей фазе, поэтому event loop никогда не дойдёт до I/O и таймеров",
+        "Он переполнит стек вызовов и упадёт с `RangeError`",
+        "Node.js ограничит рекурсию 1000 вызовами",
+        "Ничем — `nextTick` выполняется в отдельном потоке"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Стек не растёт — каждый вызов идёт из очереди, но новые задачи добавляются быстрее, чем очередь пустеет, и I/O «голодает» (starvation). Для отложенной работы, уступающей I/O, используют `setImmediate`."
+    },
+    {
+      "id": "js-node-011",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про ES-модули по сравнению с CommonJS?",
+      "options": [
+        "`import` статичен: зависимости известны до выполнения кода",
+        "Импорты — живые привязки (live bindings) к экспортам",
+        "`require` загружает модуль синхронно",
+        "В ES-модуле доступны `__dirname` и `__filename`"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Статическая структура ESM позволяет анализ и tree shaking, а импортированное имя видит актуальное значение экспорта. В CJS `require` — обычная синхронная функция, возвращающая копию `module.exports`. В ESM вместо `__dirname` используют `import.meta.dirname` или `import.meta.url`."
+    },
+    {
+      "id": "js-node-012",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "`writable.write(chunk)` вернул `false`. Как правильно поступить?",
+      "options": [
+        "Повторить `write` с тем же чанком — данные потерялись",
+        "Вызвать `writable.end()` — поток переполнен и закрыт",
+        "Прекратить запись и продолжить после события `'drain'`",
+        "Игнорировать — Node.js сам притормозит источник"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`false` — сигнал backpressure: внутренний буфер превысил `highWaterMark`. Если писать дальше, память будет расти. Проще всего использовать `stream.pipeline()` или `pipe`, которые обрабатывают backpressure автоматически."
+    },
+    {
+      "id": "js-node-013",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про `worker_threads` и `cluster`?",
+      "options": [
+        "Воркеры могут разделять память через `SharedArrayBuffer`",
+        "`cluster` запускает отдельные процессы, которые принимают соединения на одном порту",
+        "У каждого воркера свой event loop и свой экземпляр V8 (isolate)",
+        "`worker_threads` ускоряют I/O-нагрузку вроде запросов к БД"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "`worker_threads` нужны для CPU-задач (сжатие, парсинг, криптография), чтобы не блокировать основной поток. I/O и так неблокирующий. `cluster` масштабирует сервер на все ядра через несколько процессов."
+    },
+    {
+      "id": "js-node-014",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Список из 1000 `<li>` с динамически добавляемыми элементами. Как эффективнее обрабатывать клики?",
+      "code": "list.addEventListener('click', (e) => {\n  const li = e.target.closest('li');\n  if (li) select(li.dataset.id);\n});",
+      "options": [
+        "Повесить обработчик на каждый `<li>` при создании",
+        "Как в примере: один обработчик на родителе и `event.target` (делегирование событий)",
+        "Использовать фазу перехвата на `document` и `stopPropagation`",
+        "Опрашивать список через `setInterval`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Делегирование использует всплытие: один обработчик на контейнере обслуживает все текущие и будущие элементы и экономит память. `closest` нужен, потому что клик может прийтись на вложенный в `li` элемент."
+    },
+    {
+      "id": "js-node-015",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что правильно делать в обработчике `process.on('uncaughtException')`?",
+      "options": [
+        "Залогировать и продолжить работу как ни в чём не бывало",
+        "Ничего — Node.js сам восстановит состояние",
+        "Перезапустить `server.listen()` в том же процессе",
+        "Залогировать ошибку, корректно завершить работу и выйти — процесс перезапустит супервизор"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "После необработанного исключения состояние процесса неопределено (незакрытые ресурсы, частично выполненные операции). Безопасный путь — fail fast: лог, graceful shutdown, `process.exit(1)` и рестарт через systemd, PM2 или Kubernetes."
+    },
+    {
+      "id": "js-node-016",
+      "topic": "node",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код в CommonJS-модуле?",
+      "code": "console.log(this === module.exports, typeof require, typeof __dirname);",
+      "options": [
+        "false function string",
+        "true undefined undefined",
+        "false object string",
+        "true function string"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "CommonJS-модуль оборачивается в функцию `(exports, require, module, __filename, __dirname)` и вызывается с `this = module.exports`. В ES-модуле `this` на верхнем уровне — `undefined`, а `require` и `__dirname` отсутствуют."
+    },
+    {
+      "id": "js-node-017",
+      "topic": "node",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код в Node.js (запуск как главный модуль)?",
+      "code": "setTimeout(() => console.log('timeout'));\nsetImmediate(() => console.log('immediate'));\nprocess.nextTick(() => console.log('tick'));\nPromise.resolve().then(() => console.log('micro'));",
+      "options": [
+        "tick, micro, timeout, immediate — всегда",
+        "tick, micro, затем timeout и immediate в недетерминированном порядке",
+        "micro, tick, immediate, timeout",
+        "timeout, immediate, tick, micro"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`nextTick` и микрозадачи выполняются сразу после основного кода. Порядок `setTimeout(0)` и `setImmediate` в главном модуле зависит от того, успел ли истечь 1 мс таймера к началу цикла, — он недетерминирован (в отличие от I/O-колбэка)."
+    },
+    {
+      "id": "js-node-018",
+      "topic": "node",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код в Node.js?",
+      "code": "Promise.resolve()\n  .then(() => {\n    console.log('p1');\n    process.nextTick(() => console.log('tick'));\n  })\n  .then(() => console.log('p2'));",
+      "options": [
+        "p1, tick, p2",
+        "tick, p1, p2",
+        "p1, p2, tick",
+        "p1, p2"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`nextTick`, запланированный из микрозадачи, выполнится только после того, как очередь микрозадач опустеет: Node проверяет очередь `nextTick` между этапами, а не между отдельными промис-колбэками."
+    },
+    {
+      "id": "js-node-019",
+      "topic": "node",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Почему tree shaking в бандлерах (Rollup, webpack, esbuild) работает с ES-модулями, но плохо с CommonJS?",
+      "options": [
+        "`import`/`export` статичны и анализируются без выполнения кода, а `require` и `module.exports` могут быть динамическими",
+        "CommonJS-модули минифицируются отдельно и не попадают в бандл",
+        "Tree shaking — функция Node.js, недоступная в CommonJS",
+        "ES-модули всегда меньше по размеру"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Бандлер строит граф по статическим импортам и выбрасывает неиспользуемые экспорты. Дополнительно помогает `\"sideEffects\": false` в `package.json`: он разрешает удалять целые модули без побочных эффектов."
+    },
+    {
+      "id": "js-node-020",
+      "topic": "node",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Клик по кнопке. Что выведется?",
+      "code": "<div id=\"box\"><button id=\"btn\">OK</button></div>\n\nbox.addEventListener('click', () => console.log('div capture'), true);\nbox.addEventListener('click', () => console.log('div bubble'));\nbtn.addEventListener('click', () => console.log('btn'));",
+      "options": [
+        "btn, div capture, div bubble",
+        "div capture, div bubble, btn",
+        "div capture, btn, div bubble",
+        "btn, div bubble, div capture"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Событие проходит три фазы: перехват (capturing) от `window` вниз к цели, целевую фазу и всплытие (bubbling) обратно. Обработчик с `capture: true` на родителе срабатывает раньше обработчика цели."
+    }
+  ]
+}

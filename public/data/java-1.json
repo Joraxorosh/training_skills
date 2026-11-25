@@ -1,0 +1,2135 @@
+{
+  "topics": [
+    {
+      "id": "basics",
+      "title": "Основы языка"
+    },
+    {
+      "id": "oop",
+      "title": "ООП"
+    },
+    {
+      "id": "collections",
+      "title": "Коллекции"
+    },
+    {
+      "id": "streams",
+      "title": "Generics, лямбды и Stream API"
+    },
+    {
+      "id": "concurrency",
+      "title": "Многопоточность"
+    },
+    {
+      "id": "jvm",
+      "title": "JVM, память и экосистема"
+    }
+  ],
+  "questions": [
+    {
+      "id": "java-basics-001",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Integer a = 127, b = 127;\nInteger c = 128, d = 128;\nSystem.out.println((a == b) + \" \" + (c == d));",
+      "options": [
+        "false false",
+        "true true",
+        "true false",
+        "false true"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Автоупаковка вызывает `Integer.valueOf()`, который кэширует значения от -128 до 127: `a` и `b` — один и тот же объект. 128 вне кэша, поэтому `c` и `d` — разные объекты, а `==` сравнивает ссылки. Обёртки сравнивают через `equals()`."
+    },
+    {
+      "id": "java-basics-002",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "String s1 = \"java\";\nString s2 = \"java\";\nString s3 = new String(\"java\");\nSystem.out.println((s1 == s2) + \" \" + (s1 == s3) + \" \" + s1.equals(s3));",
+      "options": [
+        "true false true",
+        "true true true",
+        "false false true",
+        "true false false"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Строковые литералы попадают в string pool, поэтому `s1` и `s2` ссылаются на один объект. `new String(...)` всегда создаёт новый объект в куче, и `==` даёт `false`, а `equals()` сравнивает содержимое."
+    },
+    {
+      "id": "java-basics-003",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что верно про text block (`\"\"\"...\"\"\"`, Java 15+)?",
+      "options": [
+        "Внутри text block не работают escape-последовательности",
+        "Это отдельный тип `TextBlock`, который нужно преобразовать в `String`",
+        "Все пробелы отступа сохраняются ровно так, как написаны в исходнике",
+        "Это обычный литерал `String`; общий отступ слева компилятор удаляет"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Text block — просто удобная запись многострочного `String`. Компилятор убирает общий (incidental) отступ, нормализует переводы строк; escape-последовательности работают, плюс добавлены `\\` в конце строки и `\\s`."
+    },
+    {
+      "id": "java-basics-004",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чему равно `Integer.MAX_VALUE + 1` в Java?",
+      "options": [
+        "Выбрасывается `ArithmeticException`",
+        "`Integer.MIN_VALUE` (-2147483648)",
+        "2147483648 — результат автоматически станет `long`",
+        "`Integer.MAX_VALUE` — значение насыщается"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Целочисленная арифметика в Java молча переполняется по модулю 2³²: после максимума идёт минимум. Для проверки переполнения есть `Math.addExact()`, которая бросает `ArithmeticException`."
+    },
+    {
+      "id": "java-basics-005",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что напечатают `System.out.println(c + 1)` и `System.out.println((char) (c + 1))`, если `char c = 'A'`?",
+      "options": [
+        "B, затем B",
+        "66, затем B",
+        "A1, затем B",
+        "66, затем 66"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`char` — числовой тип (код UTF-16). В выражении `c + 1` он расширяется до `int`, получается 66. Явное приведение к `char` превращает 66 обратно в символ `B`."
+    },
+    {
+      "id": "java-basics-006",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как передаются аргументы в методы Java?",
+      "options": [
+        "Зависит от модификатора `final` у параметра: без него — по ссылке",
+        "Примитивы по значению, объекты по ссылке (сама переменная вызывающего)",
+        "Всегда по ссылке, поэтому метод может подменить переменную вызывающего",
+        "Всегда по значению; для объектов копируется значение ссылки"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Java передаёт всё по значению. Для объекта копия ссылки указывает на тот же объект, поэтому метод может изменить его состояние, но присваивание параметру нового объекта не видно вызывающему коду."
+    },
+    {
+      "id": "java-basics-007",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт с кодом `final List<String> list = new ArrayList<>(); list.add(\"a\");`?",
+      "options": [
+        "Код скомпилируется, элемент будет добавлен",
+        "Ошибка компиляции: нельзя менять `final`-переменную",
+        "`UnsupportedOperationException` при вызове `add`",
+        "Список станет неизменяемым после первого добавления"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`final` запрещает переприсвоить переменную (`list = ...`), но не делает объект неизменяемым. Неизменяемый список дают `List.of()` или `Collections.unmodifiableList()`."
+    },
+    {
+      "id": "java-basics-008",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие из типов являются примитивными?",
+      "options": [
+        "`int`",
+        "`String`",
+        "`Integer`",
+        "`boolean`"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "Примитивов восемь: `byte`, `short`, `int`, `long`, `float`, `double`, `char`, `boolean`. `String` и `Integer` — ссылочные типы (классы), `Integer` — обёртка над `int`."
+    },
+    {
+      "id": "java-basics-009",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "static void change(StringBuilder sb) {\n    sb.append(\" world\");\n    sb = new StringBuilder(\"new\");\n    sb.append(\"!\");\n}\n\npublic static void main(String[] args) {\n    StringBuilder sb = new StringBuilder(\"hello\");\n    change(sb);\n    System.out.println(sb);\n}",
+      "options": [
+        "hello",
+        "new!",
+        "hello world",
+        "hello world!"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Метод получает копию ссылки: `append` меняет исходный объект. После `sb = new StringBuilder(...)` локальный параметр указывает на другой объект, и изменения его уже не касаются исходного."
+    },
+    {
+      "id": "java-basics-010",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чему будет равна `s` после выполнения `String s = \"abc\"; s.toUpperCase(); s.concat(\"def\");`?",
+      "options": [
+        "`\"abcdef\"`",
+        "`\"ABCdef\"`",
+        "`\"ABC\"`",
+        "`\"abc\"`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`String` неизменяем: `toUpperCase()` и `concat()` возвращают новые строки, а результат здесь отбрасывается. Нужно присваивать: `s = s.toUpperCase();`."
+    },
+    {
+      "id": "java-basics-011",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "int day = 3;\nString type = switch (day) {\n    case 1, 7 -> \"weekend\";\n    case 2, 3, 4, 5, 6 -> {\n        String t = \"work\";\n        yield t + \"day\";\n    }\n    default -> \"unknown\";\n};\nSystem.out.println(type);",
+      "options": [
+        "work",
+        "workday",
+        "weekend",
+        "Ошибка компиляции: в switch-выражении нельзя использовать блок"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "В switch-выражении (Java 14+) стрелочные ветки не проваливаются, а из блока значение возвращается через `yield`. Для `day = 3` выполняется вторая ветка."
+    },
+    {
+      "id": "java-basics-012",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "int x = 2;\nswitch (x) {\n    case 1: System.out.print(\"one \");\n    case 2: System.out.print(\"two \");\n    case 3: System.out.print(\"three \");\n    default: System.out.print(\"other\");\n}",
+      "options": [
+        "two other",
+        "two",
+        "two three other",
+        "one two three other"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "В классическом `switch` с двоеточиями без `break` выполнение «проваливается» во все следующие ветки, включая `default`. Стрелочный синтаксис `case 2 ->` этой проблемы не имеет."
+    },
+    {
+      "id": "java-basics-013",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про `var` (Java 10+)?",
+      "options": [
+        "Тип выводится при компиляции, переменная остаётся статически типизированной",
+        "`var` можно объявлять поля класса",
+        "`var x = null;` компилируется, тип будет `Object`",
+        "`var` можно использовать для локальных переменных с инициализатором и в цикле `for`"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "`var` — вывод типа только для локальных переменных (и переменных цикла, параметров лямбд). Нужен инициализатор, из которого понятен тип: `null` не подходит. Для полей, параметров методов и возвращаемых типов `var` запрещён."
+    },
+    {
+      "id": "java-basics-014",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему конкатенация строк через `+=` в длинном цикле считается плохой практикой?",
+      "options": [
+        "Каждая итерация создаёт новый `String` и копирует накопленное содержимое — в сумме O(n²)",
+        "Оператор `+=` для строк не потокобезопасен, и в цикле возможна гонка данных",
+        "Компилятор запрещает `+=` для `String` внутри циклов и требует `StringBuilder`",
+        "Строки в цикле не попадают в string pool, и возникает утечка памяти"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`String` неизменяем, и каждая конкатенация строит новую строку. `StringBuilder` дописывает в изменяемый буфер с амортизированным O(1) на операцию. `StringBuffer` — синхронизированный аналог, нужен редко."
+    },
+    {
+      "id": "java-basics-015",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про `static`?",
+      "options": [
+        "Из `static`-метода можно напрямую обращаться к полям экземпляра через `this`",
+        "`static`-поле существует в одном экземпляре на класс и общее для всех объектов",
+        "`static`-метод нельзя переопределить — в подклассе его можно только скрыть (hiding)",
+        "Каждый объект хранит собственную копию `static`-поля"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "`static`-члены принадлежат классу, а не объекту, поэтому в `static`-методе нет `this`. Метод с той же сигнатурой в подклассе скрывает родительский, и выбор делается по типу ссылки на этапе компиляции."
+    },
+    {
+      "id": "java-basics-016",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении `System.out.println(1.0 / 0); System.out.println(0.0 / 0); System.out.println(1 / 0);`?",
+      "options": [
+        "Напечатаются `Infinity`, `NaN`, `Infinity`",
+        "Сразу `ArithmeticException` на первой строке",
+        "Напечатаются `Infinity` и `NaN`, затем `ArithmeticException`",
+        "Напечатаются `Infinity`, `0`, затем `ArithmeticException`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Арифметика с плавающей точкой следует IEEE 754: деление на ноль даёт бесконечность, `0.0 / 0` — `NaN`. Целочисленное деление на ноль бросает `ArithmeticException`."
+    },
+    {
+      "id": "java-basics-017",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Long a = 10L;\nSystem.out.println(a.equals(10));\nSystem.out.println(a == 10);",
+      "options": [
+        "false, затем true",
+        "true, затем true",
+        "false, затем false",
+        "true, затем false"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Литерал `10` в `equals(Object)` упаковывается в `Integer`, а `Long.equals` возвращает `true` только для `Long`. В `a == 10` один операнд примитивный, поэтому `a` распаковывается и сравниваются числа."
+    },
+    {
+      "id": "java-basics-018",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Integer a = 1000, b = 1000;\nSystem.out.println(a <= b && a >= b && a != b);",
+      "options": [
+        "NullPointerException",
+        "false",
+        "Ошибка компиляции",
+        "true"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`<=` и `>=` распаковывают обёртки и сравнивают числа (оба `true`). `!=` для двух ссылок сравнивает идентичность, а 1000 вне кэша `Integer`, так что это разные объекты."
+    },
+    {
+      "id": "java-basics-019",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт при компиляции кода?",
+      "code": "short s = 10;\ns += 5;      // строка A\ns = s + 5;   // строка B",
+      "options": [
+        "Обе строки компилируются",
+        "Строка A компилируется, строка B — ошибка компиляции",
+        "Строка A — ошибка компиляции, строка B компилируется",
+        "Обе строки — ошибки компиляции"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`s + 5` имеет тип `int`, и присвоить его `short` без явного приведения нельзя. Составное присваивание `s += 5` по спецификации равно `s = (short) (s + 5)` и содержит неявное сужающее приведение."
+    },
+    {
+      "id": "java-basics-020",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "String a = \"hello\";\nfinal String b = \"hel\";\nString c = \"hel\";\nSystem.out.println((a == b + \"lo\") + \" \" + (a == c + \"lo\"));",
+      "options": [
+        "true true",
+        "true false",
+        "false false",
+        "false true"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`b` — `final`-переменная с константой, поэтому `b + \"lo\"` вычисляется при компиляции и берётся из string pool. `c` не константа: конкатенация происходит в рантайме и создаёт новый объект. `(c + \"lo\").intern()` вернул бы объект из пула."
+    },
+    {
+      "id": "java-oop-001",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Есть `class Animal { String sound() { return \"...\"; } }` и `class Dog extends Animal`, который переопределяет `sound()` и возвращает `\"Woof\"`. Что вернёт `a.sound()` для `Animal a = new Dog();`?",
+      "options": [
+        "Зависит от порядка объявления классов",
+        "`\"...\"`",
+        "Ошибка компиляции: у `Animal` нет такого объекта",
+        "`\"Woof\"`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Это полиморфизм: переопределённый метод выбирается в рантайме по реальному типу объекта (динамическое связывание), а не по типу переменной."
+    },
+    {
+      "id": "java-oop-002",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем перегрузка (overloading) отличается от переопределения (overriding)?",
+      "options": [
+        "Перегрузка — то же имя с другими параметрами, выбор при компиляции; переопределение — та же сигнатура в подклассе, выбор в рантайме",
+        "Перегрузка — та же сигнатура в подклассе, выбор в рантайме; переопределение — разные параметры в одном классе, выбор при компиляции",
+        "Это синонимы: оба термина означают объявление метода с тем же именем",
+        "Перегрузка возможна только для конструкторов, а переопределение — только для статических методов"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Перегруженный метод выбирается компилятором по статическим типам аргументов. Переопределённый — виртуальной машиной по реальному типу объекта. `@Override` просит компилятор проверить, что метод действительно переопределяет родительский."
+    },
+    {
+      "id": "java-oop-003",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой уровень доступа означает «видно только внутри своего пакета»?",
+      "options": [
+        "`protected`",
+        "`private`",
+        "Без модификатора (package-private)",
+        "`public`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Без модификатора член виден только в пакете. `protected` шире: пакет плюс подклассы в других пакетах. `private` — только внутри класса."
+    },
+    {
+      "id": "java-oop-004",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про абстрактные классы и интерфейсы (Java 8+)?",
+      "options": [
+        "В интерфейсе могут быть нестатические поля экземпляра",
+        "Класс может реализовать несколько интерфейсов, но наследовать только один класс",
+        "Абстрактный класс не может иметь конструктор",
+        "В интерфейсе могут быть `default`- и `static`-методы с реализацией"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Поля интерфейса всегда `public static final`. Абстрактный класс может иметь состояние и конструкторы, их вызывают подклассы через `super(...)`. Интерфейс описывает контракт, абстрактный класс — общую реализацию."
+    },
+    {
+      "id": "java-oop-005",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Если `a.equals(b)` возвращает `true`, что обязано выполняться по контракту?",
+      "options": [
+        "`a.toString().equals(b.toString())`",
+        "`a == b`",
+        "`a.hashCode() != b.hashCode()`",
+        "`a.hashCode() == b.hashCode()`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Равные объекты обязаны иметь одинаковый хеш, иначе `HashMap` и `HashSet` разложат их по разным бакетам. Обратное не требуется: одинаковые хеши (коллизии) у неравных объектов допустимы."
+    },
+    {
+      "id": "java-oop-006",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что напечатает `System.out.println(p)` для объекта класса `Point`, в котором не переопределён `toString()`?",
+      "options": [
+        "Значения всех полей в формате `Point{x=1, y=2}`",
+        "Строку вида `Point@1b6d3586` (имя класса и хеш в hex)",
+        "Пустую строку, так как `toString()` не задан",
+        "`null`, потому что метод не переопределён"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`Object.toString()` возвращает `getClass().getName() + \"@\" + Integer.toHexString(hashCode())`. Для читаемого вывода `toString()` переопределяют; у `record` он генерируется автоматически."
+    },
+    {
+      "id": "java-oop-007",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что компилятор генерирует для `record Point(int x, int y) {}`?",
+      "options": [
+        "Конструктор без параметров, изменяемые поля `x` и `y` и методы `equals`, `hashCode`, `toString`",
+        "Геттеры `getX()`/`getY()`, сеттеры `setX()`/`setY()` и публичный конструктор со всеми полями класса",
+        "`private final` поля, канонический конструктор, методы `x()` и `y()`, `equals`, `hashCode`, `toString`",
+        "Только `equals` и `hashCode`, а конструктор и методы доступа нужно писать вручную"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Record — неизменяемый носитель данных. Аксессоры называются как компоненты (`x()`, а не `getX()`), сеттеров нет. Record неявно `final` и не может наследовать другой класс, но может реализовывать интерфейсы."
+    },
+    {
+      "id": "java-oop-008",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A { A() { System.out.print(\"A\"); } }\nclass B extends A { B() { System.out.print(\"B\"); } }\nclass C extends B { C() { System.out.print(\"C\"); } }\n\n// в main:\nnew C();",
+      "options": [
+        "ABC",
+        "CBA",
+        "C",
+        "CAB"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Первая инструкция любого конструктора — вызов `super(...)`, явный или неявный. Поэтому сначала полностью отрабатывает конструктор `A`, затем `B`, затем `C`."
+    },
+    {
+      "id": "java-oop-009",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class Parent {\n    static String who() { return \"Parent\"; }\n    String name() { return \"Parent\"; }\n}\nclass Child extends Parent {\n    static String who() { return \"Child\"; }\n    @Override String name() { return \"Child\"; }\n}\n\n// в main:\nParent p = new Child();\nSystem.out.println(p.who() + \" \" + p.name());",
+      "options": [
+        "Parent Parent",
+        "Child Child",
+        "Parent Child",
+        "Child Parent"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Статические методы не переопределяются, а скрываются и связываются статически, по типу ссылки (`Parent`). Обычный метод `name()` связывается динамически по реальному объекту (`Child`)."
+    },
+    {
+      "id": "java-oop-010",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "static void print(Object o) { System.out.println(\"Object\"); }\nstatic void print(String s) { System.out.println(\"String\"); }\n\n// в main:\nprint(null);",
+      "options": [
+        "String",
+        "Object",
+        "Ошибка компиляции: неоднозначный вызов",
+        "NullPointerException"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`null` подходит под оба параметра, и компилятор выбирает наиболее специфичную перегрузку: `String` — подтип `Object`. Если добавить `print(Integer)`, вызов станет неоднозначным и не скомпилируется."
+    },
+    {
+      "id": "java-oop-011",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "static String f(Object o) { return \"Object\"; }\nstatic String f(String s) { return \"String\"; }\n\n// в main:\nObject o = \"hello\";\nSystem.out.println(f(o));",
+      "options": [
+        "ClassCastException",
+        "String",
+        "Ошибка компиляции",
+        "Object"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Перегрузка выбирается при компиляции по статическому типу аргумента. Переменная объявлена как `Object`, поэтому вызывается `f(Object)`, хотя в рантайме там строка."
+    },
+    {
+      "id": "java-oop-012",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что, скорее всего, выведет код?",
+      "code": "class P {\n    int x;\n    P(int x) { this.x = x; }\n    @Override public boolean equals(Object o) {\n        return o instanceof P p && p.x == x;\n    }\n}\n\n// в main:\nSet<P> set = new HashSet<>();\nset.add(new P(1));\nset.add(new P(1));\nSystem.out.println(set.size());",
+      "options": [
+        "1",
+        "2",
+        "0",
+        "Ошибка компиляции: не переопределён hashCode"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`hashCode()` не переопределён, у двух объектов разные хеши по идентичности, и `HashSet` даже не вызывает `equals`. Это нарушение контракта: переопределяя `equals`, всегда переопределяйте `hashCode`."
+    },
+    {
+      "id": "java-oop-013",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Объявлено `sealed interface Shape permits Circle, Square {}`. Что обязано быть верно для `Circle` и `Square`?",
+      "options": [
+        "Они обязаны быть record-классами",
+        "Каждый из них должен быть `final`, `sealed` или `non-sealed`",
+        "Они могут находиться в любом модуле и пакете без ограничений",
+        "Никто другой не может создавать их экземпляры"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Sealed-тип (Java 17) явно перечисляет допустимых наследников, а каждый наследник явно говорит, продолжается ли иерархия. Благодаря этому компилятор знает все подтипы и проверяет полноту `switch` без `default`."
+    },
+    {
+      "id": "java-oop-014",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что верно про `if (obj instanceof String s && s.length() > 3) { ... }`?",
+      "options": [
+        "Переменная `s` доступна и в `else`-ветке",
+        "Не скомпилируется: в одном выражении нельзя объявить переменную и использовать её",
+        "Если `obj` — не строка, будет `ClassCastException`",
+        "Переменная `s` доступна только там, где проверка гарантированно прошла, в том числе справа от `&&`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Pattern matching для `instanceof` (Java 16) объявляет переменную, видимую там, где проверка точно истинна. Справа от `||` она недоступна, а `obj = null` просто даёт `false`."
+    },
+    {
+      "id": "java-oop-015",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что нужно, чтобы класс был неизменяемым?",
+      "options": [
+        "Все методы должны быть `synchronized`",
+        "Поля `private final`, сеттеров нет",
+        "Обязателен конструктор без параметров",
+        "Защитные копии изменяемых объектов (например, `List`) в конструкторе и при выдаче наружу"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Также класс делают `final` (или закрывают конструктор), чтобы подкласс не добавил изменяемость. Неизменяемые объекты потокобезопасны без синхронизации и надёжны в роли ключей `HashMap`."
+    },
+    {
+      "id": "java-oop-016",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "`Square extends Rectangle`, и `setWidth()` в `Square` меняет ещё и высоту. Код, который работает с `Rectangle`, ломается при передаче `Square`. Какой принцип SOLID нарушен?",
+      "options": [
+        "Liskov Substitution (LSP)",
+        "Single Responsibility (SRP)",
+        "Interface Segregation (ISP)",
+        "Dependency Inversion (DIP)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "LSP требует, чтобы подтип можно было подставить везде, где ожидается базовый тип, без нарушения его контракта. Квадрат меняет поведение сеттеров прямоугольника, поэтому наследование здесь неудачное."
+    },
+    {
+      "id": "java-oop-017",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "sealed interface Shape permits Circle, Square {}\nrecord Circle(double r) implements Shape {}\nrecord Square(double side) implements Shape {}\n\nstatic String describe(Shape s) {\n    return switch (s) {\n        case Circle c when c.r() > 10 -> \"big circle\";\n        case Circle c -> \"circle\";\n        case Square sq -> \"square \" + sq.side();\n    };\n}\n\n// в main:\nSystem.out.println(describe(new Circle(5)) + \", \" + describe(new Square(2)));",
+      "options": [
+        "circle, square 2",
+        "big circle, square 2",
+        "circle, square 2.0",
+        "Ошибка компиляции: в switch нет default"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Pattern matching for switch (Java 21) проверяет ветки по порядку, `when` добавляет условие. `default` не нужен: `Shape` — sealed, и все подтипы покрыты. `side` имеет тип `double`, поэтому выводится `2.0`."
+    },
+    {
+      "id": "java-oop-018",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class Base {\n    Base() { print(); }\n    void print() { System.out.println(\"Base\"); }\n}\nclass Derived extends Base {\n    private int x = 42;\n    @Override void print() { System.out.println(\"Derived \" + x); }\n}\n\n// в main:\nnew Derived();",
+      "options": [
+        "NullPointerException",
+        "Derived 42",
+        "Base",
+        "Derived 0"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Конструктор `Base` вызывает переопределённый метод, а поля `Derived` инициализируются только после возврата из `super()`. Поэтому `x` ещё имеет значение по умолчанию 0. Вызывать переопределяемые методы из конструктора — плохая практика."
+    },
+    {
+      "id": "java-oop-019",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A {\n    String name = \"A\";\n    String get() { return name; }\n}\nclass B extends A {\n    String name = \"B\";\n    @Override String get() { return name; }\n}\n\n// в main:\nA obj = new B();\nSystem.out.println(obj.name + \" \" + obj.get());",
+      "options": [
+        "B B",
+        "A B",
+        "A A",
+        "B A"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Поля не полиморфны: `obj.name` выбирается по типу ссылки `A`, и в `B` поле лишь скрывает родительское. Метод `get()` переопределён и вызывается по реальному типу `B`."
+    },
+    {
+      "id": "java-oop-020",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Класс реализует интерфейсы `X` и `Y`, в каждом из которых есть `default void hello()`. Что верно?",
+      "options": [
+        "Будет выбран метод интерфейса, указанного первым в `implements`",
+        "Без переопределения `hello()` в классе будет ошибка компиляции",
+        "В переопределении можно вызвать нужную версию через `X.super.hello()`",
+        "Конфликт проявится только в рантайме как `IncompatibleClassChangeError`"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Компилятор не выбирает реализацию сам и требует явного переопределения. Внутри можно делегировать конкретному интерфейсу через `X.super.hello()`. Если бы метод был в суперклассе, приоритет был бы у класса."
+    },
+    {
+      "id": "java-collections-001",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какова сложность `get(i)` у `ArrayList` и `LinkedList`?",
+      "options": [
+        "O(1) у обоих",
+        "O(n) у обоих",
+        "O(1) у `ArrayList`, O(n) у `LinkedList`",
+        "O(log n) у `ArrayList`, O(1) у `LinkedList`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`ArrayList` хранит элементы в массиве и обращается по индексу напрямую. `LinkedList` — двусвязный список, к элементу нужно идти от начала или конца. На практике `ArrayList` почти всегда быстрее, в том числе из-за кэша процессора."
+    },
+    {
+      "id": "java-collections-002",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой load factor у `HashMap` по умолчанию?",
+      "options": [
+        "0.75",
+        "0.5",
+        "1.0",
+        "0.9"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "При начальной ёмкости 16 и load factor 0.75 порог равен 12 элементам. При его превышении таблица удваивается. 0.75 — компромисс между расходом памяти и числом коллизий."
+    },
+    {
+      "id": "java-collections-003",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "List<Integer> list = List.of(1, 2, 3);\nlist.add(4);",
+      "options": [
+        "Ошибка компиляции",
+        "Список станет `[1, 2, 3, 4]`",
+        "`UnsupportedOperationException`",
+        "`IndexOutOfBoundsException`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`List.of()` возвращает неизменяемый список: `add`, `remove` и `set` бросают `UnsupportedOperationException`. Кроме того, `List.of` не допускает `null`-элементов. Изменяемая копия: `new ArrayList<>(List.of(...))`."
+    },
+    {
+      "id": "java-collections-004",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "На чём основана реализация `HashSet`?",
+      "options": [
+        "На `HashMap`: элементы хранятся как ключи с общим фиктивным значением",
+        "На отсортированном массиве с бинарным поиском при добавлении",
+        "На `TreeMap`: элементы хранятся как ключи в красно-чёрном дереве",
+        "На `LinkedList` с проверкой дубликатов перебором"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`HashSet.add(e)` — это `map.put(e, PRESENT) == null`. Поэтому для элементов `HashSet` важны корректные `equals` и `hashCode`, как для ключей `HashMap`."
+    },
+    {
+      "id": "java-collections-005",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой из интерфейсов НЕ наследует `java.util.Collection`?",
+      "options": [
+        "`Queue`",
+        "`List`",
+        "`Set`",
+        "`Map`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`Map` — отдельная иерархия: пары «ключ → значение», а не набор элементов. Из неё можно получить коллекции-представления: `keySet()`, `values()`, `entrySet()`."
+    },
+    {
+      "id": "java-collections-006",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что верно про `TreeMap`?",
+      "options": [
+        "Порядок ключей соответствует порядку вставки, как в `LinkedHashMap`",
+        "Ключи отсортированы (естественный порядок или `Comparator`), операции за O(log n)",
+        "Операции `get` и `put` выполняются за O(1) благодаря хешированию ключей",
+        "Допускает `null`-ключ при естественном порядке и ставит его первым"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`TreeMap` реализован красно-чёрным деревом и упорядочивает ключи через `compareTo` или `Comparator`. Поэтому ключ `null` при естественном порядке даёт `NullPointerException`. Порядок вставки хранит `LinkedHashMap`."
+    },
+    {
+      "id": "java-collections-007",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Map<String, Integer> map = new HashMap<>();\nmap.put(\"a\", 1);\nmap.put(\"a\", 2);\nmap.put(\"b\", 3);\nSystem.out.println(map.size() + \" \" + map.get(\"a\"));",
+      "options": [
+        "3 1",
+        "2 2",
+        "3 2",
+        "2 1"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Ключи в `Map` уникальны: повторный `put` с тем же ключом заменяет значение и возвращает старое (1). В итоге два ключа, у `\"a\"` значение 2."
+    },
+    {
+      "id": "java-collections-008",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие коллекции допускают `null`?",
+      "options": [
+        "`ConcurrentHashMap` — `null` как ключ или значение",
+        "`HashMap` — один `null`-ключ и любые `null`-значения",
+        "`ArrayList` — элементы `null`",
+        "`TreeMap` с естественным порядком — `null`-ключ"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "`ConcurrentHashMap` запрещает `null`, чтобы `get()`, вернувший `null`, однозначно значил «нет ключа». `TreeMap` вызывает `compareTo` на ключе и падает с NPE. `HashMap` и `ArrayList` `null` допускают."
+    },
+    {
+      "id": "java-collections-009",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "List<Integer> list = new ArrayList<>(List.of(1, 2, 3, 4));\nfor (Integer x : list) {\n    if (x == 2) list.remove(x);\n}\nSystem.out.println(list);",
+      "options": [
+        "Выведется `[1, 3, 4]` и предупреждение",
+        "Выведется `[1, 3, 4]`",
+        "Выведется `[1, 2, 4]`",
+        "`ConcurrentModificationException`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "For-each использует итератор. `list.remove(x)` меняет `modCount` в обход итератора, и следующий вызов `next()` бросает CME (fail-fast). Удаляйте через `iterator.remove()` или `list.removeIf(...)`."
+    },
+    {
+      "id": "java-collections-010",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие способы корректно удаляют элементы из `ArrayList` во время обхода?",
+      "options": [
+        "`list.removeIf(x -> x % 2 == 0)`",
+        "`list.remove(x)` внутри for-each",
+        "Обёртка `Collections.synchronizedList(list)` и затем `remove` внутри for-each",
+        "Явный `Iterator` и `it.remove()`"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "`Iterator.remove()` синхронизирует состояние итератора с коллекцией, а `removeIf` делает обход и удаление сам. Синхронизированная обёртка не помогает: CME вызвана не потоками, а изменением коллекции в обход итератора."
+    },
+    {
+      "id": "java-collections-011",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Когда бакет `HashMap` (Java 8+) превращается из списка в красно-чёрное дерево?",
+      "options": [
+        "Когда в бакете 8+ элементов и ёмкость таблицы не меньше 64; иначе таблица расширяется",
+        "Сразу при первой коллизии, чтобы поиск в бакете всегда был O(log n)",
+        "Когда `size()` всей таблицы превышает 64 элемента, независимо от бакетов",
+        "Никогда: бакеты всегда остаются связными списками, деревья есть только в `TreeMap`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`TREEIFY_THRESHOLD = 8`, `MIN_TREEIFY_CAPACITY = 64`. Дерево ограничивает худший случай O(log n) вместо O(n) при массовых коллизиях. При уменьшении до 6 элементов бакет снова становится списком."
+    },
+    {
+      "id": "java-collections-012",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "`new HashMap<>()` с параметрами по умолчанию. Когда произойдёт первое расширение таблицы?",
+      "options": [
+        "При добавлении 13-го элемента; ёмкость станет 24",
+        "При добавлении 17-го элемента; ёмкость станет 32",
+        "При добавлении 13-го элемента; ёмкость станет 32",
+        "При добавлении 9-го элемента; ёмкость станет 64"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Порог = 16 × 0.75 = 12. Когда `size` превышает порог, таблица удваивается, а элементы перераспределяются по новым бакетам. Если размер известен заранее, ёмкость задают в конструкторе, чтобы избежать лишних resize."
+    },
+    {
+      "id": "java-collections-013",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "List<Integer> key = new ArrayList<>(List.of(1));\nMap<List<Integer>, String> map = new HashMap<>();\nmap.put(key, \"v\");\nkey.add(2);\nSystem.out.println(map.get(key) + \" \" + map.size());",
+      "options": [
+        "v 2",
+        "v 1",
+        "null 0",
+        "null 1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Хеш ключа сохранён при `put` и после изменения списка больше не совпадает с новым `hashCode()`, поэтому поиск идёт не туда. Запись осталась в карте, но найти её по ключу уже нельзя. Ключи должны быть неизменяемыми."
+    },
+    {
+      "id": "java-collections-014",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как проще всего сделать LRU-кэш на основе `LinkedHashMap`?",
+      "options": [
+        "Использовать `LinkedHashMap` по умолчанию: она удаляет старые элементы сама",
+        "Создать с `accessOrder = true` и переопределить `removeEldestEntry`",
+        "Вызывать `sort()` после каждого `get`",
+        "Создать с `loadFactor = 0` и ограничить ёмкость"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "С `accessOrder = true` каждый `get`/`put` переносит запись в конец списка. `removeEldestEntry` вызывается после вставки, и, вернув `true` при `size() > capacity`, мы удаляем самую давно использованную запись."
+    },
+    {
+      "id": "java-collections-015",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем `Comparable` отличается от `Comparator`?",
+      "options": [
+        "`Comparator` реализуется самим сравниваемым классом, а `Comparable` передаётся в `sort` как внешняя стратегия",
+        "`Comparable` нужен только для чисел и дат, `Comparator` — для строк и пользовательских классов",
+        "`Comparable.compareTo` задаёт естественный порядок внутри класса; `Comparator.compare(a, b)` — внешняя стратегия сравнения",
+        "Разницы нет: это два имени одного интерфейса, оставленные ради обратной совместимости"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Класс реализует `Comparable` один раз (как `String` или `Integer`), а `Comparator` можно передать любой: `Comparator.comparing(User::age).thenComparing(User::name)`. Порядок лучше делать согласованным с `equals`."
+    },
+    {
+      "id": "java-collections-016",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какая из пар оценок сложности верна?",
+      "options": [
+        "`HashMap.get` — O(1) в среднем; `TreeMap.get` — O(log n)",
+        "`ArrayList.add(0, x)` — O(1); `ArrayList.get(i)` — O(n)",
+        "`LinkedList.get(i)` — O(1); `HashSet.contains` — O(n)",
+        "`TreeSet.add` — O(1); `ArrayDeque.addFirst` — O(n)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Вставка в начало `ArrayList` сдвигает все элементы (O(n)), `get(i)` у него O(1). `HashSet.contains` — O(1) в среднем, `TreeSet.add` — O(log n), `ArrayDeque.addFirst` — амортизированное O(1)."
+    },
+    {
+      "id": "java-collections-017",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Set<String> set = new TreeSet<>(Comparator.comparing(String::length));\nset.add(\"cat\");\nset.add(\"dog\");\nset.add(\"horse\");\nSystem.out.println(set);",
+      "options": [
+        "[dog, horse]",
+        "[cat, dog, horse]",
+        "[cat, horse]",
+        "[horse, cat, dog]"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`TreeSet` считает элементы равными, если компаратор вернул 0, и `equals` не вызывает. У `\"dog\"` та же длина, что у `\"cat\"`, поэтому он считается дубликатом и не добавляется. Добавьте `.thenComparing(Comparator.naturalOrder())`."
+    },
+    {
+      "id": "java-collections-018",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно про `ConcurrentHashMap`?",
+      "options": [
+        "Не допускает `null` ни в ключах, ни в значениях",
+        "Каждая запись блокирует всю таблицу целиком",
+        "Итераторы weakly consistent и не бросают `ConcurrentModificationException`",
+        "`get()` захватывает блокировку бакета"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "С Java 8 запись делается через CAS в пустой бакет или `synchronized` на первом узле бакета, чтение обходится без блокировок. Итераторы видят состояние на какой-то момент и не падают при параллельных изменениях."
+    },
+    {
+      "id": "java-collections-019",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "String[] arr = {\"a\", \"b\", \"c\"};\nList<String> list = Arrays.asList(arr);\narr[0] = \"z\";\nlist.set(1, \"y\");\nSystem.out.println(list + \" \" + arr[1]);",
+      "options": [
+        "[z, y, c] y",
+        "[a, y, c] b",
+        "[z, y, c] b",
+        "UnsupportedOperationException"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`Arrays.asList` возвращает список фиксированного размера — обёртку над тем же массивом. Изменения видны в обе стороны, `set` разрешён, а `add` и `remove` бросают `UnsupportedOperationException`."
+    },
+    {
+      "id": "java-collections-020",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "List<Integer> list = new ArrayList<>(List.of(10, 20, 30));\nlist.remove(1);\nlist.remove(Integer.valueOf(10));\nSystem.out.println(list);",
+      "options": [
+        "IndexOutOfBoundsException",
+        "[20, 30]",
+        "[10, 30]",
+        "[30]"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`remove(1)` с `int` вызывает `remove(int index)` и удаляет элемент по индексу 1 (20). `remove(Integer.valueOf(10))` вызывает `remove(Object)` и удаляет значение 10. Остаётся `[30]`."
+    },
+    {
+      "id": "java-streams-001",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое функциональный интерфейс?",
+      "options": [
+        "Любой интерфейс с аннотацией `@FunctionalInterface`, даже с несколькими абстрактными методами",
+        "Интерфейс ровно с одним абстрактным методом; `default`- и `static`-методов может быть сколько угодно",
+        "Интерфейс без методов",
+        "Класс, у которого все методы `static`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Лямбда реализует единственный абстрактный метод. `@FunctionalInterface` необязательна: она лишь просит компилятор проверить, что абстрактный метод ровно один."
+    },
+    {
+      "id": "java-streams-002",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой функциональный интерфейс принимает аргумент и ничего не возвращает?",
+      "options": [
+        "`Supplier<T>`",
+        "`Consumer<T>`",
+        "`Function<T, R>`",
+        "`Predicate<T>`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`Consumer.accept(T)` возвращает `void`. `Supplier.get()` ничего не принимает и возвращает значение, `Function.apply(T)` преобразует T в R, `Predicate.test(T)` возвращает `boolean`."
+    },
+    {
+      "id": "java-streams-003",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "List<Integer> r = Stream.of(1, 2, 3, 4, 5)\n    .filter(x -> x % 2 == 1)\n    .map(x -> x * x)\n    .toList();\nSystem.out.println(r);",
+      "options": [
+        "[1, 3, 5]",
+        "[1, 4, 9, 16, 25]",
+        "[4, 16]",
+        "[1, 9, 25]"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`filter` оставляет нечётные 1, 3, 5, `map` возводит их в квадрат. `Stream.toList()` (Java 16) возвращает неизменяемый список."
+    },
+    {
+      "id": "java-streams-004",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие операции Stream API являются терминальными?",
+      "options": [
+        "`map`",
+        "`collect`",
+        "`peek`",
+        "`forEach`"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Промежуточные операции (`map`, `filter`, `peek`, `sorted`) возвращают новый стрим и ленивы. Терминальные (`collect`, `forEach`, `reduce`, `count`, `findFirst`) запускают конвейер и закрывают стрим."
+    },
+    {
+      "id": "java-streams-005",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что будет с кодом `int count = 0; List.of(1, 2, 3).forEach(x -> count++);`?",
+      "options": [
+        "Ошибка компиляции: захваченная лямбдой локальная переменная должна быть effectively final",
+        "Выполнится, `count` станет 3: лямбда изменяет захваченную переменную напрямую",
+        "Выполнится, но `count` останется 0: лямбда получает копию переменной",
+        "`ConcurrentModificationException`: список изменяется во время обхода"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Лямбда захватывает значение локальной переменной, поэтому её нельзя менять ни в лямбде, ни после. Счётчик через стрим считают `count()` или `reduce`, а не мутацией внешнего состояния."
+    },
+    {
+      "id": "java-streams-006",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой лямбде эквивалентна ссылка на метод `String::toUpperCase` в `Function<String, String>`?",
+      "options": [
+        "`s -> String.toUpperCase(s)`",
+        "`() -> String.toUpperCase()`",
+        "`s -> s.toUpperCase()`",
+        "`(a, b) -> a.toUpperCase(b)`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Ссылка вида `Класс::методЭкземпляра` берёт первый аргумент функции как объект, на котором вызывается метод. Есть ещё `Класс::статический`, `объект::метод` и `Класс::new`."
+    },
+    {
+      "id": "java-streams-007",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при вызове `Optional.of(null)`?",
+      "options": [
+        "`NoSuchElementException`",
+        "Вернётся пустой `Optional`",
+        "Вернётся `null`",
+        "`NullPointerException`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`Optional.of` требует ненулевое значение. Для значения, которое может быть `null`, есть `Optional.ofNullable`, а пустой Optional создаёт `Optional.empty()`."
+    },
+    {
+      "id": "java-streams-008",
+      "topic": "streams",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "Stream<String> s = Stream.of(\"a\", \"b\");\ns.forEach(System.out::print);\ns.forEach(System.out::print);",
+      "options": [
+        "Выведется `abab`",
+        "Выведется `ab`, затем `IllegalStateException`",
+        "Выведется `ab`, второй вызов ничего не сделает",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Стрим одноразовый: после терминальной операции он закрыт, и повторное использование бросает `IllegalStateException: stream has already been operated upon or closed`. Нужен новый стрим из источника."
+    },
+    {
+      "id": "java-streams-009",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Stream.of(\"a\", \"b\", \"c\")\n    .peek(x -> System.out.print(\"p\" + x + \" \"))\n    .map(String::toUpperCase);\nSystem.out.println(\"done\");",
+      "options": [
+        "pa pb pc A B C done",
+        "pa pb pc done",
+        "done",
+        "Ошибка компиляции: результат стрима не используется"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Промежуточные операции ленивы: без терминальной операции конвейер не запускается, и `peek` не вызывается ни разу."
+    },
+    {
+      "id": "java-streams-010",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Stream.of(1, 2, 3)\n    .filter(x -> { System.out.print(\"f\" + x + \" \"); return x > 1; })\n    .map(x -> { System.out.print(\"m\" + x + \" \"); return x; })\n    .findFirst();",
+      "options": [
+        "f1 f2 m2",
+        "f1 f2 f3 m2 m3",
+        "f1 f2 f3 m2",
+        "f1 m1 f2 m2"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Элементы проходят конвейер по одному («вертикально»), а не этап за этапом. `1` отсеивается фильтром, `2` проходит до `map`, и `findFirst` замыкает обработку, так что `3` не обрабатывается."
+    },
+    {
+      "id": "java-streams-011",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Map<Integer, List<String>> m = Stream.of(\"a\", \"bb\", \"cc\", \"ddd\")\n    .collect(Collectors.groupingBy(String::length));\nSystem.out.println(m);",
+      "options": [
+        "{1=a, 2=cc, 3=ddd}",
+        "{a=1, bb=2, cc=2, ddd=3}",
+        "{1=[a], 2=[bb, cc], 3=[ddd]}",
+        "{1=1, 2=2, 3=1}"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`groupingBy(classifier)` собирает `Map<K, List<T>>`. Для подсчёта используют downstream-коллектор: `groupingBy(String::length, Collectors.counting())`."
+    },
+    {
+      "id": "java-streams-012",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чему равно `Stream.of(1, 2, 3, 4).reduce(10, Integer::sum)`?",
+      "options": [
+        "20",
+        "10",
+        "24",
+        "`Optional[20]`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Первый аргумент — identity, начальное значение: 10 + 1 + 2 + 3 + 4 = 20. Вариант без identity возвращает `Optional`. В параллельном стриме identity должна быть нейтральной (0 для суммы), иначе результат будет неверным."
+    },
+    {
+      "id": "java-streams-013",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что делает `flatMap` в `nested.stream().flatMap(List::stream)` для `List<List<Integer>>`?",
+      "options": [
+        "Удаляет пустые внутренние списки, остальные оставляет как есть",
+        "Возвращает `Stream<Stream<Integer>>`, сохраняя вложенность исходных списков",
+        "Сортирует внутренние списки и возвращает стрим из отсортированных списков",
+        "Превращает каждый внутренний список в стрим и склеивает их в один `Stream<Integer>`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`map` даёт по одному результату на элемент, `flatMap` — стрим результатов, которые «расплющиваются» в общий поток. Пустые списки просто ничего не добавляют."
+    },
+    {
+      "id": "java-streams-014",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт `new ArrayList<String>().getClass() == new ArrayList<Integer>().getClass()`?",
+      "options": [
+        "`false`",
+        "`true`",
+        "Ошибка компиляции",
+        "Зависит от версии JVM"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Из-за стирания типов (type erasure) параметры дженериков существуют только при компиляции. В рантайме это один класс `ArrayList`. Поэтому нельзя написать `new T()` или `instanceof List<String>`."
+    },
+    {
+      "id": "java-streams-015",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какое объявление параметра позволяет добавлять в список значения `Integer`?",
+      "options": [
+        "`List<? extends Integer> list`",
+        "`List<? super Integer> list`",
+        "`List<? extends Number> list`",
+        "`List<?> list`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Правило PECS: Producer Extends, Consumer Super. `? super Integer` — потребитель, в него можно класть `Integer`. Из `? extends` можно только читать, потому что точный тип элементов неизвестен."
+    },
+    {
+      "id": "java-streams-016",
+      "topic": "streams",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что считается анти-паттерном при работе с `Optional`?",
+      "options": [
+        "Возвращать `Optional` из метода поиска, который может ничего не найти",
+        "Использовать `Optional` как тип поля класса или параметра метода",
+        "Строить цепочки `map(...).filter(...).orElse(...)`",
+        "Вызывать `opt.get()` без проверки наличия значения"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "`Optional` задуман как возвращаемый тип. В полях он не сериализуется и добавляет лишний объект, в параметрах только усложняет вызов. `get()` на пустом бросает `NoSuchElementException`: используйте `orElse`, `orElseThrow`, `ifPresent`."
+    },
+    {
+      "id": "java-streams-017",
+      "topic": "streams",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "static String fallback() {\n    System.out.print(\"fallback \");\n    return \"x\";\n}\n\n// в main:\nString r = Optional.of(\"value\").orElse(fallback());\nSystem.out.println(r);",
+      "options": [
+        "x",
+        "value",
+        "fallback x",
+        "fallback value"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Аргумент `orElse` вычисляется всегда, ещё до вызова метода, даже если значение есть. `orElseGet(Main::fallback)` вызовет поставщика только для пустого Optional, это важно для дорогих вычислений."
+    },
+    {
+      "id": "java-streams-018",
+      "topic": "streams",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о параллельных стримах верны?",
+      "options": [
+        "`parallelStream().forEach(list::add)` в обычный `ArrayList` — гонка данных",
+        "Параллельный стрим всегда быстрее последовательного",
+        "По умолчанию задачи выполняются в общем `ForkJoinPool.commonPool()`",
+        "`forEach` в параллельном стриме сохраняет порядок элементов"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Общий пул разделяют все параллельные стримы приложения, и блокирующий I/O в нём тормозит остальных. Для маленьких данных и плохо делимых источников (`LinkedList`, `iterate`) параллельность медленнее. Порядок сохраняет `forEachOrdered`."
+    },
+    {
+      "id": "java-streams-019",
+      "topic": "streams",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какие строки скомпилируются?",
+      "code": "List<? extends Number> nums = new ArrayList<Integer>();\nnums.add(1);              // A\nNumber n = nums.get(0);   // B",
+      "options": [
+        "Только B",
+        "Только A",
+        "Обе",
+        "Ни одна"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "За `? extends Number` может скрываться `List<Double>`, поэтому компилятор запрещает добавлять что-либо, кроме `null`. Читать можно как `Number`. В рантайме B на пустом списке бросит `IndexOutOfBoundsException`, но вопрос о компиляции."
+    },
+    {
+      "id": "java-streams-020",
+      "topic": "streams",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "Map<Integer, String> m = Stream.of(\"aa\", \"bb\", \"c\")\n    .collect(Collectors.toMap(String::length, s -> s));\nSystem.out.println(m);",
+      "options": [
+        "Выведется `{1=c, 2=aa}` — сохранится первое значение",
+        "Выведется `{1=c, 2=bb}` — последнее значение перезапишет",
+        "`IllegalStateException` из-за дублирующегося ключа",
+        "Выведется `{1=c, 2=[aa, bb]}` — значения сгруппируются"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`toMap` без функции слияния падает на повторном ключе. Нужно передать третий аргумент, например `(a, b) -> a`, или использовать `groupingBy`."
+    },
+    {
+      "id": "java-concurrency-001",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем `Callable` отличается от `Runnable`?",
+      "options": [
+        "Ничем, это синонимы, оставленные ради обратной совместимости",
+        "`Callable` выполняется только в главном потоке, а `Runnable` — в пуле",
+        "`Runnable` возвращает `Future` с результатом, а `Callable` — `void`",
+        "`Callable.call()` возвращает результат и может бросать checked-исключения"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`Runnable.run()` возвращает `void` и не объявляет исключений. `Callable<V>` передают в `ExecutorService.submit()` и получают `Future<V>`; исключение из `call()` придёт обёрнутым в `ExecutionException` при `get()`."
+    },
+    {
+      "id": "java-concurrency-002",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "Thread t = new Thread(() ->\n    System.out.println(Thread.currentThread().getName()));\nt.run();",
+      "options": [
+        "Thread-0",
+        "main",
+        "Ничего не выведет",
+        "IllegalThreadStateException"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`run()` — обычный вызов метода в текущем потоке, новый поток не создаётся. Поток запускает `start()`: он создаёт поток ОС и вызывает `run()` уже в нём."
+    },
+    {
+      "id": "java-concurrency-003",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что гарантирует `volatile`?",
+      "options": [
+        "Взаимное исключение, как `synchronized`: в каждый момент к переменной обращается один поток",
+        "Атомарность любых операций с переменной, включая составные вроде `count++` и `x = x * 2`",
+        "Видимость записи другим потокам и запрет переупорядочивания вокруг неё, но не атомарность составных операций",
+        "Хранение переменной в регистре процессора для скорости, без обращения к основной памяти"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Запись в `volatile` происходит-до (happens-before) последующего чтения этой переменной. `count++` — это чтение, сложение и запись, и между ними может вклиниться другой поток."
+    },
+    {
+      "id": "java-concurrency-004",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Поток 1 захватывает lock A, затем пытается взять B; поток 2 захватывает B, затем пытается взять A. Как называется возможная ситуация?",
+      "options": [
+        "Deadlock (взаимная блокировка)",
+        "Livelock",
+        "Starvation (голодание)",
+        "Race condition на чтении"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Каждый поток держит ресурс, который нужен другому, и ждёт вечно. Классическая профилактика — всегда захватывать блокировки в одном глобальном порядке или использовать `tryLock` с таймаутом."
+    },
+    {
+      "id": "java-concurrency-005",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как `AtomicInteger.incrementAndGet()` обеспечивает атомарность?",
+      "options": [
+        "Через `volatile`-поле, которого достаточно для атомарности инкремента",
+        "Через `synchronized` на самом объекте `AtomicInteger`",
+        "Через аппаратную операцию CAS (compare-and-swap) в цикле, без блокировок",
+        "Через кратковременную остановку всех остальных потоков JVM"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "CAS атомарно меняет значение, только если оно равно ожидаемому, иначе операция повторяется. При сильной конкуренции за счётчик быстрее `LongAdder`, который распределяет счёт по ячейкам."
+    },
+    {
+      "id": "java-concurrency-006",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что будет, если не вызвать `shutdown()` у пула из `Executors.newFixedThreadPool(4)`?",
+      "options": [
+        "JVM может не завершиться: рабочие потоки пула не являются daemon и ждут новых задач",
+        "Пул автоматически закроется после выполнения последней поставленной задачи",
+        "Все незавершённые задачи будут отменены при выходе из `main`",
+        "Будет `IllegalStateException` при выходе из `main`, и JVM завершится"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Потоки пула живут, пока пул не закрыт. `shutdown()` перестаёт принимать задачи и даёт доделать текущие, `awaitTermination` ждёт завершения. С Java 19 `ExecutorService` — `AutoCloseable`, его можно открыть в try-with-resources."
+    },
+    {
+      "id": "java-concurrency-007",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Главный поток должен дождаться, пока 3 рабочих потока закончат инициализацию. Что подходит лучше всего?",
+      "options": [
+        "`Thread.sleep()` с запасом по времени",
+        "`Semaphore(3)`: главный поток вызывает `release()` три раза",
+        "`volatile int` и цикл `while (count < 3) {}` в главном потоке",
+        "`CountDownLatch(3)`: рабочие вызывают `countDown()`, главный — `await()`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`await()` блокирует, пока счётчик не дойдёт до нуля. `CountDownLatch` одноразовый, для повторяющихся точек сбора есть `CyclicBarrier`. `Semaphore` ограничивает число одновременных владельцев ресурса."
+    },
+    {
+      "id": "java-concurrency-008",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие классы потокобезопасны?",
+      "options": [
+        "`ConcurrentHashMap`",
+        "`HashMap`",
+        "`AtomicLong`",
+        "`ArrayList`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "`HashMap` и `ArrayList` не синхронизированы, при параллельной записи возможны потеря данных и повреждение структуры. Для них есть `ConcurrentHashMap`, `CopyOnWriteArrayList` или внешняя синхронизация."
+    },
+    {
+      "id": "java-concurrency-009",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код с наибольшей вероятностью?",
+      "code": "static int counter = 0;\n\npublic static void main(String[] args) throws InterruptedException {\n    Runnable task = () -> { for (int i = 0; i < 100_000; i++) counter++; };\n    Thread t1 = new Thread(task), t2 = new Thread(task);\n    t1.start(); t2.start();\n    t1.join(); t2.join();\n    System.out.println(counter);\n}",
+      "options": [
+        "Всегда 200000 — `join()` синхронизирует потоки и их записи",
+        "Число не больше 200000, обычно меньше: `counter++` не атомарен",
+        "Всегда 100000",
+        "`ConcurrentModificationException`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`counter++` — чтение, увеличение и запись. Два потока читают одно значение и теряют инкременты. `join()` гарантирует только, что `main` увидит итог, но не устраняет гонку между потоками."
+    },
+    {
+      "id": "java-concurrency-010",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие изменения устранят гонку в `counter++` из нескольких потоков?",
+      "options": [
+        "Объявить `counter` как `volatile int`",
+        "Заменить на `AtomicInteger` и `incrementAndGet()`",
+        "Выполнять `counter++` в `synchronized`-блоке на общем объекте",
+        "Вызывать `Thread.yield()` после каждого инкремента"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "`volatile` даёт видимость, но не атомарность чтения-изменения-записи. Атомики и общий монитор делают операцию неделимой. `yield` — лишь подсказка планировщику."
+    },
+    {
+      "id": "java-concurrency-011",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему `wait()` принято вызывать внутри цикла `while (!condition)`?",
+      "options": [
+        "Иначе `wait()` вернётся сразу же, не дожидаясь, пока другой поток вызовет `notify()`",
+        "Возможны ложные пробуждения (spurious wakeups), а условие могли снова изменить до захвата монитора",
+        "Так требует компилятор: вызов `wait()` вне цикла `while` не скомпилируется",
+        "Цикл нужен, чтобы освободить монитор и дать другим потокам изменить условие"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "После пробуждения условие нужно проверить заново. И `wait()`, и `notify()` вызываются только при удержании монитора (`synchronized` на том же объекте), иначе будет `IllegalMonitorStateException`."
+    },
+    {
+      "id": "java-concurrency-012",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие действия устанавливают отношение happens-before?",
+      "options": [
+        "Освобождение монитора и последующий захват того же монитора",
+        "Две обычные записи в разных потоках, если одна произошла раньше по часам",
+        "Запись в `volatile`-поле и последующее чтение этого поля",
+        "Вызов `thread.start()` и действия внутри запущенного потока"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "Happens-before — гарантия Java Memory Model, что результаты одного действия видны другому. Порядок «по часам» без синхронизации ничего не гарантирует. Ещё примеры: завершение потока и `join()`, запись `final`-полей в конструкторе."
+    },
+    {
+      "id": "java-concurrency-013",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Могут ли два потока одновременно выполнять `c.a()` и `Counter.b()`?",
+      "code": "class Counter {\n    synchronized void a() { /* ... */ }\n    static synchronized void b() { /* ... */ }\n}",
+      "options": [
+        "Да, но только если `c` объявлен как `volatile`",
+        "Нет: оба метода блокируют один монитор класса",
+        "Нет: `synchronized` запрещает параллельный вызов любых методов класса",
+        "Да: `a()` блокирует монитор `this`, а `b()` — монитор `Counter.class`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Нестатический `synchronized`-метод захватывает монитор экземпляра, статический — объект `Class`. Мониторы разные, поэтому методы не исключают друг друга. Если они трогают общие данные, это гонка."
+    },
+    {
+      "id": "java-concurrency-014",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Чем `ReentrantLock` отличается от `synchronized`?",
+      "options": [
+        "Есть `tryLock` с таймаутом, прерываемое ожидание, режим fairness и несколько `Condition`; `unlock()` нужно вызывать в `finally`",
+        "`ReentrantLock` не реентерабелен: повторный `lock()` из того же потока приводит к взаимоблокировке",
+        "`ReentrantLock` освобождается автоматически при выходе из блока, поэтому `finally` не нужен",
+        "`synchronized` поддерживает таймаут ожидания и прерывание, а `ReentrantLock` — нет, зато он всегда работает быстрее"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Обе блокировки реентерабельны и дают одинаковые гарантии памяти. `synchronized` проще и снимается автоматически. `ReentrantLock` гибче, но забытый `unlock()` навсегда заблокирует ресурс."
+    },
+    {
+      "id": "java-concurrency-015",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "CompletableFuture<Integer> f = CompletableFuture.supplyAsync(() -> 2)\n    .thenApply(x -> x * 10)\n    .thenCombine(CompletableFuture.supplyAsync(() -> 5), Integer::sum);\nSystem.out.println(f.join());",
+      "options": [
+        "70",
+        "20",
+        "25",
+        "7"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`thenApply` преобразует результат (2 → 20), `thenCombine` ждёт оба future и объединяет результаты (20 + 5). `join()` блокирует до завершения и бросает unchecked `CompletionException` вместо checked-исключений `get()`."
+    },
+    {
+      "id": "java-concurrency-016",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "int r = CompletableFuture.supplyAsync(() -> Integer.parseInt(\"x\"))\n    .thenApply(x -> x + 1)\n    .exceptionally(ex -> -1)\n    .join();\nSystem.out.println(r);",
+      "options": [
+        "0",
+        "`NumberFormatException`",
+        "`CompletionException`",
+        "-1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`parseInt` бросает исключение, и future завершается с ошибкой. `thenApply` пропускается, а `exceptionally` подставляет значение по умолчанию. Поэтому `join()` возвращает -1, а не бросает исключение."
+    },
+    {
+      "id": "java-concurrency-017",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно про виртуальные потоки (Java 21)?",
+      "options": [
+        "Это дешёвые потоки JVM, которые монтируются на небольшой пул carrier-потоков ОС",
+        "Они ускоряют CPU-bound вычисления по сравнению с платформенными потоками",
+        "Блокировка внутри `synchronized` в Java 21 пиннит виртуальный поток к carrier-потоку",
+        "Их обязательно нужно переиспользовать через пул потоков"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Виртуальные потоки выгодны для большого числа блокирующих I/O-задач: при блокировке поток снимается с carrier. В Java 21 внутри `synchronized` этого не происходит (исправлено в Java 24), поэтому рекомендуют `ReentrantLock`. Пулы для них не нужны: создают поток на задачу."
+    },
+    {
+      "id": "java-concurrency-018",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Зачем в double-checked locking singleton поле `instance` объявляют `volatile`?",
+      "options": [
+        "Чтобы `synchronized`-блок выполнялся быстрее за счёт кеширования ссылки в регистре процессора",
+        "Без `volatile` другой поток может увидеть ненулевую ссылку на ещё не полностью инициализированный объект",
+        "Чтобы singleton не собирался сборщиком мусора, пока на него нет сильных ссылок",
+        "`volatile` не нужен: `synchronized` всё уже гарантирует для читающих без блокировки"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Запись ссылки и инициализацию полей можно переупорядочить, а первая проверка `instance == null` идёт без блокировки. `volatile` устанавливает happens-before. Проще использовать holder-класс или `enum`."
+    },
+    {
+      "id": "java-concurrency-019",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что верно про этот код, если `running` — обычное (не volatile) поле?",
+      "code": "static boolean running = true;\n\npublic static void main(String[] args) throws Exception {\n    new Thread(() -> {\n        while (running) { }\n        System.out.println(\"stopped\");\n    }).start();\n    Thread.sleep(100);\n    running = false;\n}",
+      "options": [
+        "Ошибка компиляции: пустое тело цикла `while` в Java запрещено",
+        "Через ~100 мс гарантированно выведется `stopped`, ведь запись в поле видна сразу",
+        "Не гарантировано, что фоновый поток увидит `false`: цикл может работать вечно",
+        "`IllegalMonitorStateException` при изменении поля из другого потока"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Без синхронизации нет happens-before между записью в `main` и чтением в фоне. JIT вправе вынести чтение из цикла, превратив его в `while (true)`. Решение — `volatile boolean` или `AtomicBoolean`."
+    },
+    {
+      "id": "java-concurrency-020",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Как атомарно увеличить счётчик по ключу в `ConcurrentHashMap<String, Integer>` из многих потоков?",
+      "options": [
+        "`map.merge(key, 1, Integer::sum)`",
+        "`map.put(key, map.get(key) + 1)`",
+        "`if (!map.containsKey(key)) map.put(key, 1); else map.put(key, map.get(key) + 1);`",
+        "`map.put(key, map.getOrDefault(key, 0) + 1)`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Каждый отдельный вызов `ConcurrentHashMap` атомарен, но последовательность «прочитать, затем записать» — нет. `merge`, `compute` и `putIfAbsent` выполняют её атомарно для ключа."
+    },
+    {
+      "id": "java-jvm-001",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как соотносятся JDK, JRE и JVM?",
+      "options": [
+        "JRE включает компилятор `javac` и отладчик, а JDK — только JVM для запуска программ",
+        "JDK — это виртуальная машина для исполнения байткода, а JVM — набор утилит разработчика (`javac`, `jar`)",
+        "JVM исполняет байткод; JRE = JVM + стандартная библиотека; JDK = JRE + инструменты разработки (`javac`, `jar`, `jdb`)",
+        "Это три названия одного и того же: дистрибутива Java для запуска и разработки"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Для запуска достаточно среды выполнения, для разработки нужен JDK. Начиная с Java 11 отдельный JRE официально не поставляется, а минимальный рантайм собирают через `jlink`."
+    },
+    {
+      "id": "java-jvm-002",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Во что `javac` компилирует исходный код?",
+      "options": [
+        "В платформенно-независимый байткод (`.class`), который исполняет JVM",
+        "Сразу в машинный код процессора, под который выполняется сборка",
+        "В JavaScript, который затем исполняет движок внутри JVM",
+        "В исходник на C++, который потом компилирует системный компилятор"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Байткод интерпретируется JVM, а «горячие» методы JIT-компилятор переводит в машинный код. Отсюда «write once, run anywhere»: один `.class` работает на любой платформе с JVM."
+    },
+    {
+      "id": "java-jvm-003",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Где хранятся объекты, созданные через `new`, и где — локальные переменные метода?",
+      "options": [
+        "Объекты — в Metaspace, локальные переменные — в регистрах процессора",
+        "Всё хранится в стеке потока, а куча используется только для строк",
+        "Объекты — в стеке, локальные переменные — в куче",
+        "Объекты — в куче (heap); локальные переменные и ссылки — во фрейме стека потока"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Куча общая для всех потоков, ею управляет GC. У каждого потока свой стек: фрейм на вызов метода с примитивами и ссылками. JIT может избежать аллокации в куче благодаря escape analysis."
+    },
+    {
+      "id": "java-jvm-004",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при вызове `f(0)`?",
+      "code": "static int f(int n) {\n    return f(n + 1);\n}",
+      "options": [
+        "`OutOfMemoryError`",
+        "`StackOverflowError`",
+        "Бесконечный цикл без ошибки",
+        "Ошибка компиляции"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Каждый вызов добавляет фрейм в стек потока, а размер стека ограничен (`-Xss`). Бесконечная рекурсия переполняет его. Java не гарантирует оптимизацию хвостовой рекурсии."
+    },
+    {
+      "id": "java-jvm-005",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие исключения являются unchecked (не требуют `throws` или `catch`)?",
+      "options": [
+        "`IOException`",
+        "`NullPointerException`",
+        "`IllegalArgumentException`",
+        "`SQLException`"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Unchecked — наследники `RuntimeException` (и `Error`). Checked-исключения (`IOException`, `SQLException`) компилятор заставляет обработать или объявить в `throws`."
+    },
+    {
+      "id": "java-jvm-006",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что нужно, чтобы объект можно было использовать в try-with-resources?",
+      "options": [
+        "Класс должен переопределять `finalize()` для освобождения ресурсов",
+        "Класс должен реализовывать `AutoCloseable` (или `Closeable`)",
+        "Класс должен быть `final` и иметь метод `close()`",
+        "Достаточно публичного метода `close()` без реализации интерфейса"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "После блока `try` компилятор вызывает `close()` автоматически, даже при исключении. Исключение из `close()` не теряет основное, а добавляется к нему как suppressed."
+    },
+    {
+      "id": "java-jvm-007",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает `mvn package`?",
+      "options": [
+        "Скачивает зависимости в локальный репозиторий и ничего больше не делает",
+        "Только упаковывает уже скомпилированные классы в JAR, не запуская компиляцию и тесты",
+        "Публикует собранный артефакт в удалённый репозиторий вроде Nexus",
+        "Выполняет фазы жизненного цикла до `package`: компиляцию, тесты и упаковку в JAR/WAR"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Фазы Maven идут по порядку: `validate`, `compile`, `test`, `package`, `verify`, `install`, `deploy`. `install` кладёт артефакт в локальный `~/.m2`, `deploy` — в удалённый репозиторий."
+    },
+    {
+      "id": "java-jvm-008",
+      "topic": "jvm",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое Dependency Injection в Spring?",
+      "options": [
+        "Контейнер сам создаёт объекты (бины) и передаёт им зависимости, обычно через конструктор",
+        "Объект сам создаёт свои зависимости через `new` в конструкторе, а Spring только вызывает его",
+        "Механизм загрузки JAR-файлов с зависимостями в рантайме по мере обращения к ним",
+        "Способ наследования конфигурации бинов через `extends` от базового класса"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Это частный случай Inversion of Control: управление созданием и связыванием объектов передаётся контейнеру. Внедрение через конструктор предпочтительнее: зависимости явные, поля можно сделать `final`, класс легко тестировать."
+    },
+    {
+      "id": "java-jvm-009",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "static int f() {\n    try {\n        return 1;\n    } finally {\n        return 2;\n    }\n}\n\n// в main:\nSystem.out.println(f());",
+      "options": [
+        "Ошибка компиляции",
+        "1",
+        "2",
+        "12"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`finally` выполняется после вычисления `return 1`, но до выхода из метода, и его `return` заменяет результат. Так же он «проглатывает» исключения, поэтому `return` в `finally` — анти-паттерн."
+    },
+    {
+      "id": "java-jvm-010",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "static int f() {\n    int x = 1;\n    try {\n        return x;\n    } finally {\n        x = 2;\n    }\n}\n\n// в main:\nSystem.out.println(f());",
+      "options": [
+        "3",
+        "2",
+        "Ошибка компиляции",
+        "1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Значение для `return` вычисляется и сохраняется до выполнения `finally`. Изменение локальной переменной потом на него не влияет. Для объекта изменение его состояния было бы видно, ведь сохраняется ссылка."
+    },
+    {
+      "id": "java-jvm-011",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "record Res(String name) implements AutoCloseable {\n    Res { System.out.print(\"open \" + name + \" \"); }\n    public void close() { System.out.print(\"close \" + name + \" \"); }\n}\n\n// в main:\ntry (var a = new Res(\"A\"); var b = new Res(\"B\")) {\n    System.out.print(\"body \");\n}",
+      "options": [
+        "open A open B body close A close B",
+        "open A open B body close B close A",
+        "open A body close A open B close B",
+        "open B open A body close A close B"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Ресурсы открываются в порядке объявления, а закрываются в обратном — как стек. Так зависимый ресурс (например, `Statement`) закрывается раньше того, от которого зависит (`Connection`)."
+    },
+    {
+      "id": "java-jvm-012",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему куча в большинстве сборщиков делится на молодое и старое поколения?",
+      "options": [
+        "Так требует спецификация языка Java: каждая JVM обязана разделять кучу на поколения",
+        "Чтобы старые объекты никогда не собирались и не тратить время на их повторную проверку",
+        "Большинство объектов умирает молодыми, и частая дешёвая сборка молодого поколения освобождает почти всю память",
+        "Чтобы каждому потоку выделить своё поколение и избежать синхронизации при выделении памяти"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Это слабая гипотеза о поколениях. Minor GC копирует немногих выживших из Eden в Survivor, а объекты, пережившие несколько сборок, переходят в Old Gen, где сборки реже и дороже."
+    },
+    {
+      "id": "java-jvm-013",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Где с Java 8 хранятся метаданные классов?",
+      "options": [
+        "В Metaspace — в нативной памяти вне кучи",
+        "В PermGen внутри кучи, как и в Java 7",
+        "В стеке главного потока приложения",
+        "В Eden молодого поколения кучи"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Metaspace заменил PermGen и по умолчанию растёт без фиксированного лимита (ограничивается `-XX:MaxMetaspaceSize`). Утечка classloader-ов, например при redeploy, приводит к `OutOfMemoryError: Metaspace`."
+    },
+    {
+      "id": "java-jvm-014",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что может привести к утечке памяти в Java?",
+      "options": [
+        "Растущая `static`-коллекция (например, кэш без вытеснения)",
+        "Взаимные ссылки двух объектов, недостижимых из корней GC",
+        "Значения `ThreadLocal`, не удалённые в потоках пула",
+        "Слушатели (listeners), которые регистрируются, но никогда не отписываются"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "GC собирает всё, что недостижимо от корней (стеки потоков, `static`-поля), поэтому циклы ссылок ему не мешают. Утечка в Java — это объекты, которые всё ещё достижимы, но больше не нужны."
+    },
+    {
+      "id": "java-jvm-015",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как работает модель делегирования загрузчиков классов?",
+      "options": [
+        "Все классы, включая классы приложения, загружает один Bootstrap ClassLoader из `rt.jar` и classpath",
+        "Каждый загрузчик сначала ищет класс сам в своих путях, а родителю передаёт запрос только при ошибке",
+        "Загрузчик сначала делегирует загрузку родителю (Application → Platform → Bootstrap) и грузит сам, если тот не нашёл",
+        "Классы загружаются все сразу при старте JVM в порядке их перечисления в classpath"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Parent-first делегирование не даёт подменить системные классы вроде `java.lang.String`. Классы грузятся лениво, при первом использовании. Класс идентифицируется парой «имя + загрузчик»."
+    },
+    {
+      "id": "java-jvm-016",
+      "topic": "jvm",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что делает JIT-компилятор?",
+      "options": [
+        "Во время работы компилирует «горячие» методы в машинный код с оптимизациями на основе профиля",
+        "Компилирует исходники `.java` в байткод `.class` перед запуском программы на JVM",
+        "Удаляет неиспользуемые классы и методы из JAR, уменьшая размер приложения",
+        "Отвечает за сборку мусора, компилируя код освобождения памяти «на лету»"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "HotSpot сначала интерпретирует байткод и собирает статистику, затем компилирует горячий код (C1, потом C2): инлайнинг, escape analysis, удаление проверок. Поэтому Java-приложению нужен прогрев, и бенчмарки пишут на JMH."
+    },
+    {
+      "id": "java-jvm-017",
+      "topic": "jvm",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Метод `placeOrder()` вызывают из другого бина. Будет ли `saveOrder()` выполнен в транзакции?",
+      "code": "@Service\npublic class OrderService {\n    public void placeOrder() {\n        saveOrder(); // вызов внутри того же класса\n    }\n\n    @Transactional\n    public void saveOrder() { /* запись в БД */ }\n}",
+      "options": [
+        "Нет: `@Transactional` можно ставить только на класс, а не на отдельный метод",
+        "Да: `@Transactional` работает при любом вызове, в том числе через `this`",
+        "Да, но только если метод `saveOrder()` объявлен как `private`",
+        "Нет: вызов через `this` обходит прокси Spring, и транзакция не открывается"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Spring реализует `@Transactional` через прокси, который перехватывает только вызовы снаружи бина. Решения: вынести метод в другой бин, пометить внешний метод или использовать self-injection. На `private`-методах аннотация тоже не работает."
+    },
+    {
+      "id": "java-jvm-018",
+      "topic": "jvm",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно про scope бинов в Spring?",
+      "options": [
+        "`singleton` — scope по умолчанию: один экземпляр на контейнер",
+        "Бин `singleton` автоматически потокобезопасен",
+        "`prototype` — новый экземпляр при каждом запросе бина у контейнера",
+        "Prototype-бин, внедрённый в singleton, создаётся заново при каждом вызове метода singleton"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Singleton общий для всех потоков, поэтому изменяемое состояние в нём — источник гонок. Prototype внедряется в singleton один раз, при создании. Для нового экземпляра на каждый вызов нужен `ObjectProvider` или `@Lookup`."
+    },
+    {
+      "id": "java-jvm-019",
+      "topic": "jvm",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что верно про сборщики G1 и ZGC?",
+      "options": [
+        "ZGC — сборщик по умолчанию начиная с Java 11, а G1 остался только для куч меньше 4 ГБ",
+        "G1 — сборщик по умолчанию с Java 9, делит кучу на регионы; ZGC работает почти полностью конкурентно с паузами около миллисекунды и меньше",
+        "G1 останавливает приложение на всё время сборки, и паузы нельзя настроить: флаг `MaxGCPauseMillis` есть только у ZGC",
+        "ZGC подходит только для куч меньше 1 ГБ, а на больших кучах его паузы растут до секунд"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "G1 собирает в первую очередь регионы с наибольшим количеством мусора и старается уложиться в `-XX:MaxGCPauseMillis`. ZGC (`-XX:+UseZGC`) рассчитан на кучи до терабайтов, а в Java 21 появился его режим с поколениями."
+    },
+    {
+      "id": "java-jvm-020",
+      "topic": "jvm",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода (куча ограничена `-Xmx256m`)?",
+      "code": "try {\n    List<byte[]> list = new ArrayList<>();\n    while (true) list.add(new byte[1_000_000]);\n} catch (Exception e) {\n    System.out.println(\"caught\");\n}",
+      "options": [
+        "Выведется `caught`",
+        "`OutOfMemoryError: Java heap space` не будет перехвачен и завершит поток",
+        "Сборщик мусора освободит память, и цикл будет работать вечно",
+        "`StackOverflowError`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`OutOfMemoryError` наследует `Error`, а не `Exception`, поэтому `catch (Exception e)` его не ловит. Все массивы достижимы через `list`, и GC не может их освободить. Ловить `Error` обычно не нужно: состояние JVM после него ненадёжно."
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 'use strict';
 
 // Проверка банков вопросов и теории.
-//   node scripts/validate.js                  — все курсы из courses.json
+//   node scripts/validate.js                  — все курсы из courses.json; при успехе
+//                                               пишет public/data/index.json (id вопросов
+//                                               по курсам — главная страница грузит только его)
 //   node scripts/validate.js data/x.json ...  — только указанные файлы вопросов
 
 const fs = require('fs');
@@ -58,6 +60,23 @@ function checkAnswerPositions(label, questions) {
   if (max / single.length > 0.45) warn(label, `правильный ответ слишком часто на одной позиции: ${JSON.stringify(counts)}`);
 }
 
+// Правильный вариант заметно длиннее всех остальных — частая подсказка «выбери самый длинный».
+const clearlyLongest = (q) => {
+  const lens = q.options.map((o) => o.length);
+  const sorted = [...lens].sort((a, b) => b - a);
+  return lens[q.correct[0]] === sorted[0] && sorted[0] > 1.25 * sorted[1];
+};
+
+function checkLengthBias(label, questions) {
+  const single = questions.filter((q) => q.type === 'single' && Array.isArray(q.options) && Array.isArray(q.correct));
+  if (single.length < 12) return;
+  const biased = single.filter(clearlyLongest);
+  if (biased.length / single.length > 0.2) {
+    warn(label, `в ${biased.length} из ${single.length} вопросов правильный вариант заметно длиннее остальных: ${
+      biased.slice(0, 5).map((q) => q.id).join(', ')}${biased.length > 5 ? ', …' : ''}`);
+  }
+}
+
 function checkFile(file, ctx) {
   const data = readJson(path.join(DATA, file), file);
   if (!data) return;
@@ -73,6 +92,7 @@ function checkFile(file, ctx) {
     if (!q.id) fail(where, 'нет id');
     else if (ctx.allIds.has(q.id)) fail(where, 'дублирующийся id');
     ctx.allIds.add(q.id);
+    if (ctx.ids && q.id) ctx.ids.push(q.id);
     const norm = String(q.question).trim().toLowerCase() + '|' + (q.code || '');
     if (texts.has(norm)) warn(where, 'повторяющийся текст вопроса');
     texts.add(norm);
@@ -80,9 +100,11 @@ function checkFile(file, ctx) {
     ctx.perTopic[q.topic] = (ctx.perTopic[q.topic] || 0) + 1;
   }
   checkAnswerPositions(file, data.questions || []);
+  checkLengthBias(file, data.questions || []);
 }
 
 const args = process.argv.slice(2);
+const index = { version: 1, courses: {} };
 
 if (args.length) {
   for (const arg of args) {
@@ -94,12 +116,16 @@ if (args.length) {
 } else {
   const courses = readJson(path.join(DATA, 'courses.json'), 'courses.json') || [];
   const allIds = new Set();
+  const seenCourses = new Set();
   for (const course of courses) {
+    if (seenCourses.has(course.id)) fail('courses.json', `дублирующийся курс "${course.id}"`);
+    seenCourses.add(course.id);
     for (const key of ['id', 'title', 'description', 'badge', 'color']) {
       if (!course[key]) fail(`courses.json ${course.id || '?'}`, `нет поля ${key}`);
     }
-    const ctx = { topics: new Map(), allIds, perTopic: {}, total: 0 };
+    const ctx = { topics: new Map(), allIds, perTopic: {}, total: 0, ids: [] };
     for (const file of course.files || []) checkFile(file, ctx);
+    index.courses[course.id] = { total: ctx.ids.length, ids: ctx.ids };
 
     let theory = 0;
     for (const [topic] of ctx.topics) {
@@ -111,6 +137,10 @@ if (args.length) {
     console.log(`${course.title}: ${ctx.total} вопросов, ${ctx.topics.size} тем, теория ${theory}/${ctx.topics.size}`);
     for (const [t, n] of Object.entries(ctx.perTopic)) console.log(`  ${t}: ${n}`);
   }
+}
+
+if (!args.length && !errors) {
+  fs.writeFileSync(path.join(DATA, 'index.json'), JSON.stringify(index) + '\n');
 }
 
 if (warnings) console.warn(`\nПредупреждений: ${warnings}`);

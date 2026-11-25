@@ -161,6 +161,7 @@ h2.section {
   font-size: 15px;
   color: #fff;
 }
+.badge.long { font-size: 12px; letter-spacing: -.02em; }
 .course-card h3 { margin: 0 0 2px; font-size: 18px; }
 .course-card p { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
