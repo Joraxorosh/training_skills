@@ -2,17 +2,33 @@
   {
     "id": "devops",
     "title": "DevOps",
-    "description": "Linux, Git, сети, Docker, Kubernetes, CI/CD, IaC, мониторинг, облака, безопасность, Nginx и SRE-практики.",
+    "description": "Linux, Git, сети, Docker, Kubernetes, CI/CD, IaC, мониторинг, облака, безопасность, Nginx, GitOps, очереди сообщений и SRE-практики.",
     "badge": "Ops",
     "color": "#2f7de1",
-    "files": ["devops-1.json", "devops-2.json", "devops-3.json", "devops-4.json", "devops-5.json"]
+    "files": ["devops-1.json", "devops-2.json", "devops-3.json", "devops-4.json", "devops-5.json", "devops-6.json"]
   },
   {
     "id": "sql",
     "title": "SQL",
-    "description": "SELECT, JOIN, агрегация, подзапросы, оконные функции, индексы, транзакции, DDL, возможности PostgreSQL и практические задачи.",
+    "description": "SELECT, JOIN, агрегация, подзапросы, оконные функции, индексы, транзакции, DDL, PostgreSQL, безопасность и аналитические запросы.",
     "badge": "SQL",
     "color": "#e0822f",
-    "files": ["sql-1.json", "sql-2.json", "sql-3.json", "sql-4.json", "sql-5.json"]
+    "files": ["sql-1.json", "sql-2.json", "sql-3.json", "sql-4.json", "sql-5.json", "sql-6.json"]
+  },
+  {
+    "id": "python",
+    "title": "Python",
+    "description": "Типы и коллекции, функции и декораторы, ООП, генераторы, исключения, конкурентность (GIL, asyncio), инструменты и тестирование.",
+    "badge": "Py",
+    "color": "#3b9a5c",
+    "files": ["python-1.json", "python-2.json"]
+  },
+  {
+    "id": "algo",
+    "title": "Алгоритмы и структуры данных",
+    "description": "Сложность (Big O), массивы и хеш-таблицы, сортировки и бинарный поиск, стеки, очереди, кучи, деревья, графы и динамическое программирование.",
+    "badge": "Algo",
+    "color": "#8a5cd6",
+    "files": ["algo-1.json"]
   }
 ]

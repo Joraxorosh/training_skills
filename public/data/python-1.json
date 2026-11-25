@@ -1,0 +1,1458 @@
+{
+  "topics": [
+    {
+      "id": "basics",
+      "title": "Основы: типы, изменяемость, операторы"
+    },
+    {
+      "id": "collections",
+      "title": "Коллекции и comprehensions"
+    },
+    {
+      "id": "functions",
+      "title": "Функции, замыкания и декораторы"
+    },
+    {
+      "id": "oop",
+      "title": "ООП, dunder-методы и dataclasses"
+    }
+  ],
+  "questions": [
+    {
+      "id": "py-basics-001",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print(0.1 + 0.2 == 0.3)",
+      "options": [
+        "True",
+        "0.30000000000000004",
+        "False",
+        "TypeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "0.1 и 0.2 не представимы точно в двоичной плавающей точке, поэтому сумма равна `0.30000000000000004`. Для сравнения float используют `math.isclose()` или `decimal.Decimal`."
+    },
+    {
+      "id": "py-basics-002",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print(type(True + True), True + True)",
+      "options": [
+        "<class 'int'> 2",
+        "<class 'bool'> True",
+        "<class 'bool'> 2",
+        "<class 'int'> True"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`bool` — подкласс `int`: `True` ведёт себя как 1. Арифметика над bool возвращает обычный `int`."
+    },
+    {
+      "id": "py-basics-003",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print(7 // -2, 7 % -2)",
+      "options": [
+        "-3 1",
+        "-3 -1",
+        "-4 1",
+        "-4 -1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`//` в Python округляет вниз (к минус бесконечности): 7 / -2 = -3.5 → -4. Остаток согласован с этим: `a == (a // b) * b + a % b`, поэтому 7 - (-4)·(-2) = -1; знак `%` совпадает со знаком делителя."
+    },
+    {
+      "id": "py-basics-004",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие значения являются ложными (falsy) в булевом контексте?",
+      "options": [
+        "`0.0`",
+        "`\"0\"`",
+        "`set()`",
+        "`\" \"`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Ложны нули любых числовых типов, `None`, `False` и пустые коллекции (`''`, `[]`, `{}`, `set()`). Непустая строка истинна, даже если это `\"0\"` или пробел."
+    },
+    {
+      "id": "py-basics-005",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "s = \"hello\"\ns[0] = \"H\"",
+      "options": [
+        "Переменная `s` станет равна `\"Hello\"`",
+        "Возникнет `TypeError`: строки не поддерживают присваивание по индексу",
+        "Будет создана новая строка, а `s` останется `\"hello\"`",
+        "Возникнет `IndexError`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Строки в Python неизменяемы. Чтобы получить изменённую строку, создают новую: `s = \"H\" + s[1:]`."
+    },
+    {
+      "id": "py-basics-006",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print(\"python\"[1:4], \"python\"[::-1])",
+      "options": [
+        "pyt nohtyp",
+        "ytho nohtyp",
+        "yth nohtyp",
+        "yth python"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Срез `[1:4]` берёт индексы 1, 2, 3 (правая граница не включается). Срез `[::-1]` проходит строку с шагом -1, то есть разворачивает её."
+    },
+    {
+      "id": "py-basics-007",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при вычислении `2 ** 1000` в Python?",
+      "options": [
+        "Получится точное целое число из 302 цифр",
+        "Возникнет `OverflowError`",
+        "Получится `inf`",
+        "Произойдёт переполнение, и результат станет отрицательным"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`int` в Python имеет произвольную точность: число растёт в памяти по мере необходимости. Переполнения нет (в отличие от `float`, где `2.0 ** 10000` даёт `OverflowError`)."
+    },
+    {
+      "id": "py-basics-008",
+      "topic": "basics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a = [1, 2]\nb = [1, 2]\nprint(a == b, a is b)",
+      "options": [
+        "True True",
+        "False False",
+        "False True",
+        "True False"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`==` сравнивает значения, а `is` проверяет, что это один и тот же объект в памяти. Два отдельно созданных списка равны, но это разные объекты."
+    },
+    {
+      "id": "py-basics-009",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print(3 > 2 > 1, (3 > 2) > 1)",
+      "options": [
+        "True True",
+        "True False",
+        "False False",
+        "False True"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`3 > 2 > 1` — цепочка сравнений, она равна `3 > 2 and 2 > 1`, то есть True. Скобки разрывают цепочку: `(3 > 2) > 1` — это `True > 1`, а `True == 1`, поэтому False."
+    },
+    {
+      "id": "py-basics-010",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print(0 or \"x\", 1 and [])",
+      "options": [
+        "True False",
+        "x False",
+        "x []",
+        "True []"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`or` и `and` возвращают не bool, а один из операндов. `or` возвращает первый истинный операнд (или последний), `and` — первый ложный (или последний). `0 or \"x\"` → `\"x\"`, `1 and []` → `[]`."
+    },
+    {
+      "id": "py-basics-011",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код в CPython?",
+      "code": "a = int(\"256\"); b = int(\"256\")\nc = int(\"257\"); d = int(\"257\")\nprint(a is b, c is d)",
+      "options": [
+        "True False",
+        "True True",
+        "False False",
+        "False True"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "CPython заранее создаёт и кэширует целые числа от -5 до 256, поэтому оба `int(\"256\")` возвращают один объект. 257 создаётся заново. Это деталь реализации, поэтому числа сравнивают через `==`, а не `is`."
+    },
+    {
+      "id": "py-basics-012",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a = (1, [2, 3])\na[1].append(4)\nprint(a)",
+      "options": [
+        "TypeError: 'tuple' object does not support item assignment",
+        "(1, [2, 3])",
+        "AttributeError: 'tuple' object has no attribute 'append'",
+        "(1, [2, 3, 4])"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Кортеж неизменяем только поверхностно: нельзя заменить его элементы, но изменяемый объект внутри можно менять. `a[1].append(4)` меняет сам список, а не кортеж."
+    },
+    {
+      "id": "py-basics-013",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "data = [1, 5, 12, 7, 20]\nprint([y for x in data if (y := x * 2) > 10])",
+      "options": [
+        "[12, 7, 20]",
+        "[24, 14, 40]",
+        "[10, 24, 14, 40]",
+        "SyntaxError"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Оператор `:=` (walrus) присваивает значение внутри выражения. Здесь `y` вычисляется один раз в условии и сразу используется в результате. Проходят только значения, у которых удвоение больше 10: 12, 7, 20."
+    },
+    {
+      "id": "py-basics-014",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def f(p):\n    match p:\n        case (0, 0):\n            return \"origin\"\n        case (x, 0):\n            return f\"x={x}\"\n        case [x, y]:\n            return f\"{x},{y}\"\n        case _:\n            return \"other\"\n\nprint(f((3, 0)), f([1, 2]), f((1, 2, 3)))",
+      "options": [
+        "x=3 other other",
+        "origin 1,2 other",
+        "x=3 1,2 other",
+        "x=3 1,2 1,2"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Последовательностные шаблоны `(x, 0)` и `[x, y]` равнозначны и подходят и к tuple, и к list. Длина должна совпасть, поэтому кортеж из трёх элементов доходит до `case _`."
+    },
+    {
+      "id": "py-basics-015",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "name = \"pi\"\nx = 3.14159\nprint(f\"{name!r}: {x:.2f}|{42:>5}|\")",
+      "options": [
+        "'pi': 3.14|   42|",
+        "pi: 3.14|   42|",
+        "'pi': 3.14|42   |",
+        "'pi': 3.142|   42|"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`!r` применяет `repr()` (строка выводится в кавычках), `:.2f` даёт 2 знака после точки, а `:>5` выравнивает по правому краю в поле ширины 5."
+    },
+    {
+      "id": "py-basics-016",
+      "topic": "basics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие встроенные типы неизменяемы (immutable)?",
+      "options": [
+        "`dict`",
+        "`tuple`",
+        "`bytearray`",
+        "`frozenset`"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Неизменяемы `int`, `float`, `str`, `bytes`, `tuple` и `frozenset`. `bytearray` — изменяемый аналог `bytes`, `dict` тоже изменяем."
+    },
+    {
+      "id": "py-basics-017",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "t = (1, [2])\ntry:\n    t[1] += [3]\nexcept TypeError:\n    print(\"error\", t)",
+      "options": [
+        "error (1, [2])",
+        "Ничего: `t[1] += [3]` выполнится без ошибки",
+        "(1, [2, 3])",
+        "error (1, [2, 3])"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`t[1] += [3]` выполняется в два шага: сначала `list.__iadd__` расширяет список на месте, затем `t[1] = ...` пытается присвоить элемент кортежа и падает с TypeError. Исключение возникает, но список уже изменён."
+    },
+    {
+      "id": "py-basics-018",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "RED = \"red\"\ncolor = \"blue\"\nmatch color:\n    case RED:\n        print(\"match\", RED)",
+      "options": [
+        "Ничего не выведет",
+        "match blue",
+        "match red",
+        "NameError"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Голое имя в `case` — шаблон захвата (capture pattern), а не сравнение с константой. Оно совпадает с чем угодно и перезаписывает `RED`. Чтобы сравнивать со значением, используют имена с точкой (`Color.RED`) или guard `if`."
+    },
+    {
+      "id": "py-basics-019",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print(round(2.5), round(3.5), round(0.125, 2))",
+      "options": [
+        "3 4 0.13",
+        "2 4 0.13",
+        "2 4 0.12",
+        "3 3 0.12"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`round()` использует банковское округление: половина округляется к ближайшему чётному, поэтому `round(2.5) == 2`, а `round(3.5) == 4`. 0.125 точно представимо в двоичном виде, это ровно половина, и оно округляется к чётной цифре: 0.12."
+    },
+    {
+      "id": "py-basics-020",
+      "topic": "basics",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения об `is` и `==` верны?",
+      "options": [
+        "Если две строки равны по `==`, то для них всегда `a is b`",
+        "`float('nan') == float('nan')` возвращает `True`",
+        "`x is None` — рекомендуемый (PEP 8) способ проверки на `None`",
+        "`==` можно переопределить через `__eq__`, а поведение `is` переопределить нельзя"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "`None` — синглтон, поэтому его проверяют через `is`. `is` сравнивает идентичность объектов, и её не переопределить. Интернирование строк не гарантировано, а NaN по стандарту IEEE 754 не равен даже самому себе."
+    },
+    {
+      "id": "py-collections-001",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "grid = [[]] * 3\ngrid[0].append(1)\nprint(grid)",
+      "options": [
+        "[[1], [], []]",
+        "[[1]]",
+        "[[1], [1], [1]]",
+        "[[], [], [1]]"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`[[]] * 3` копирует ссылку на один и тот же список три раза. Правильно создавать так: `[[] for _ in range(3)]`."
+    },
+    {
+      "id": "py-collections-002",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие операции над списком `lst` выполняются за O(1) (амортизированно)?",
+      "options": [
+        "`lst.append(x)`",
+        "`lst[i]`",
+        "`lst.insert(0, x)`",
+        "`x in lst`"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "list — это динамический массив: доступ по индексу O(1), добавление в конец амортизированно O(1). Вставка в начало сдвигает все элементы (O(n)), а `in` — линейный поиск (O(n))."
+    },
+    {
+      "id": "py-collections-003",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "d = {\"b\": 1, \"a\": 2}\nd[\"c\"] = 3\nd[\"b\"] = 10\nprint(list(d))",
+      "options": [
+        "['b', 'a', 'c']",
+        "['a', 'b', 'c']",
+        "['a', 'c', 'b']",
+        "['c', 'a', 'b']"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Начиная с Python 3.7 dict гарантированно сохраняет порядок вставки. Изменение значения существующего ключа не меняет его позицию."
+    },
+    {
+      "id": "py-collections-004",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "d = {[1, 2]: \"x\"}",
+      "options": [
+        "Создастся словарь с ключом `[1, 2]`",
+        "Ключ автоматически превратится в кортеж `(1, 2)`",
+        "`KeyError`",
+        "`TypeError: unhashable type: 'list'`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Ключи dict и элементы set должны быть хешируемыми. Изменяемые list, dict и set хеша не имеют. В качестве ключа можно взять кортеж `(1, 2)`."
+    },
+    {
+      "id": "py-collections-005",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a = {1, 2, 3}\nb = {2, 3, 4}\nprint(a & b, a ^ b)",
+      "options": [
+        "{1, 2, 3, 4} {1, 4}",
+        "{2, 3} {1, 4}",
+        "{2, 3} {1}",
+        "{1, 4} {2, 3}"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`&` — пересечение множеств, `^` — симметрическая разность: элементы, которые есть ровно в одном из множеств. Объединение — `|`, разность — `-`."
+    },
+    {
+      "id": "py-collections-006",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "d = {\"a\": 1}\nprint(d.get(\"b\"), d.get(\"b\", 0), len(d))",
+      "options": [
+        "KeyError: 'b'",
+        "None 0 2",
+        "None 0 1",
+        "0 0 1"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`dict.get(key, default=None)` возвращает значение по умолчанию, если ключа нет, и при этом не добавляет ключ в словарь. KeyError бросает только `d[key]`."
+    },
+    {
+      "id": "py-collections-007",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "print([x * x for x in range(5) if x % 2])",
+      "options": [
+        "[1, 9]",
+        "[0, 4, 16]",
+        "[1, 9, 25]",
+        "[0, 1, 4, 9, 16]"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`range(5)` даёт 0..4, а условие `x % 2` истинно для нечётных: 1 и 3. Их квадраты — 1 и 9."
+    },
+    {
+      "id": "py-collections-008",
+      "topic": "collections",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "a = [3, 1, 2]\nb = a.sort()\nprint(a, b)",
+      "options": [
+        "[3, 1, 2] [1, 2, 3]",
+        "[1, 2, 3] [1, 2, 3]",
+        "None [1, 2, 3]",
+        "[1, 2, 3] None"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`list.sort()` сортирует список на месте и возвращает `None`. `sorted()` возвращает новый список и принимает любой iterable."
+    },
+    {
+      "id": "py-collections-009",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "first, *rest = (1, 2, 3, 4)\n*init, last = \"abc\"\nprint(rest, init)",
+      "options": [
+        "(2, 3, 4) ('a', 'b')",
+        "[2, 3, 4] ['a', 'b']",
+        "[2, 3, 4] ab",
+        "(2, 3, 4) ['a', 'b']"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Переменная со звёздочкой при распаковке всегда получает list, даже если распаковывается кортеж или строка."
+    },
+    {
+      "id": "py-collections-010",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import copy\na = [[1, 2], [3]]\nb = a.copy()\nc = copy.deepcopy(a)\na[0].append(99)\na.append([4])\nprint(len(b), b[0], c[0])",
+      "options": [
+        "3 [1, 2, 99] [1, 2]",
+        "2 [1, 2] [1, 2]",
+        "2 [1, 2, 99] [1, 2]",
+        "3 [1, 2, 99] [1, 2, 99]"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`a.copy()` — поверхностная копия: новый внешний список с теми же вложенными объектами. Поэтому `append` к `a` её не меняет, а изменение `a[0]` в ней видно. `deepcopy` рекурсивно копирует и вложенные объекты."
+    },
+    {
+      "id": "py-collections-011",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from collections import Counter\nc = Counter(\"abracadabra\")\nprint(c.most_common(2))",
+      "options": [
+        "[('a', 5), ('b', 2)]",
+        "[('a', 5), ('r', 2)]",
+        "{'a': 5, 'b': 2}",
+        "[('a', 5)]"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`Counter.most_common(n)` возвращает список пар (элемент, count) по убыванию частоты. 'b' и 'r' встречаются по 2 раза, и при равенстве сохраняется порядок первого появления, поэтому идёт 'b'."
+    },
+    {
+      "id": "py-collections-012",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from collections import defaultdict\nd = defaultdict(list)\nd[\"x\"].append(1)\nprint(d[\"y\"], \"y\" in d, len(d))",
+      "options": [
+        "KeyError: 'y'",
+        "[] False 1",
+        "None False 1",
+        "[] True 2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`defaultdict(list)` при обращении к отсутствующему ключу через `[]` вызывает фабрику `list()` и сохраняет результат в словаре. Поэтому одно чтение `d[\"y\"]` добавляет ключ. `get()` и `in` фабрику не вызывают."
+    },
+    {
+      "id": "py-collections-013",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "people = [(\"Bob\", 25), (\"Ann\", 30), (\"Cid\", 25), (\"Dan\", 30)]\npeople.sort(key=lambda p: p[1], reverse=True)\nprint([name for name, _ in people])",
+      "options": [
+        "['Dan', 'Ann', 'Cid', 'Bob']",
+        "['Ann', 'Dan', 'Bob', 'Cid']",
+        "['Ann', 'Dan', 'Cid', 'Bob']",
+        "['Bob', 'Cid', 'Ann', 'Dan']"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Сортировка в Python (Timsort) стабильна: элементы с равными ключами сохраняют исходный порядок, в том числе при `reverse=True`. Сначала идут 30 (Ann, Dan), затем 25 (Bob, Cid)."
+    },
+    {
+      "id": "py-collections-014",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "gen = (x * 2 for x in range(3))\nprint(sum(gen), sum(gen))",
+      "options": [
+        "6 6",
+        "0 6",
+        "6 0",
+        "TypeError: 'generator' object is not reusable"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Генераторное выражение — одноразовый итератор. Первый `sum` его исчерпывает, а второй получает пустую последовательность и возвращает 0."
+    },
+    {
+      "id": "py-collections-015",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие объекты можно использовать как ключ словаря?",
+      "options": [
+        "`{\"a\": 1}`",
+        "`(1, \"a\")`",
+        "`(1, [2])`",
+        "`frozenset({1, 2})`"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Ключ должен быть хешируемым. Кортеж хешируем, только если хешируемы все его элементы, поэтому `(1, [2])` не подходит. `frozenset` хешируем, а `dict` нет."
+    },
+    {
+      "id": "py-collections-016",
+      "topic": "collections",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему для очереди (FIFO) обычно используют `collections.deque`, а не `list`?",
+      "options": [
+        "`deque.popleft()` и `appendleft()` работают за O(1), а `list.pop(0)` и `list.insert(0, x)` — за O(n)",
+        "`deque` хранит элементы отсортированными, поэтому быстрее ищет",
+        "`list` вообще не поддерживает удаление с начала",
+        "`deque` быстрее и при доступе по индексу в середину"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "deque реализован как двусвязный список блоков, поэтому операции на обоих концах выполняются за O(1). У list удаление или вставка в начало сдвигает все элементы. Доступ по индексу в середину deque, наоборот, O(n)."
+    },
+    {
+      "id": "py-collections-017",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "d = {1: \"int\", True: \"bool\", 1.0: \"float\"}\nprint(d)",
+      "options": [
+        "{1: 'int', True: 'bool', 1.0: 'float'}",
+        "{True: 'float'}",
+        "{1.0: 'float'}",
+        "{1: 'float'}"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`1 == True == 1.0`, и их хеши совпадают, поэтому для dict это один ключ. Сохраняется первый вставленный ключ (`1`), а значение перезаписывается последним (`'float'`)."
+    },
+    {
+      "id": "py-collections-018",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "nums = [1, 2, 2, 3]\nfor n in nums:\n    if n == 2:\n        nums.remove(n)\nprint(nums)",
+      "options": [
+        "[1, 3]",
+        "[1, 2, 3]",
+        "[1, 2, 2, 3]",
+        "RuntimeError: list changed size during iteration"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Итератор списка идёт по индексам. После удаления первой 2 (индекс 1) вторая 2 сдвигается на индекс 1, а итератор переходит к индексу 2 и её пропускает. Нельзя менять список при обходе: используйте comprehension `[n for n in nums if n != 2]`."
+    },
+    {
+      "id": "py-collections-019",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "d = {}\nfor w in [\"a\", \"b\", \"a\"]:\n    d.setdefault(w, []).append(len(d))\nprint(d)",
+      "options": [
+        "{'a': [0, 2], 'b': [1]}",
+        "{'a': [1], 'b': [2]}",
+        "{'a': [1, 2], 'b': [2]}",
+        "{'a': [0, 1], 'b': [1]}"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`setdefault` сначала вставляет ключ (если его нет), и только потом вычисляется аргумент `len(d)` для `append`. Получается: a → 1, b → 2, a (уже есть) → 2."
+    },
+    {
+      "id": "py-collections-020",
+      "topic": "collections",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно для `Point = namedtuple(\"Point\", \"x y\")` и `p = Point(1, 2)`?",
+      "options": [
+        "`p._replace(x=5)` изменяет `p` на месте",
+        "Экземпляр занимает больше памяти, чем `dict` с теми же полями",
+        "`p.x = 5` вызовет `AttributeError`, потому что экземпляры неизменяемы",
+        "К полям можно обращаться и по имени (`p.x`), и по индексу (`p[0]`)"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "namedtuple — подкласс tuple с именованными полями: неизменяемый, индексируемый и компактный (без `__dict__` у экземпляров). `_replace` возвращает новый экземпляр."
+    },
+    {
+      "id": "py-functions-001",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def add(x, items=[]):\n    items.append(x)\n    return items\n\nadd(1)\nprint(add(2))",
+      "options": [
+        "[2]",
+        "[1]",
+        "[1, 2]",
+        "TypeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Значения по умолчанию вычисляются один раз, при определении функции. Все вызовы без `items` используют один и тот же список. Правильный идиом: `items=None` и `if items is None: items = []`."
+    },
+    {
+      "id": "py-functions-002",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def f(a, *args, **kwargs):\n    print(a, args, kwargs)\n\nf(1, 2, 3, x=4)",
+      "options": [
+        "1 (2, 3) {'x': 4}",
+        "1 [2, 3] {'x': 4}",
+        "1 (2, 3, 4) {}",
+        "(1, 2, 3) {'x': 4}"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`*args` собирает лишние позиционные аргументы в кортеж, `**kwargs` — именованные в словарь."
+    },
+    {
+      "id": "py-functions-003",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "x = \"global\"\n\ndef outer():\n    x = \"enclosing\"\n    def inner():\n        return x\n    return inner()\n\nprint(outer())",
+      "options": [
+        "global",
+        "NameError",
+        "None",
+        "enclosing"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Имена ищутся по правилу LEGB: Local → Enclosing → Global → Built-in. У `inner` нет локальной `x`, поэтому берётся `x` из объемлющей функции `outer`."
+    },
+    {
+      "id": "py-functions-004",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "count = 0\n\ndef inc():\n    count += 1\n\ninc()",
+      "options": [
+        "Глобальная `count` станет равна 1",
+        "`UnboundLocalError`: локальная `count` используется до присваивания",
+        "Создастся локальная `count = 1`, глобальная останется 0",
+        "`SyntaxError`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Присваивание (включая `+=`) делает имя локальным для всей функции, и `count += 1` читает ещё не присвоенную локальную переменную. Чтобы изменить глобальную, нужно `global count`."
+    },
+    {
+      "id": "py-functions-005",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "f = lambda x, y=2: x ** y\nprint(f(3), f(2, 3))",
+      "options": [
+        "6 6",
+        "9 9",
+        "9 8",
+        "8 9"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Lambda может иметь параметры по умолчанию, как обычная функция: `f(3)` = 3² = 9, `f(2, 3)` = 2³ = 8."
+    },
+    {
+      "id": "py-functions-006",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def shout(s):\n    return s.upper()\n\nf = shout\ndel shout\nprint(f(\"hi\"), f.__name__)",
+      "options": [
+        "HI shout",
+        "NameError: name 'shout' is not defined",
+        "HI f",
+        "hi shout"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Функции — объекты первого класса: `f = shout` создаёт ещё одну ссылку на тот же объект. `del` удаляет только имя, а `__name__` хранится в самом объекте функции."
+    },
+    {
+      "id": "py-functions-007",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой вызов функции `def f(a, *, b): return a + b` корректен?",
+      "options": [
+        "`f(1, 2)`",
+        "`f(a=1, 2)`",
+        "`f(b=2)`",
+        "`f(1, b=2)`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Параметры после `*` — keyword-only: их можно передать только по имени. `f(a=1, 2)` — синтаксическая ошибка (позиционный аргумент после именованного), а в `f(b=2)` не хватает `a`."
+    },
+    {
+      "id": "py-functions-008",
+      "topic": "functions",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def deco(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@deco\ndef greet():\n    \"\"\"Say hi\"\"\"\n\nprint(greet.__name__, greet.__doc__)",
+      "options": [
+        "greet Say hi",
+        "wrapper None",
+        "wrapper Say hi",
+        "greet None"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Декоратор подменяет функцию на `wrapper`, и её метаданные теряются. `@functools.wraps(func)` над `wrapper` копирует `__name__`, `__doc__` и другие атрибуты оригинала."
+    },
+    {
+      "id": "py-functions-009",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Дана функция `def f(a, b, /, c, *, d): ...`. Какие вызовы корректны?",
+      "options": [
+        "`f(1, 2, 3, d=4)`",
+        "`f(1, 2, c=3, d=4)`",
+        "`f(a=1, b=2, c=3, d=4)`",
+        "`f(1, 2, 3, 4)`"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "Параметры до `/` — только позиционные, после `*` — только именованные, а `c` между ними можно передать любым способом. `a=1` по имени и `d` позиционно не допускаются."
+    },
+    {
+      "id": "py-functions-010",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "funcs = [lambda: i for i in range(3)]\nprint([f() for f in funcs])",
+      "options": [
+        "[0, 1, 2]",
+        "[0, 0, 0]",
+        "[2, 2, 2]",
+        "NameError: name 'i' is not defined"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Замыкание хранит ссылку на переменную, а не её значение в момент создания (late binding). Lambda вызываются после цикла, когда `i == 2`."
+    },
+    {
+      "id": "py-functions-011",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как исправить `funcs = [lambda: i for i in range(3)]`, чтобы `[f() for f in funcs]` давало `[0, 1, 2]`?",
+      "options": [
+        "`[lambda i=i: i for i in range(3)]`",
+        "`[lambda: (i) for i in range(3)]`",
+        "`[lambda: i for i in list(range(3))]`",
+        "Объявить `nonlocal i` внутри lambda"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Значение по умолчанию вычисляется при создании lambda, поэтому каждая функция запоминает текущее `i`. Ещё один вариант — `functools.partial`. Скобки и `list()` не влияют на позднее связывание."
+    },
+    {
+      "id": "py-functions-012",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def make_counter():\n    count = 0\n    def inc():\n        nonlocal count\n        count += 1\n        return count\n    return inc\n\nc1 = make_counter()\nc2 = make_counter()\nc1(); c1()\nprint(c1(), c2())",
+      "options": [
+        "3 3",
+        "1 1",
+        "2 1",
+        "3 1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Каждый вызов `make_counter()` создаёт новое замыкание со своей `count`. `nonlocal` позволяет изменять переменную объемлющей функции. `c1` вызван три раза, `c2` — один."
+    },
+    {
+      "id": "py-functions-013",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def bold(f):\n    return lambda: \"<b>\" + f() + \"</b>\"\n\ndef italic(f):\n    return lambda: \"<i>\" + f() + \"</i>\"\n\n@bold\n@italic\ndef text():\n    return \"hi\"\n\nprint(text())",
+      "options": [
+        "<i><b>hi</b></i>",
+        "<b><i>hi</i></b>",
+        "<b>hi</b><i>hi</i>",
+        "<i>hi</i>"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Декораторы применяются снизу вверх: `text = bold(italic(text))`. Поэтому внешней оказывается обёртка `bold`."
+    },
+    {
+      "id": "py-functions-014",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def repeat(n):\n    def deco(func):\n        def wrapper(*args):\n            return [func(*args) for _ in range(n)]\n        return wrapper\n    return deco\n\n@repeat(3)\ndef ping(x):\n    return x * 2\n\nprint(ping(5))",
+      "options": [
+        "10",
+        "[5, 5, 5]",
+        "[10, 10, 10]",
+        "TypeError: deco() missing 1 required positional argument"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Декоратор с аргументами — это фабрика: `repeat(3)` возвращает настоящий декоратор `deco`, и он оборачивает `ping`. Получается `ping = repeat(3)(ping)`."
+    },
+    {
+      "id": "py-functions-015",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from functools import partial\n\ndef power(base, exp):\n    return base ** exp\n\nsquare = partial(power, exp=2)\nprint(square(5), square(2, exp=10))",
+      "options": [
+        "25 1024",
+        "25 4",
+        "TypeError: power() got multiple values for argument 'exp'",
+        "10 20"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`partial` запоминает аргументы. Именованные аргументы, переданные при вызове, перекрывают сохранённые, поэтому `exp=10` заменяет `exp=2`."
+    },
+    {
+      "id": "py-functions-016",
+      "topic": "functions",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно про `functools.lru_cache`?",
+      "options": [
+        "Кэшировать можно только функции с одним аргументом",
+        "Все аргументы функции должны быть хешируемыми",
+        "`@lru_cache(maxsize=None)` (как и `@functools.cache`) кэширует без ограничения размера",
+        "Кэш автоматически сбрасывается при изменении глобальных переменных"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Аргументы служат ключом словаря кэша, поэтому должны быть хешируемыми. Кэш сам не знает об изменении внешнего состояния, его сбрасывают вручную через `f.cache_clear()`."
+    },
+    {
+      "id": "py-functions-017",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "calls = []\n\ndef deco(f):\n    calls.append(\"deco\")\n    def wrapper():\n        calls.append(\"wrapper\")\n        return f()\n    return wrapper\n\n@deco\ndef g():\n    calls.append(\"g\")\n\ncalls.append(\"defined\")\ng()\nprint(calls)",
+      "options": [
+        "['defined', 'deco', 'wrapper', 'g']",
+        "['defined', 'wrapper', 'deco', 'g']",
+        "['deco', 'wrapper', 'defined', 'g']",
+        "['deco', 'defined', 'wrapper', 'g']"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Декоратор выполняется один раз, в момент определения функции (import time), а `wrapper` — при каждом вызове. На этом основаны регистрирующие декораторы, например `@app.route`."
+    },
+    {
+      "id": "py-functions-018",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "def f(a, **kwargs):\n    return a, kwargs\n\nprint(f(1, **{\"a\": 2}))",
+      "options": [
+        "Выведет `(2, {})`",
+        "`TypeError`: f() got multiple values for argument 'a'",
+        "Выведет `(1, {'a': 2})`",
+        "Выведет `(1, {})`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Ключ `a` из распакованного словаря сопоставляется с параметром `a`, который уже получил значение позиционно. В `**kwargs` попадают только имена, не совпадающие с параметрами."
+    },
+    {
+      "id": "py-functions-019",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def outer():\n    x = 1\n    def inner():\n        return x\n    x = 2\n    return inner\n\nprint(outer()())",
+      "options": [
+        "1",
+        "NameError",
+        "2",
+        "None"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Замыкание ссылается на ячейку (cell) переменной `x`, а не копирует её значение. К моменту вызова `inner` в ячейке уже лежит 2."
+    },
+    {
+      "id": "py-functions-020",
+      "topic": "functions",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о `global` и `nonlocal` верны?",
+      "options": [
+        "`nonlocal x` на уровне модуля объявляет глобальную `x`",
+        "`global x` во вложенной функции ссылается на `x` объемлющей функции",
+        "`nonlocal` ищет имя только в объемлющих функциях, но не в глобальной области",
+        "Без `global` функция может читать глобальную переменную, но присваивание ей создаст локальную"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "`nonlocal` работает только с переменными объемлющих функций. На уровне модуля это SyntaxError, как и при отсутствии такой переменной. `global` всегда ссылается на пространство имён модуля."
+    },
+    {
+      "id": "py-oop-001",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class Dog:\n    tricks = []\n\n    def __init__(self, name):\n        self.name = name\n\n    def add(self, trick):\n        self.tricks.append(trick)\n\na = Dog(\"A\")\nb = Dog(\"B\")\na.add(\"sit\")\nprint(b.tricks)",
+      "options": [
+        "[]",
+        "AttributeError: 'Dog' object has no attribute 'tricks'",
+        "['sit']",
+        "['sit', 'sit']"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`tricks` — атрибут класса, один список для всех экземпляров. `self.tricks.append` не создаёт атрибут экземпляра, а меняет общий список. Изменяемое состояние инициализируют в `__init__`."
+    },
+    {
+      "id": "py-oop-002",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class C:\n    x = 1\n\na = C()\nb = C()\na.x = 5\nC.x = 10\nprint(a.x, b.x)",
+      "options": [
+        "5 10",
+        "5 1",
+        "10 10",
+        "5 5"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`a.x = 5` создаёт атрибут экземпляра, который перекрывает атрибут класса. `b` своего `x` не имеет и читает актуальное `C.x`."
+    },
+    {
+      "id": "py-oop-003",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class P:\n    def __repr__(self):\n        return \"repr\"\n\n    def __str__(self):\n        return \"str\"\n\np = P()\nprint(p, [p], f\"{p!r}\")",
+      "options": [
+        "str [str] repr",
+        "repr [repr] repr",
+        "str [str] str",
+        "str [repr] repr"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`print` и `str()` используют `__str__`, а контейнеры при выводе показывают элементы через `__repr__`. `!r` в f-строке явно вызывает `repr()`."
+    },
+    {
+      "id": "py-oop-004",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое `self` в методе экземпляра?",
+      "options": [
+        "Зарезервированное ключевое слово, которое интерпретатор неявно определяет внутри метода",
+        "Ссылка на экземпляр, которая явно передаётся первым параметром; имя `self` — соглашение, а не ключевое слово",
+        "Ссылка на класс, в котором определён метод",
+        "Глобальная переменная, указывающая на последний созданный объект"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Вызов `obj.method(x)` эквивалентен `Class.method(obj, x)`: экземпляр передаётся первым аргументом. Параметр можно назвать как угодно, но по PEP 8 принято `self`."
+    },
+    {
+      "id": "py-oop-005",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class Box:\n    def __init__(self, items):\n        self.items = items\n\n    def __len__(self):\n        return len(self.items)\n\nprint(len(Box([1, 2])), bool(Box([])))",
+      "options": [
+        "2 True",
+        "TypeError: object of type 'Box' has no len()",
+        "2 False",
+        "2 None"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Если `__bool__` не определён, `bool()` использует `__len__`: объект нулевой длины считается ложным."
+    },
+    {
+      "id": "py-oop-006",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "class Temp:\n    def __init__(self):\n        self._c = 0\n\n    @property\n    def c(self):\n        return self._c\n\nt = Temp()\nt.c = 5",
+      "options": [
+        "`AttributeError`: у свойства нет setter",
+        "`t.c` станет равно 5",
+        "Значение запишется в `t._c`",
+        "`TypeError`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`@property` без `@c.setter` создаёт атрибут только для чтения. Чтобы разрешить присваивание, нужно определить setter."
+    },
+    {
+      "id": "py-oop-007",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про `@classmethod` и `@staticmethod`?",
+      "options": [
+        "`classmethod` получает класс (`cls`) первым аргументом",
+        "`staticmethod` можно вызвать и через класс, и через экземпляр",
+        "`classmethod`, вызванный через подкласс, получает в `cls` базовый класс",
+        "`staticmethod` автоматически получает `self`"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "`classmethod` получает тот класс, через который его вызвали (в том числе подкласс), поэтому подходит для альтернативных конструкторов. `staticmethod` — обычная функция в пространстве имён класса, без `self` и `cls`."
+    },
+    {
+      "id": "py-oop-008",
+      "topic": "oop",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A:\n    def hello(self):\n        return \"A\"\n\nclass B(A):\n    def hello(self):\n        return \"B\" + super().hello()\n\nprint(B().hello())",
+      "options": [
+        "B",
+        "AB",
+        "RecursionError",
+        "BA"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`super().hello()` вызывает реализацию следующего класса в MRO (здесь `A`), и её результат дописывается к \"B\"."
+    },
+    {
+      "id": "py-oop-009",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A:\n    def who(self): return \"A\"\n\nclass B(A):\n    def who(self): return \"B\" + super().who()\n\nclass C(A):\n    def who(self): return \"C\" + super().who()\n\nclass D(B, C):\n    def who(self): return \"D\" + super().who()\n\nprint(D().who())",
+      "options": [
+        "DBA",
+        "DBCA",
+        "DBACA",
+        "DCBA"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "MRO строится алгоритмом C3: D → B → C → A → object. `super()` вызывает следующий класс в MRO экземпляра, а не родителя текущего класса, поэтому из `B` вызов идёт в `C`, и `A` вызывается ровно один раз."
+    },
+    {
+      "id": "py-oop-010",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "class P:\n    def __init__(self, x):\n        self.x = x\n\n    def __eq__(self, other):\n        return self.x == other.x\n\ns = {P(1)}",
+      "options": [
+        "Создастся множество из одного элемента",
+        "`AttributeError`",
+        "`TypeError: unhashable type: 'P'`",
+        "Хеш вычислится по `id()`, и всё сработает"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Если в классе определён `__eq__`, а `__hash__` нет, Python устанавливает `__hash__ = None`, и объект становится нехешируемым. Хеш должен быть согласован с равенством, поэтому его определяют вместе с `__eq__`."
+    },
+    {
+      "id": "py-oop-011",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "from dataclasses import dataclass\n\n@dataclass\nclass Cart:\n    items: list = []",
+      "options": [
+        "`ValueError` при определении класса: изменяемое значение по умолчанию запрещено, нужно `field(default_factory=list)`",
+        "Все экземпляры будут разделять один список",
+        "Каждый экземпляр получит свой пустой список",
+        "`TypeError` при создании экземпляра"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "dataclass защищает от ловушки изменяемого default и бросает ValueError для list, dict и set (точнее, для любых нехешируемых значений). `field(default_factory=list)` создаёт новый список для каждого экземпляра."
+    },
+    {
+      "id": "py-oop-012",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Что верно для `@dataclass(frozen=True) class P: x: int`?",
+      "options": [
+        "Значение `x` нельзя передать в конструктор",
+        "Присваивание `p.x = 1` вызывает `FrozenInstanceError`",
+        "Экземпляры хешируемы: генерируется `__hash__`",
+        "Автоматически генерируются `__init__`, `__repr__` и `__eq__`"
+      ],
+      "correct": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "По умолчанию dataclass генерирует `__init__`, `__repr__` и `__eq__`. При `frozen=True` (и `eq=True`) добавляется `__hash__` по полям, а `__setattr__` запрещает изменение. Поля передаются в `__init__` как обычно."
+    },
+    {
+      "id": "py-oop-013",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A:\n    def __init__(self):\n        self.__secret = 1\n\na = A()\nprint(hasattr(a, \"__secret\"), a._A__secret)",
+      "options": [
+        "True 1",
+        "AttributeError: 'A' object has no attribute '_A__secret'",
+        "False None",
+        "False 1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Атрибуты вида `__name` внутри класса переименовываются в `_ClassName__name` (name mangling). Это защита от случайных конфликтов в подклассах, а не настоящая приватность."
+    },
+    {
+      "id": "py-oop-014",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "class P:\n    __slots__ = (\"x\",)\n\np = P()\np.x = 1\np.y = 2",
+      "options": [
+        "`p.y` сохранится в `p.__dict__`",
+        "`AttributeError` на строке `p.y = 2`",
+        "`TypeError` при определении класса",
+        "Ничего: `__slots__` — лишь подсказка для IDE"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`__slots__` заменяет `__dict__` экземпляра фиксированным набором слотов. Это экономит память, но добавить атрибут вне списка нельзя."
+    },
+    {
+      "id": "py-oop-015",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении кода?",
+      "code": "from abc import ABC, abstractmethod\n\nclass Shape(ABC):\n    @abstractmethod\n    def area(self): ...\n\nclass Sq(Shape):\n    pass\n\nSq()",
+      "options": [
+        "`NotImplementedError` только при вызове `area()`",
+        "Объект создастся без ошибок",
+        "`TypeError`: нельзя создать экземпляр абстрактного класса `Sq`",
+        "`AttributeError`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Класс, унаследованный от `ABC`, нельзя инстанцировать, пока не переопределены все методы с `@abstractmethod`. Проверка происходит при создании экземпляра, а не при вызове метода."
+    },
+    {
+      "id": "py-oop-016",
+      "topic": "oop",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class Base:\n    @classmethod\n    def create(cls):\n        return cls()\n\n    def __repr__(self):\n        return type(self).__name__\n\nclass Child(Base):\n    pass\n\nprint(Child.create(), Base.create())",
+      "options": [
+        "Child Base",
+        "Base Base",
+        "Child Child",
+        "TypeError"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`classmethod` получает класс, через который его вызвали, поэтому `cls()` в наследнике создаёт экземпляр наследника. Так работают альтернативные конструкторы вроде `dict.fromkeys`."
+    },
+    {
+      "id": "py-oop-017",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class S:\n    _inst = None\n\n    def __new__(cls):\n        if cls._inst is None:\n            cls._inst = super().__new__(cls)\n        return cls._inst\n\n    def __init__(self):\n        print(\"init\")\n\na = S()\nb = S()\nprint(a is b)",
+      "options": [
+        "init\nTrue",
+        "init\ninit\nFalse",
+        "True",
+        "init\ninit\nTrue"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`__new__` создаёт объект, а `__init__` его инициализирует. Если `__new__` возвращает экземпляр класса, `__init__` вызывается каждый раз, даже для уже существующего объекта."
+    },
+    {
+      "id": "py-oop-018",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class CM:\n    def __enter__(self):\n        print(\"enter\")\n        return \"res\"\n\n    def __exit__(self, exc_type, exc, tb):\n        print(\"exit\", exc_type.__name__)\n        return True\n\nwith CM() as r:\n    print(r)\n    raise ValueError\nprint(\"after\")",
+      "options": [
+        "enter\nres\nexit ValueError\nTraceback ... ValueError",
+        "enter\nres\nexit ValueError\nafter",
+        "enter\nexit ValueError\nafter",
+        "enter\nres\nafter\nexit ValueError"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`as` получает значение, которое вернул `__enter__`. При исключении `__exit__` получает его тип, и если `__exit__` возвращает истинное значение, исключение подавляется, а выполнение продолжается после блока `with`."
+    },
+    {
+      "id": "py-oop-019",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какого метода достаточно, чтобы объект можно было обходить в `for x in obj`?",
+      "options": [
+        "`__len__`",
+        "`__contains__`",
+        "`__iter__`, возвращающий итератор",
+        "`__getitem__`, принимающий индексы 0, 1, 2, … и бросающий `IndexError` в конце"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "Это duck typing: `iter()` сначала ищет `__iter__`, а если его нет, использует старый протокол последовательности через `__getitem__`. `__len__` и `__contains__` отвечают за `len()` и `in`, но не делают объект итерируемым."
+    },
+    {
+      "id": "py-oop-020",
+      "topic": "oop",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class A:\n    count = 0\n\n    def __init__(self):\n        self.count += 1\n\na = A()\nb = A()\nprint(a.count, A.count)",
+      "options": [
+        "2 2",
+        "1 1",
+        "1 0",
+        "2 0"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`self.count += 1` читает `count` (находит атрибут класса, 0) и записывает результат в атрибут экземпляра. Атрибут класса остаётся 0, а у каждого экземпляра своё значение 1."
+    }
+  ]
+}

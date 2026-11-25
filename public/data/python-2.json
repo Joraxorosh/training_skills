@@ -1,0 +1,1439 @@
+{
+  "topics": [
+    {
+      "id": "iterators",
+      "title": "Итераторы и генераторы"
+    },
+    {
+      "id": "errors",
+      "title": "Исключения и контекстные менеджеры"
+    },
+    {
+      "id": "concurrency",
+      "title": "Конкурентность: GIL, потоки, процессы, asyncio"
+    },
+    {
+      "id": "tooling",
+      "title": "Модули, окружение, типизация и тесты"
+    }
+  ],
+  "questions": [
+    {
+      "id": "py-iterators-001",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "it = iter([1, 2, 3])\nprint(list(it))\nprint(list(it))",
+      "options": [
+        "[1, 2, 3]\n[1, 2, 3]",
+        "[1, 2, 3]\n[]",
+        "[]\n[]",
+        "[1, 2, 3]\nStopIteration"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Итератор одноразовый: первый `list(it)` вычерпывает его до `StopIteration`, второй сразу получает пустую последовательность. Чтобы пройти данные заново, нужно снова вызвать `iter()` у исходного списка."
+    },
+    {
+      "id": "py-iterators-002",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какие методы составляют протокол итератора?",
+      "options": [
+        "`__getitem__` и `__len__`",
+        "Только `__next__`, `__iter__` нужен лишь коллекциям",
+        "`__iter__` и `__contains__`",
+        "`__iter__` (возвращает сам итератор) и `__next__`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Итератор реализует `__next__` (следующий элемент или `StopIteration` в конце) и `__iter__`, возвращающий `self`, — поэтому итератор можно передать в `for`. Итерируемый объект (список, строка) реализует только `__iter__`, возвращающий новый итератор."
+    },
+    {
+      "id": "py-iterators-003",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def gen():\n    print(\"start\")\n    yield 1\n\ng = gen()\nprint(\"created\")",
+      "options": [
+        "created",
+        "start\ncreated",
+        "created\nstart",
+        "start"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Вызов генераторной функции не выполняет её тело, а лишь создаёт объект-генератор. Код до первого `yield` запустится только при первом `next(g)` или итерации."
+    },
+    {
+      "id": "py-iterators-004",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from itertools import chain\nprint(list(chain([1, 2], \"ab\", (3,))))",
+      "options": [
+        "[[1, 2], 'ab', (3,)]",
+        "[1, 2, 'ab', 3]",
+        "[1, 2, 'a', 'b', 3]",
+        "TypeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`itertools.chain` лениво проходит по каждому переданному итерируемому подряд и выдаёт их элементы. Строка итерируется посимвольно, поэтому `'ab'` даёт `'a'` и `'b'`."
+    },
+    {
+      "id": "py-iterators-005",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "r = range(3)\nprint(next(r))",
+      "options": [
+        "0",
+        "StopIteration",
+        "TypeError",
+        "AttributeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`range` — итерируемая ленивая последовательность, но не итератор: у неё нет `__next__`. `next()` требует итератор, поэтому будет `TypeError: 'range' object is not an iterator`; сначала нужно вызвать `iter(r)`."
+    },
+    {
+      "id": "py-iterators-006",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Чем генераторное выражение `(x * x for x in data)` отличается от списочного включения `[x * x for x in data]`?",
+      "options": [
+        "Значения вычисляются лениво, по одному при запросе",
+        "Его можно обойти сколько угодно раз",
+        "Не хранит все результаты в памяти одновременно",
+        "Поддерживает `len()` и индексацию"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Генераторное выражение создаёт генератор: элементы вычисляются по требованию, память под весь результат не выделяется. Зато он одноразовый и не поддерживает `len()`/индексацию — это свойства списка."
+    },
+    {
+      "id": "py-iterators-007",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "names = [\"a\", \"b\", \"c\"]\nfor i, n in enumerate(names, start=1):\n    print(i, n, end=\"; \")",
+      "options": [
+        "1 a; 2 b; 3 c;",
+        "0 a; 1 b; 2 c;",
+        "(1, 'a'); (2, 'b'); (3, 'c');",
+        "1 a; 2 b;"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`enumerate(iterable, start=1)` выдаёт пары `(индекс, элемент)`, начиная счёт с `start`. Распаковка в `i, n` и `print(..., end=\"; \")` печатают их в одну строку."
+    },
+    {
+      "id": "py-iterators-008",
+      "topic": "iterators",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from itertools import product\nprint(list(product(\"ab\", [1, 2])))",
+      "options": [
+        "[('a', 1), ('b', 2)]",
+        "[('a', 'b'), (1, 2)]",
+        "[('a', 1), ('b', 1), ('a', 2), ('b', 2)]",
+        "[('a', 1), ('a', 2), ('b', 1), ('b', 2)]"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`product` — декартово произведение, эквивалент вложенных циклов: самый правый аргумент меняется быстрее всех. Поэтому для каждого символа перебираются все числа."
+    },
+    {
+      "id": "py-iterators-009",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "try:\n    list(zip([1, 2, 3], \"ab\", strict=True))\nexcept Exception as e:\n    print(type(e).__name__)",
+      "options": [
+        "TypeError",
+        "ValueError",
+        "IndexError",
+        "Ничего: zip молча обрежет до 2 элементов"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "С Python 3.10 `zip(..., strict=True)` проверяет, что все итерируемые одной длины, и бросает `ValueError`, когда одно заканчивается раньше. Без `strict` zip молча обрезает по самому короткому."
+    },
+    {
+      "id": "py-iterators-010",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from itertools import groupby\ndata = \"aabba\"\nprint([(k, len(list(g))) for k, g in groupby(data)])",
+      "options": [
+        "[('a', 3), ('b', 2)]",
+        "[('a', 2), ('b', 2), ('a', 1)]",
+        "[('a', 2), ('b', 2)]",
+        "{'a': 3, 'b': 2}"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`groupby` группирует только соседние одинаковые ключи, поэтому последнее `'a'` образует новую группу. Чтобы собрать все одинаковые ключи вместе, данные сначала сортируют по тому же ключу."
+    },
+    {
+      "id": "py-iterators-011",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def inner():\n    yield 1\n    yield 2\n    return \"done\"\n\ndef outer():\n    result = yield from inner()\n    yield result\n\nprint(list(outer()))",
+      "options": [
+        "[1, 2]",
+        "[1, 2, None]",
+        "['done']",
+        "[1, 2, 'done']"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`yield from` пробрасывает все значения вложенного генератора наружу, а его результатом становится значение `return` вложенного генератора (из `StopIteration.value`). Затем `outer` выдаёт его отдельным `yield`."
+    },
+    {
+      "id": "py-iterators-012",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def acc():\n    total = 0\n    while True:\n        x = yield total\n        total += x\n\ng = acc()\nnext(g)\ng.send(5)\nprint(g.send(10))",
+      "options": [
+        "15",
+        "10",
+        "5",
+        "None"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`next(g)` доводит генератор до первого `yield` (выдаёт 0). `send(5)` кладёт 5 в `x`, total = 5, генератор выдаёт 5. `send(10)` даёт total = 15 — это значение и возвращает `send`."
+    },
+    {
+      "id": "py-iterators-013",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при вызове `g.send(1)` у только что созданного (ещё не запущенного) генератора?",
+      "options": [
+        "Значение 1 станет первым выданным элементом",
+        "Генератор выполнится до первого `yield`, а 1 будет проигнорировано",
+        "`TypeError`: в незапущенный генератор можно отправить только `None`",
+        "`StopIteration`"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Генератор, ещё не дошедший до `yield`, некуда «принять» значение, поэтому разрешён только `send(None)` (эквивалент `next(g)`). Это называется «прайминг» генератора."
+    },
+    {
+      "id": "py-iterators-014",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from itertools import count, islice\nprint(list(islice(count(10, 5), 2, 5)))",
+      "options": [
+        "[10, 15, 20]",
+        "[20, 25, 30, 35]",
+        "[20, 25, 30]",
+        "[15, 20, 25]"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`count(10, 5)` бесконечно выдаёт 10, 15, 20, 25, 30, … `islice(it, 2, 5)` пропускает элементы с индексами 0–1 и берёт индексы 2, 3, 4. В отличие от срезов списка, `islice` работает с любым итератором, в том числе бесконечным."
+    },
+    {
+      "id": "py-iterators-015",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие из объектов являются итераторами (а не просто итерируемыми)?",
+      "options": [
+        "`map(str, [1, 2])`",
+        "`range(5)`",
+        "`(x for x in [1, 2])`",
+        "`{'a': 1}.keys()`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "`map` и генераторы реализуют `__next__` и возвращают себя из `__iter__`. `range` и представления словаря — итерируемые: каждый вызов `iter()` даёт новый итератор, их можно обходить много раз."
+    },
+    {
+      "id": "py-iterators-016",
+      "topic": "iterators",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from itertools import accumulate\nprint(list(accumulate([1, 2, 3, 4], initial=10)))",
+      "options": [
+        "[10, 11, 13, 16, 20]",
+        "[11, 13, 16, 20]",
+        "[1, 3, 6, 10]",
+        "[10, 1, 3, 6, 10]"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`accumulate` выдаёт накопленные суммы; с `initial` это значение идёт первым элементом и становится стартом накопления. Поэтому результат на один элемент длиннее входа."
+    },
+    {
+      "id": "py-iterators-017",
+      "topic": "iterators",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "x = [1, 2, 3]\ng = (i * 10 for i in x)\nx = [7, 8]\nprint(list(g))",
+      "options": [
+        "[70, 80]",
+        "[]",
+        "NameError",
+        "[10, 20, 30]"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "В генераторном выражении самый внешний итерируемый (`x` после `in`) вычисляется сразу при создании генератора. Переприсваивание имени `x` после этого не влияет на уже захваченный список."
+    },
+    {
+      "id": "py-iterators-018",
+      "topic": "iterators",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "g = (n for n in range(6))\nprint(3 in g)\nprint(list(g))",
+      "options": [
+        "True\n[0, 1, 2, 3, 4, 5]",
+        "True\n[4, 5]",
+        "True\n[]",
+        "False\n[0, 1, 2, 3, 4, 5]"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Оператор `in` для генератора потребляет элементы, пока не найдёт совпадение: 0, 1, 2, 3 уже прочитаны. `list(g)` получает только оставшиеся 4 и 5."
+    },
+    {
+      "id": "py-iterators-019",
+      "topic": "iterators",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения о генераторах верны?",
+      "options": [
+        "Исчерпанный генератор можно перезапустить вызовом `iter(g)`",
+        "`return value` в генераторе превращается в `StopIteration(value)`",
+        "Генераторная функция при вызове сразу выполняет тело до первого `yield`",
+        "`g.close()` бросает `GeneratorExit` в точке приостановки генератора"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "`iter(g)` возвращает тот же исчерпанный генератор, а тело функции не выполняется до первого `next`. Значение `return` доступно как `StopIteration.value` (его забирает `yield from`), а `close()` бросает `GeneratorExit`, чтобы сработали `finally`-блоки."
+    },
+    {
+      "id": "py-iterators-020",
+      "topic": "iterators",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def gen():\n    it = iter([1])\n    yield next(it)\n    yield next(it)\n\ntry:\n    print(list(gen()))\nexcept Exception as e:\n    print(type(e).__name__)",
+      "options": [
+        "[1]",
+        "RuntimeError",
+        "StopIteration",
+        "[1, None]"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "По PEP 479 (Python 3.7+) `StopIteration`, вылетевший внутри тела генератора, превращается в `RuntimeError`, чтобы случайная ошибка не выглядела как штатное завершение. Второй `next(it)` бросает его, поэтому `list()` получает `RuntimeError`."
+    },
+    {
+      "id": "py-errors-001",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "try:\n    print(\"try\")\nexcept ValueError:\n    print(\"except\")\nelse:\n    print(\"else\")\nfinally:\n    print(\"finally\")",
+      "options": [
+        "try\nfinally",
+        "try\nelse\nfinally",
+        "try\nfinally\nelse",
+        "try\nexcept\nfinally"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Если в `try` нет исключения, `except` пропускается, затем выполняется `else`, и в конце всегда `finally`. Порядок блоков в выполнении совпадает с порядком в коде."
+    },
+    {
+      "id": "py-errors-002",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Зачем нужен блок `else` в конструкции `try/except/else`?",
+      "options": [
+        "Для кода, который выполняется всегда, даже при исключении",
+        "Для обработки исключений, не пойманных ни одним `except`",
+        "Для кода, выполняемого перед `try`",
+        "Для кода, который выполняется, только если в `try` не было исключения"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`else` запускается, только если `try` завершился без исключения. Туда выносят код, ошибки которого не должен перехватывать `except`, — так `try` остаётся минимальным."
+    },
+    {
+      "id": "py-errors-003",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def f():\n    try:\n        return \"try\"\n    finally:\n        print(\"finally\")\n\nprint(f())",
+      "options": [
+        "finally\ntry",
+        "try\nfinally",
+        "try",
+        "finally"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`return \"try\"` вычисляет значение, но перед выходом из функции выполняется `finally` — поэтому сначала печатается `finally`. Затем `print` снаружи выводит возвращённое значение."
+    },
+    {
+      "id": "py-errors-004",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем опасен «голый» `except:` без указания типа?",
+      "options": [
+        "Он ловит только `Exception`, пропуская ошибки синтаксиса",
+        "Это синтаксическая ошибка в Python 3",
+        "Он ловит всё, включая `KeyboardInterrupt` и `SystemExit`, и может маскировать ошибки",
+        "Он замедляет код в несколько раз даже без исключений"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`except:` эквивалентен `except BaseException:` — он перехватит Ctrl+C и `sys.exit()`, а также скроет реальные баги. Ловить стоит конкретные исключения или хотя бы `Exception`."
+    },
+    {
+      "id": "py-errors-005",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "От какого класса правильно наследовать собственные исключения приложения?",
+      "options": [
+        "`BaseException`",
+        "`object`",
+        "`Exception`",
+        "`RuntimeError` — обязательно для всех пользовательских ошибок"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Пользовательские исключения наследуют от `Exception` (или его подклассов), чтобы их ловил обычный `except Exception`. `BaseException` зарезервирован для системных событий вроде `KeyboardInterrupt` и `SystemExit`."
+    },
+    {
+      "id": "py-errors-006",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "try:\n    int(\"abc\")\nexcept (TypeError, ValueError) as e:\n    print(type(e).__name__)",
+      "options": [
+        "ValueError",
+        "TypeError",
+        "ValueError\nTypeError",
+        "Ничего, исключение не поймано"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`int(\"abc\")` бросает `ValueError` — тип аргумента верный, неверно значение. Кортеж в `except` ловит любое из перечисленных исключений, а `as e` даёт доступ к самому объекту."
+    },
+    {
+      "id": "py-errors-007",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Код `try: v = d[key]` / `except KeyError: v = default` — пример какого стиля?",
+      "options": [
+        "LBYL — «посмотри, прежде чем прыгать»",
+        "RAII",
+        "Defensive copying",
+        "EAFP — «проще попросить прощения, чем разрешения»"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "EAFP: действуем сразу и обрабатываем исключение, а не проверяем условие заранее (`if key in d`, это LBYL). В Python EAFP идиоматичен и избегает гонок между проверкой и действием."
+    },
+    {
+      "id": "py-errors-008",
+      "topic": "errors",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие объекты поддерживают протокол контекстного менеджера (`with`) из коробки?",
+      "options": [
+        "`list`",
+        "Файловый объект из `open()`",
+        "`threading.Lock`",
+        "`dict`"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Файл в `__exit__` закрывается, а блокировка `Lock` в `__enter__` захватывается и в `__exit__` освобождается — даже при исключении. У `list` и `dict` нет методов `__enter__`/`__exit__`."
+    },
+    {
+      "id": "py-errors-009",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def f():\n    try:\n        return 1\n    finally:\n        return 2\n\nprint(f())",
+      "options": [
+        "1",
+        "2",
+        "1\n2",
+        "SyntaxError"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`return` в `finally` перезаписывает значение, возвращённое из `try`. Поведение считается ловушкой: с Python 3.14 (PEP 765) на такой код выдаётся `SyntaxWarning`, но результат прежний."
+    },
+    {
+      "id": "py-errors-010",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def f():\n    try:\n        raise ValueError(\"boom\")\n    finally:\n        return \"ok\"\n\nprint(f())",
+      "options": [
+        "ValueError: boom",
+        "ok",
+        "ok\nValueError: boom",
+        "None"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`return` в `finally` не только подменяет результат, но и отменяет летящее исключение: `ValueError` молча теряется. Поэтому выходить из функции в `finally` через `return`/`break` не рекомендуется."
+    },
+    {
+      "id": "py-errors-011",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Перехватит ли `except Exception:` нажатие Ctrl+C во время работы программы?",
+      "options": [
+        "Да: все исключения наследуются от `Exception`",
+        "Да, но только в главном потоке",
+        "Нет: Ctrl+C завершает процесс сигналом, исключения не возникает",
+        "Нет: `KeyboardInterrupt` наследуется от `BaseException`, а не от `Exception`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`KeyboardInterrupt`, `SystemExit` и `GeneratorExit` специально выведены из-под `Exception`, чтобы обычные обработчики ошибок не мешали прервать программу. Ctrl+C в Python по умолчанию превращается именно в исключение `KeyboardInterrupt`."
+    },
+    {
+      "id": "py-errors-012",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "try:\n    try:\n        {}[\"k\"]\n    except KeyError as e:\n        raise ValueError(\"bad\") from e\nexcept ValueError as err:\n    print(type(err.__cause__).__name__, err.__suppress_context__)",
+      "options": [
+        "KeyError True",
+        "KeyError False",
+        "ValueError True",
+        "NoneType False"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`raise ... from e` записывает исходное исключение в `__cause__` и выставляет `__suppress_context__ = True`, поэтому в трейсбэке будет «The above exception was the direct cause…». Это явная цепочка исключений."
+    },
+    {
+      "id": "py-errors-013",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "class Quiet:\n    def __enter__(self):\n        return self\n    def __exit__(self, exc_type, exc, tb):\n        print(\"exit\", exc_type.__name__)\n        return True\n\nwith Quiet():\n    1 / 0\nprint(\"after\")",
+      "options": [
+        "exit ZeroDivisionError\nZeroDivisionError",
+        "after",
+        "exit ZeroDivisionError\nafter",
+        "ZeroDivisionError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`__exit__` получает тип, значение и трейсбэк исключения. Если он возвращает истинное значение, исключение подавляется и выполнение продолжается после блока `with`."
+    },
+    {
+      "id": "py-errors-014",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from contextlib import contextmanager\n\n@contextmanager\ndef tag(name):\n    print(f\"<{name}>\")\n    yield\n    print(f\"</{name}>\")\n\nwith tag(\"b\"):\n    print(\"text\")",
+      "options": [
+        "text\n<b>\n</b>",
+        "<b>\n</b>\ntext",
+        "<b>\ntext\n</b>",
+        "<b>\ntext"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`@contextmanager` превращает генератор в контекстный менеджер: код до `yield` — это `__enter__`, после — `__exit__`. Тело `with` выполняется в момент `yield`."
+    },
+    {
+      "id": "py-errors-015",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from contextlib import suppress\n\nwith suppress(KeyError):\n    d = {}\n    print(\"a\")\n    d[\"x\"]\n    print(\"b\")\nprint(\"c\")",
+      "options": [
+        "a\nc",
+        "a\nb\nc",
+        "a",
+        "KeyError"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`suppress(KeyError)` подавляет исключение, но выполнение не возвращается в место ошибки: остаток блока `with` (`print(\"b\")`) пропускается, программа продолжает работу после `with`."
+    },
+    {
+      "id": "py-errors-016",
+      "topic": "errors",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие исключения НЕ будут пойманы обработчиком `except Exception:`?",
+      "options": [
+        "`ZeroDivisionError`",
+        "`SystemExit`",
+        "`StopIteration`",
+        "`KeyboardInterrupt`"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "`SystemExit` и `KeyboardInterrupt` наследуются напрямую от `BaseException`. `ZeroDivisionError` (через `ArithmeticError`) и `StopIteration` — подклассы `Exception`."
+    },
+    {
+      "id": "py-errors-017",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "try:\n    raise ExceptionGroup(\"eg\", [ValueError(1), TypeError(2), ValueError(3)])\nexcept* ValueError as g:\n    print(\"V\", len(g.exceptions))\nexcept* TypeError as g:\n    print(\"T\", len(g.exceptions))",
+      "options": [
+        "V 2",
+        "V 1\nT 1\nV 1",
+        "ExceptionGroup",
+        "V 2\nT 1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`except*` разбивает `ExceptionGroup`: каждый обработчик получает подгруппу подходящих исключений, и могут сработать несколько веток. Обе `ValueError` попадают в первую ветку одной группой, `TypeError` — во вторую."
+    },
+    {
+      "id": "py-errors-018",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "e = \"start\"\ntry:\n    1 / 0\nexcept ZeroDivisionError as e:\n    pass\nprint(e)",
+      "options": [
+        "start",
+        "NameError",
+        "division by zero",
+        "None"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "После блока `except ... as e` переменная `e` неявно удаляется (`del e`), чтобы не держать ссылку на трейсбэк и кадры стека. Поскольку имя совпало с внешним, `print(e)` падает с `NameError`."
+    },
+    {
+      "id": "py-errors-019",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что верно о `contextlib.ExitStack`?",
+      "options": [
+        "Позволяет войти в заранее неизвестное число контекстных менеджеров",
+        "Выходит из менеджеров в обратном порядке (LIFO)",
+        "Если один `__exit__` бросит исключение, остальные не будут вызваны",
+        "`callback()` регистрирует произвольную функцию для вызова при выходе"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "`ExitStack` — динамическая версия вложенных `with`: `enter_context()` добавляет менеджеры в цикле, выход идёт в обратном порядке. Как и у вложенных `with`, остальные выходы вызываются даже если один из них упал; `callback()` позволяет регистрировать очистку без менеджера."
+    },
+    {
+      "id": "py-errors-020",
+      "topic": "errors",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from contextlib import contextmanager\n\n@contextmanager\ndef res():\n    print(\"open\")\n    yield\n    print(\"close\")\n\ntry:\n    with res():\n        raise RuntimeError\nexcept RuntimeError:\n    print(\"caught\")",
+      "options": [
+        "open\nclose\ncaught",
+        "open\ncaught",
+        "open\nclose",
+        "open\ncaught\nclose"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "В `@contextmanager` исключение из тела `with` бросается в генератор в точке `yield`. Без `try/finally` вокруг `yield` код после него не выполняется — поэтому `close` не печатается. Очистку в таких менеджерах всегда оборачивают в `try/finally`."
+    },
+    {
+      "id": "py-concurrency-001",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое GIL в CPython?",
+      "options": [
+        "Блокировка, запрещающая создавать больше одного потока в процессе",
+        "Глобальная блокировка, позволяющая только одному потоку процесса выполнять байт-код Python в каждый момент",
+        "Механизм, делающий любые операции над общими данными потокобезопасными",
+        "Сборщик мусора для циклических ссылок"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "GIL (Global Interpreter Lock) защищает внутреннее состояние интерпретатора, например счётчики ссылок. Потоков может быть много, но байт-код одновременно исполняет только один — поэтому CPU-bound код на потоках не ускоряется."
+    },
+    {
+      "id": "py-concurrency-002",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Задача — тяжёлые вычисления на чистом Python (CPU-bound) на 8 ядрах. Что выбрать в стандартном CPython?",
+      "options": [
+        "`threading` / `ThreadPoolExecutor`",
+        "`asyncio`",
+        "Без разницы: GIL распределит работу по ядрам сам",
+        "`multiprocessing` / `ProcessPoolExecutor`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Из-за GIL потоки не исполняют байт-код параллельно, а `asyncio` работает в одном потоке. Отдельные процессы имеют собственные интерпретаторы и GIL, поэтому реально загружают все ядра."
+    },
+    {
+      "id": "py-concurrency-003",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие подходы годятся для одновременной отправки сотен сетевых запросов (IO-bound)?",
+      "options": [
+        "Последовательный цикл с `requests.get`",
+        "`asyncio` с асинхронным HTTP-клиентом (`aiohttp`, `httpx`)",
+        "`ProcessPoolExecutor` с сотней процессов",
+        "`ThreadPoolExecutor`"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "При ожидании сети GIL отпускается, поэтому потоки хорошо работают с I/O, а `asyncio` обслуживает тысячи соединений в одном потоке. Сотни процессов — дорого по памяти и запуску, последовательный цикл ждёт каждый запрос по очереди."
+    },
+    {
+      "id": "py-concurrency-004",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import asyncio\n\nasync def hello():\n    return \"hi\"\n\nr = hello()\nprint(type(r).__name__)\nr.close()",
+      "options": [
+        "coroutine",
+        "str",
+        "function",
+        "NoneType"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Вызов `async def`-функции не выполняет её тело, а создаёт объект корутины. Чтобы получить `\"hi\"`, корутину нужно `await`-ить или запустить через `asyncio.run`; иначе будет предупреждение «coroutine was never awaited»."
+    },
+    {
+      "id": "py-concurrency-005",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает `await` внутри корутины?",
+      "options": [
+        "Создаёт новый поток и ждёт его завершения",
+        "Блокирует весь процесс до получения результата",
+        "Приостанавливает текущую корутину до готовности awaitable, отдавая управление циклу событий",
+        "Запускает awaitable в фоне и сразу продолжает выполнение"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`await` — точка переключения: пока операция не готова, цикл событий выполняет другие задачи. Именно так достигается конкурентность в одном потоке."
+    },
+    {
+      "id": "py-concurrency-006",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import asyncio\n\nasync def main():\n    await asyncio.sleep(0)\n    return 42\n\nprint(asyncio.run(main()))",
+      "options": [
+        "<coroutine object main>",
+        "None",
+        "42",
+        "RuntimeError"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`asyncio.run` создаёт цикл событий, выполняет корутину до конца и возвращает её результат. `await asyncio.sleep(0)` лишь даёт циклу шанс переключиться."
+    },
+    {
+      "id": "py-concurrency-007",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Почему нельзя вызывать `time.sleep(1)` внутри корутины?",
+      "options": [
+        "Он блокирует поток с циклом событий, и все остальные задачи на секунду замирают",
+        "Он вызывает `RuntimeError` внутри цикла событий",
+        "Он засыпает только текущую корутину, но расходует больше CPU",
+        "`time` нельзя импортировать в асинхронном коде"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Цикл событий однопоточный: синхронный `time.sleep` не отдаёт управление, поэтому ничего другого не выполняется. Нужен `await asyncio.sleep(1)` или вынос блокирующего кода в поток."
+    },
+    {
+      "id": "py-concurrency-008",
+      "topic": "concurrency",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В каком порядке `ThreadPoolExecutor.map(f, items)` возвращает результаты?",
+      "options": [
+        "В порядке завершения задач",
+        "В случайном порядке",
+        "Отсортированными по значению",
+        "В порядке входных элементов, независимо от того, какая задача завершилась первой"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`Executor.map` сохраняет порядок входа, как обычный `map`. Чтобы обрабатывать результаты по мере готовности, используют `submit` + `concurrent.futures.as_completed`."
+    },
+    {
+      "id": "py-concurrency-009",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import asyncio\n\nasync def work(name, delay):\n    await asyncio.sleep(delay)\n    print(\"done\", name)\n    return name\n\nasync def main():\n    res = await asyncio.gather(work(\"a\", 0.02), work(\"b\", 0.01))\n    print(res)\n\nasyncio.run(main())",
+      "options": [
+        "done a\ndone b\n['a', 'b']",
+        "done b\ndone a\n['a', 'b']",
+        "done b\ndone a\n['b', 'a']",
+        "done a\ndone b\n['b', 'a']"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`gather` запускает корутины конкурентно, поэтому `b` с меньшей задержкой завершается первой. Но список результатов всегда идёт в порядке переданных аргументов, а не завершения."
+    },
+    {
+      "id": "py-concurrency-010",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import asyncio\n\nasync def child():\n    print(\"child\")\n\nasync def main():\n    t = asyncio.create_task(child())\n    print(\"main\")\n    await t\n\nasyncio.run(main())",
+      "options": [
+        "child\nmain",
+        "main\nchild",
+        "main",
+        "child"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`create_task` планирует корутину, но не переключается на неё сразу: текущая корутина работает до первого `await`. Поэтому сначала `main`, а `child` выполнится, когда `await t` отдаст управление циклу."
+    },
+    {
+      "id": "py-concurrency-011",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import asyncio, time\n\nasync def job():\n    await asyncio.sleep(0.2)\n\nasync def main():\n    start = time.perf_counter()\n    await job()\n    await job()\n    print(round(time.perf_counter() - start, 1))\n\nasyncio.run(main())",
+      "options": [
+        "0.2",
+        "0.0",
+        "0.6",
+        "0.4"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Два `await job()` подряд выполняются последовательно: второй начинается только после первого, итого ~0,4 с. Чтобы они шли конкурентно (~0,2 с), их запускают через `asyncio.gather` или `create_task`/`TaskGroup`."
+    },
+    {
+      "id": "py-concurrency-012",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Несколько потоков без блокировки выполняют `counter += 1` над общей переменной. Почему итог может быть меньше ожидаемого, несмотря на GIL?",
+      "options": [
+        "`+=` — это чтение, сложение и запись; поток может переключиться между ними и затереть чужой результат",
+        "GIL отключается при наличии более двух потоков",
+        "Целые числа в Python изменяемые, и потоки портят один объект",
+        "Потоки получают копии глобальных переменных"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "GIL гарантирует атомарность отдельных инструкций байт-кода, но не составных операций. Между `LOAD` и `STORE` интерпретатор может переключить поток — классическая гонка, которая лечится `threading.Lock`."
+    },
+    {
+      "id": "py-concurrency-013",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения о GIL верны?",
+      "options": [
+        "GIL освобождается на время блокирующего ввода-вывода",
+        "GIL делает `x += 1` над общей переменной потокобезопасным",
+        "C-расширения (например, NumPy) могут отпускать GIL во время вычислений",
+        "У каждого процесса `multiprocessing` свой интерпретатор и свой GIL"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "I/O и многие C-функции отпускают GIL, поэтому потоки полезны для I/O и тяжёлых нативных вычислений. Процессы независимы и не делят GIL. А составные операции вроде `+=` GIL атомарными не делает."
+    },
+    {
+      "id": "py-concurrency-014",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему `ProcessPoolExecutor().submit(lambda x: x * 2, 3)` завершается ошибкой?",
+      "options": [
+        "Процессы не могут возвращать результаты",
+        "`submit` не принимает позиционные аргументы",
+        "Функцию и аргументы нужно сериализовать `pickle` для передачи в другой процесс, а лямбду pickle не умеет",
+        "Лямбды запрещены в многопоточном коде"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Задачи передаются дочерним процессам через `pickle`, а функции сериализуются по имени модуля и имени — у лямбд и вложенных функций его нет. Используйте функцию верхнего уровня модуля."
+    },
+    {
+      "id": "py-concurrency-015",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Для чего нужна `asyncio.to_thread(func, *args)`?",
+      "options": [
+        "Превратить обычную функцию в корутину, выполняемую в цикле событий",
+        "Запустить новый цикл событий в другом потоке",
+        "Выполнить блокирующую синхронную функцию в отдельном потоке, не блокируя цикл событий",
+        "Перенести корутину в отдельный процесс"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`to_thread` (3.9+) запускает функцию в пуле потоков и возвращает awaitable с её результатом. Так в асинхронном коде используют блокирующие библиотеки (например, синхронный драйвер или файловый I/O)."
+    },
+    {
+      "id": "py-concurrency-016",
+      "topic": "concurrency",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import threading\n\ncounter = 0\nlock = threading.Lock()\n\ndef inc():\n    global counter\n    for _ in range(100_000):\n        with lock:\n            counter += 1\n\nthreads = [threading.Thread(target=inc) for _ in range(4)]\nfor t in threads:\n    t.start()\nfor t in threads:\n    t.join()\nprint(counter)",
+      "options": [
+        "400000",
+        "Любое число ≤ 400000 — зависит от планировщика",
+        "100000",
+        "Программа зависнет (deadlock)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Блокировка делает чтение-изменение-запись атомарными относительно других потоков, поэтому все 4 × 100 000 инкрементов учтены. `with lock:` гарантирует освобождение блокировки, так что взаимоблокировки нет."
+    },
+    {
+      "id": "py-concurrency-017",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import asyncio\n\nasync def ok():\n    try:\n        await asyncio.sleep(1)\n        print(\"ok finished\")\n    except asyncio.CancelledError:\n        print(\"ok cancelled\")\n        raise\n\nasync def bad():\n    await asyncio.sleep(0.01)\n    raise ValueError(\"boom\")\n\nasync def main():\n    try:\n        async with asyncio.TaskGroup() as tg:\n            tg.create_task(ok())\n            tg.create_task(bad())\n    except* ValueError:\n        print(\"caught\")\n\nasyncio.run(main())",
+      "options": [
+        "ok finished\ncaught",
+        "caught",
+        "caught\nok finished",
+        "ok cancelled\ncaught"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Когда задача в `TaskGroup` падает, группа отменяет остальные задачи и ждёт их, а затем бросает `ExceptionGroup` с ошибками. Поэтому `ok` получает `CancelledError`, а `except*` ловит `ValueError` из группы."
+    },
+    {
+      "id": "py-concurrency-018",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что верно о free-threaded сборке CPython (PEP 703) в Python 3.13?",
+      "options": [
+        "GIL полностью удалён из всех сборок CPython 3.13",
+        "Это отдельная экспериментальная сборка (например, `python3.13t`), в которой GIL отключён; обычная сборка по-прежнему с GIL",
+        "GIL отключается флагом `asyncio.run(..., gil=False)`",
+        "Сборка без GIL автоматически делает весь пользовательский код потокобезопасным"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "В 3.13 free-threading — опциональная экспериментальная сборка, требующая совместимых C-расширений; стандартный интерпретатор сохраняет GIL. Без GIL гонки данных в пользовательском коде никуда не деваются — синхронизация по-прежнему нужна."
+    },
+    {
+      "id": "py-concurrency-019",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import asyncio\n\nasync def f(x):\n    if x == 2:\n        raise ValueError(x)\n    return x\n\nasync def main():\n    print(await asyncio.gather(f(1), f(2), f(3), return_exceptions=True))\n\nasyncio.run(main())",
+      "options": [
+        "ValueError: 2",
+        "[1, ValueError(2), 3]",
+        "[1, 3]",
+        "[1, None, 3]"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "С `return_exceptions=True` `gather` не пробрасывает первое исключение, а кладёт объект исключения в список результатов на его позицию. Без этого флага `await gather` бросил бы `ValueError`."
+    },
+    {
+      "id": "py-concurrency-020",
+      "topic": "concurrency",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что нужно учитывать при использовании `ProcessPoolExecutor` со стартовым методом `spawn` (Windows, macOS по умолчанию)?",
+      "options": [
+        "Код создания пула нужно защитить `if __name__ == \"__main__\":`",
+        "Функция-задача должна быть определена на верхнем уровне модуля",
+        "Глобальные переменные, изменённые родителем после старта, автоматически видны в дочерних процессах",
+        "Аргументы и результаты сериализуются, поэтому передача больших объектов дорогая"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "При `spawn` дочерний процесс заново импортирует главный модуль — без защиты `__main__` он снова начнёт создавать пул. Функции передаются по имени через pickle, данные копируются сериализацией, а общей памяти с родителем нет."
+    },
+    {
+      "id": "py-tooling-001",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чему равна переменная `__name__` в файле, запущенном командой `python script.py`?",
+      "options": [
+        "`\"script\"`",
+        "`\"__main__\"`",
+        "`\"script.py\"`",
+        "`None`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Запускаемый модуль получает имя `__main__`, а импортированный — своё имя модуля. На этом основан идиом `if __name__ == \"__main__\":`, отделяющий код запуска от кода, исполняемого при импорте."
+    },
+    {
+      "id": "py-tooling-002",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Файл `utils.py` содержит строку `print(__name__)`. Что он выведет, когда другой скрипт выполнит `import utils`?",
+      "options": [
+        "`__main__`",
+        "`utils.py`",
+        "Ничего: код модуля при импорте не выполняется",
+        "`utils`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "При импорте код верхнего уровня модуля выполняется, а `__name__` равен имени модуля. `__main__` получает только запускаемый скрипт."
+    },
+    {
+      "id": "py-tooling-003",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Что верно про виртуальное окружение, созданное `python -m venv .venv`?",
+      "options": [
+        "У него свой каталог `site-packages` для пакетов",
+        "Оно содержит полную копию стандартной библиотеки и компилятор C",
+        "Активация меняет `PATH`, так что `python` и `pip` указывают на окружение",
+        "Пакеты, установленные в нём, видны всем остальным проектам"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "venv изолирует зависимости проекта: свой `site-packages` и ссылка/копия интерпретатора, стандартная библиотека берётся из базовой установки. Активация лишь добавляет `.venv/bin` (`Scripts` на Windows) в начало `PATH`."
+    },
+    {
+      "id": "py-tooling-004",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Для чего служит файл `pyproject.toml`?",
+      "options": [
+        "Единый стандартный конфиг проекта: метаданные, зависимости, система сборки и настройки инструментов",
+        "Только для списка зависимостей вместо `requirements.txt`, других секций там нет",
+        "Это файл блокировки точных версий, генерируемый pip",
+        "Конфигурация виртуального окружения"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "PEP 518/621 сделали `pyproject.toml` стандартом: `[build-system]`, `[project]` с зависимостями, а также `[tool.*]` для ruff, pytest, mypy и др. Его читают pip, uv, poetry и прочие инструменты."
+    },
+    {
+      "id": "py-tooling-005",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "def double(x: int) -> int:\n    return x * 2\n\nprint(double(\"ab\"))",
+      "options": [
+        "TypeError",
+        "0",
+        "abab",
+        "ab"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Аннотации типов не проверяются во время выполнения — интерпретатор их только сохраняет. `\"ab\" * 2` даёт `\"abab\"`; найти несоответствие сможет только статический анализатор вроде mypy."
+    },
+    {
+      "id": "py-tooling-006",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что окажется в stderr после выполнения кода (логирование не настраивалось)?",
+      "code": "import logging\n\nlogging.debug(\"d\")\nlogging.info(\"i\")\nlogging.warning(\"w\")",
+      "options": [
+        "DEBUG:root:d\nINFO:root:i\nWARNING:root:w",
+        "INFO:root:i\nWARNING:root:w",
+        "WARNING:root:w",
+        "Ничего: без `basicConfig` логи не выводятся"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "У корневого логгера уровень по умолчанию `WARNING`, поэтому `debug` и `info` отбрасываются. Функции `logging.warning()` и др. при отсутствии обработчиков сами вызывают `basicConfig()` с форматом `УРОВЕНЬ:имя:сообщение`."
+    },
+    {
+      "id": "py-tooling-007",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какое соглашение об именовании рекомендует PEP 8?",
+      "options": [
+        "`snake_case` для функций и переменных, `CapWords` для классов, `UPPER_CASE` для констант",
+        "`camelCase` для функций, `snake_case` для классов",
+        "`CapWords` для всего, кроме констант",
+        "PEP 8 не касается именования, только отступов"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "PEP 8 — руководство по стилю: 4 пробела на отступ, `snake_case` для функций/переменных/модулей, `CapWords` для классов, `UPPER_CASE` для констант. Его соблюдение автоматизируют линтеры и форматтеры."
+    },
+    {
+      "id": "py-tooling-008",
+      "topic": "tooling",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем `black` отличается от `ruff`?",
+      "options": [
+        "`black` — линтер, `ruff` — менеджер пакетов",
+        "Оба — статические проверщики типов",
+        "`black` форматирует только импорты, `ruff` — только строки",
+        "`black` — автоформаттер кода; `ruff` — быстрый линтер (с автоисправлениями), также имеющий встроенный форматтер"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`black` переписывает код в единый стиль без настроек «на вкус». `ruff` (на Rust) заменяет flake8, isort и многие плагины, а `ruff format` совместим с black."
+    },
+    {
+      "id": "py-tooling-009",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что эквивалентно аннотации `Optional[int]`?",
+      "options": [
+        "`int` с значением по умолчанию",
+        "`int | None`",
+        "`Union[int, Any]`",
+        "`int | ...`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`Optional[X]` — это `Union[X, None]`; с Python 3.10 то же пишется как `X | None`. Это не означает, что у параметра есть значение по умолчанию — только что допустим `None`."
+    },
+    {
+      "id": "py-tooling-010",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В пакете `pkg/` модуль `mod.py` содержит `from . import helpers`. Запуск `python pkg/mod.py` падает с `ImportError: attempted relative import with no known parent package`. Как правильно запустить?",
+      "options": [
+        "Добавить `pkg/` в `PYTHONPATH` и запустить так же",
+        "`python -m pkg.mod` из каталога над `pkg`",
+        "Переименовать файл в `__main__.py` внутри `pkg`",
+        "Удалить `__init__.py` из `pkg`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Относительные импорты опираются на `__package__`; при запуске файла по пути модуль становится `__main__` без пакета. `python -m pkg.mod` импортирует его как часть пакета `pkg`, и `from .` работает."
+    },
+    {
+      "id": "py-tooling-011",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Модуль `a` импортирует `b`, а `b` в начале файла делает `from a import Config`. Что произойдёт при `import a`?",
+      "options": [
+        "Python зациклится и упадёт с `RecursionError`",
+        "Всё сработает: Python разрешает циклы, откладывая импорт",
+        "`ModuleNotFoundError: No module named 'a'`",
+        "`ImportError: cannot import name 'Config' from partially initialized module 'a'`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Модуль `a` уже в `sys.modules`, но ещё не дошёл до определения `Config`, когда `b` пытается его взять. Лечится перестройкой зависимостей, импортом модуля целиком (`import a` и `a.Config` при использовании) или переносом импорта в функцию."
+    },
+    {
+      "id": "py-tooling-012",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Модуль `m` импортируется в пяти разных модулях программы. Сколько раз выполнится его код верхнего уровня?",
+      "options": [
+        "Один раз — затем модуль берётся из кэша `sys.modules`",
+        "Пять раз — по разу на каждый `import`",
+        "Ни разу: код выполняется только при `python m.py`",
+        "Зависит от того, используется `import m` или `from m import x`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Первый импорт выполняет модуль и кладёт его в `sys.modules`; последующие возвращают тот же объект. Для повторного выполнения нужен явный `importlib.reload`."
+    },
+    {
+      "id": "py-tooling-013",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сколько тестов сгенерирует pytest для этой функции?",
+      "code": "import pytest\n\n@pytest.mark.parametrize(\"a\", [1, 2, 3])\n@pytest.mark.parametrize(\"b\", [\"x\", \"y\"])\ndef test_pair(a, b):\n    assert a",
+      "options": [
+        "5",
+        "2",
+        "6",
+        "3"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Сложенные декораторы `parametrize` дают декартово произведение параметров: 3 значения `a` × 2 значения `b` = 6 тестов с идентификаторами вида `test_pair[x-1]`."
+    },
+    {
+      "id": "py-tooling-014",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "В `app/service.py` написано `from app.client import fetch`, и функция `run()` вызывает `fetch()`. Что нужно патчить в тесте `run()`?",
+      "options": [
+        "`patch(\"app.client.fetch\")`",
+        "`patch(\"fetch\")`",
+        "`patch(\"app.service.fetch\")`",
+        "Без разницы — оба пути заменят одну и ту же функцию"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Патчить нужно там, где имя ищется, а не где определено. `from ... import fetch` создаёт в `app.service` собственную ссылку, и замена `app.client.fetch` её не затронет."
+    },
+    {
+      "id": "py-tooling-015",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что происходит с кодом после `yield` в фикстуре pytest?",
+      "options": [
+        "Он выполняется как teardown после завершения теста, даже если тест упал",
+        "Он никогда не выполняется",
+        "Он выполняется перед тестом",
+        "Он выполняется только если тест прошёл успешно"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Фикстура с `yield` отдаёт значение тесту, а код после `yield` — финализация (закрыть соединение, удалить файлы). pytest вызывает его независимо от результата теста, если setup до `yield` прошёл успешно."
+    },
+    {
+      "id": "py-tooling-016",
+      "topic": "tooling",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения о `typing.Protocol` верны?",
+      "options": [
+        "Задаёт структурную типизацию: класс подходит, если у него есть нужные методы",
+        "Класс обязан явно наследоваться от протокола",
+        "С `@runtime_checkable` протокол можно использовать в `isinstance`, проверяется лишь наличие методов",
+        "mypy проверяет соответствие протоколу статически"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "Protocol (PEP 544) — статическая «утиная типизация»: наследование не требуется. `@runtime_checkable` позволяет `isinstance`, но проверяет только наличие атрибутов, а не их сигнатуры."
+    },
+    {
+      "id": "py-tooling-017",
+      "topic": "tooling",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "import logging, sys\n\nlogging.basicConfig(stream=sys.stdout, level=logging.INFO,\n                    format=\"%(name)s:%(message)s\")\nparent = logging.getLogger(\"app\")\nchild = logging.getLogger(\"app.db\")\nparent.setLevel(logging.ERROR)\nchild.warning(\"w1\")\nparent.warning(\"w2\")\nchild.setLevel(logging.DEBUG)\nchild.debug(\"d1\")",
+      "options": [
+        "app.db:w1\napp:w2\napp.db:d1",
+        "app.db:w1\napp.db:d1",
+        "Ничего",
+        "app.db:d1"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Без своего уровня `app.db` наследует эффективный уровень `ERROR` от `app`, поэтому `w1` и `w2` отбрасываются. После `setLevel(DEBUG)` запись `d1` проходит уровень логгера и распространяется к обработчикам корня; уровень самих родительских логгеров при propagation не проверяется."
+    },
+    {
+      "id": "py-tooling-018",
+      "topic": "tooling",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что выведет код?",
+      "code": "from typing import TypedDict\n\nclass User(TypedDict):\n    name: str\n    age: int\n\nu = User(name=\"Ann\", age=\"x\")\nprint(type(u).__name__, u[\"age\"])",
+      "options": [
+        "User x",
+        "dict x",
+        "TypeError",
+        "dict 0"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`TypedDict` существует только для статической проверки: во время выполнения `User(...)` создаёт обычный `dict`, и типы значений не проверяются. Ошибку `age=\"x\"` поймает лишь mypy/pyright."
+    },
+    {
+      "id": "py-tooling-019",
+      "topic": "tooling",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Откуда берутся пути в `sys.path`, по которым ищется модуль при `import foo`?",
+      "options": [
+        "Каталог запускаемого скрипта (или текущий при `python -m` / REPL)",
+        "Каталоги из переменной окружения `PYTHONPATH`",
+        "`site-packages` активного окружения",
+        "Все подкаталоги текущей директории, рекурсивно"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "`sys.path` собирается из каталога скрипта, `PYTHONPATH`, стандартной библиотеки и `site-packages` (плюс `.pth`-файлы). Рекурсивного обхода подкаталогов нет: вложенные модули находятся только через пакеты."
+    },
+    {
+      "id": "py-tooling-020",
+      "topic": "tooling",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Почему pytest при падении простого `assert result == expected` показывает значения обеих сторон, а обычный Python — нет?",
+      "options": [
+        "pytest подменяет встроенный `AssertionError` на свой класс",
+        "pytest переписывает AST `assert` в тестовых модулях при импорте, добавляя вывод промежуточных значений",
+        "pytest запускает тесты под отладчиком и читает переменные из кадров стека",
+        "Python и так это делает, если запустить с флагом `-O`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Хук импорта pytest переписывает `assert` в тестовых файлах и `conftest.py`. Во вспомогательных модулях без `register_assert_rewrite` этого нет, а `-O` вообще удаляет все `assert`."
+    }
+  ]
+}

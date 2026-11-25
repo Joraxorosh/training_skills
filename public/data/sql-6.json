@@ -1,0 +1,869 @@
+{
+  "topics": [
+    {
+      "id": "security",
+      "title": "Безопасность: роли, права, SQL-инъекции"
+    },
+    {
+      "id": "analytics",
+      "title": "Аналитические запросы: даты, когорты, воронки"
+    }
+  ],
+  "questions": [
+    {
+      "id": "sql-security-001",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Пользователь передал в поле name строку `' OR '1'='1`. Что произойдёт?",
+      "code": "name = request.args[\"name\"]\ncur.execute(f\"SELECT id, email FROM users WHERE name = '{name}'\")",
+      "options": [
+        "Запрос вернёт ноль строк: пользователя с таким именем нет",
+        "Драйвер выбросит ошибку экранирования",
+        "Запрос вернёт всех пользователей: условие превратится в `name = '' OR '1'='1'`",
+        "PostgreSQL отклонит запрос как подозрительный"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Строка вклеена прямо в текст SQL: кавычка из ввода закрывает литерал, а остаток становится частью условия. `'1'='1'` истинно для каждой строки. Когда данные и код склеены в одну строку, СУБД не может отличить одно от другого."
+    },
+    {
+      "id": "sql-security-002",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой способ считается основной надёжной защитой от SQL-инъекций при передаче значений в запрос?",
+      "options": [
+        "Параметризованные запросы (`$1`, `%s`, `?`): значения передаются драйверу отдельно от текста SQL",
+        "Удаление из ввода ключевых слов `SELECT`, `UNION`, `DROP`",
+        "Оборачивание пользовательского ввода в двойные кавычки",
+        "Ограничение длины ввода 20 символами"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "С параметрами значение никогда не становится частью SQL-кода. Чёрные списки обходятся (другой регистр, комментарии, иные конструкции), двойные кавычки в PostgreSQL обозначают идентификаторы, а для инъекции хватает короткой строки вроде `' OR 1=1--`."
+    },
+    {
+      "id": "sql-security-003",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что даёт команда `GRANT SELECT ON orders TO analyst;`?",
+      "options": [
+        "Право читать все таблицы схемы, в которой лежит orders",
+        "Право роли analyst читать таблицу orders (при наличии доступа к её схеме)",
+        "Право читать и изменять orders: SELECT подразумевает UPDATE",
+        "Владение таблицей orders"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "GRANT выдаёт конкретную привилегию на конкретный объект. Чтение не включает INSERT, UPDATE и DELETE, владелец таблицы не меняется, а для обращения к таблице нужно ещё право USAGE на её схему."
+    },
+    {
+      "id": "sql-security-004",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем `CREATE USER` отличается от `CREATE ROLE` в PostgreSQL?",
+      "options": [
+        "Пользователи создаются в конкретной базе, а роли — общие для кластера",
+        "Пользователь не может быть членом другой роли",
+        "Роли нельзя дать право подключаться к базе",
+        "Только тем, что `CREATE USER` по умолчанию добавляет атрибут LOGIN"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Пользователи и группы в PostgreSQL объединены в единое понятие роли. `CREATE USER` — синоним `CREATE ROLE ... LOGIN`. Любые роли существуют на уровне кластера, могут входить друг в друга и получать атрибут LOGIN."
+    },
+    {
+      "id": "sql-security-005",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что означает `PUBLIC` в команде `GRANT SELECT ON prices TO PUBLIC;`?",
+      "options": [
+        "Все роли, включая те, что будут созданы позже",
+        "Схему public",
+        "Только роли без пароля",
+        "Роль владельца базы данных"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "PUBLIC — псевдогруппа, в которую неявно входит каждая роль. Право, выданное PUBLIC, получают все, и отозвать его у одной роли нельзя: только у PUBLIC целиком."
+    },
+    {
+      "id": "sql-security-006",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как правильнее настроить роль, под которой веб-приложение подключается к базе?",
+      "options": [
+        "Подключаться под `postgres`, чтобы не тратить время на настройку прав",
+        "Сделать роль приложения владельцем всех таблиц, чтобы она же выполняла миграции",
+        "Отдельная роль с LOGIN, без SUPERUSER, CREATEROLE и владения таблицами, с правами только на нужные операции",
+        "Выдать роли BYPASSRLS, чтобы политики RLS не замедляли запросы"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Принцип наименьших привилегий ограничивает ущерб при инъекции или утечке пароля. Суперпользователь может читать файлы сервера и запускать команды ОС (например, через `COPY ... PROGRAM`), владелец может удалить таблицу или отключить RLS, а BYPASSRLS снимает изоляцию строк."
+    },
+    {
+      "id": "sql-security-007",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой командой в PostgreSQL отобрать у роли analyst право читать таблицу orders?",
+      "options": [
+        "`DENY SELECT ON orders TO analyst;`",
+        "`GRANT NO SELECT ON orders TO analyst;`",
+        "`DROP PRIVILEGE SELECT ON orders FROM analyst;`",
+        "`REVOKE SELECT ON orders FROM analyst;`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Явных запретов в PostgreSQL нет: DENY — это SQL Server. REVOKE убирает только право, выданное этой роли напрямую; если analyst получает SELECT через членство в другой роли или через PUBLIC, доступ сохранится."
+    },
+    {
+      "id": "sql-security-008",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какой метод аутентификации по паролю рекомендуется указывать в `pg_hba.conf` в актуальных версиях PostgreSQL?",
+      "options": [
+        "md5",
+        "scram-sha-256",
+        "password",
+        "trust"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SCRAM-SHA-256 не передаёт пароль по сети и хранит солёный многократно хэшированный секрет. `md5` устарел: украденного хэша достаточно для входа. `password` передаёт пароль открытым текстом, а `trust` пускает вообще без пароля. С PostgreSQL 14 `password_encryption` по умолчанию равен scram-sha-256."
+    },
+    {
+      "id": "sql-security-009",
+      "topic": "security",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Кто может выполнить `DROP TABLE orders`?",
+      "options": [
+        "Владелец таблицы (или член роли-владельца) и суперпользователь",
+        "Любая роль с правом DELETE на таблицу",
+        "Любая роль с правом TRUNCATE на таблицу",
+        "Любая роль с правом CREATE на схему"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Право на DROP нельзя выдать через GRANT: оно неотделимо от владения объектом. DELETE и TRUNCATE удаляют строки, но не саму таблицу, а CREATE на схему позволяет только создавать в ней объекты."
+    },
+    {
+      "id": "sql-security-010",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие меры действительно предотвращают SQL-инъекцию?",
+      "options": [
+        "Передача значений через параметры запроса вместо конкатенации строк",
+        "Удаление из ввода слов `UNION`, `DROP` и последовательности `--`",
+        "Замена `'` на `\\'` во вводе перед подстановкой в строку запроса",
+        "Выбор имени столбца для динамического `ORDER BY` из белого списка допустимых значений"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "Параметры отделяют данные от кода, а белый список — надёжный способ для частей запроса, которые параметризовать нельзя. Чёрные списки обходятся (`UnIoN`, `/**/`), а в PostgreSQL при `standard_conforming_strings = on` обратная косая черта в обычной строке не экранирует кавычку: `'\\'` — это литерал из одного символа `\\`, и дальше идёт уже код злоумышленника."
+    },
+    {
+      "id": "sql-security-011",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что произойдёт при выполнении команды?",
+      "code": "PREPARE get_rows(text) AS\n  SELECT * FROM $1;",
+      "options": [
+        "Запрос подготовится, а таблица будет выбрана при `EXECUTE get_rows('orders')`",
+        "Запрос подготовится, но окажется уязвим к инъекции через имя таблицы",
+        "PostgreSQL сам применит `quote_ident` к параметру",
+        "Ошибка синтаксиса: параметр может стоять только на месте значения, а не имени таблицы или столбца"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "При подготовке запрос разбирается и анализируется, поэтому все таблицы и столбцы должны быть известны заранее. Идентификаторы в динамическом SQL подставляют через `format('%I', ...)` или `quote_ident()`, предварительно сверив с белым списком."
+    },
+    {
+      "id": "sql-security-012",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что получит bob, если других прав на схему sales у него нет?",
+      "code": "-- выполнено владельцем схемы sales\nGRANT SELECT ON sales.orders TO bob;\n\n-- выполняет bob\nSELECT * FROM sales.orders;",
+      "options": [
+        "Все строки таблицы",
+        "Ошибку `permission denied for schema sales`",
+        "Пустой результат",
+        "Ошибку `permission denied for table orders`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Чтобы обращаться к объектам схемы, нужно право USAGE на саму схему, и оно проверяется до прав на таблицу. Не хватает команды `GRANT USAGE ON SCHEMA sales TO bob;`."
+    },
+    {
+      "id": "sql-security-013",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Кто сможет выполнить `SELECT * FROM orders` сразу после входа, не выполняя `SET ROLE`?",
+      "code": "CREATE ROLE readers NOLOGIN;\nGRANT SELECT ON orders TO readers;\n\nCREATE ROLE ann LOGIN INHERIT;\nCREATE ROLE bob LOGIN NOINHERIT;\nGRANT readers TO ann, bob;",
+      "options": [
+        "Только ann",
+        "ann и bob",
+        "Только bob",
+        "Никто: роль readers без LOGIN не передаёт права"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Член роли с INHERIT автоматически пользуется её правами. Для членства без наследования (у bob атрибут NOINHERIT, а в PostgreSQL 16+ опция INHERIT членства по умолчанию берётся из этого атрибута) права readers доступны только после `SET ROLE readers`. LOGIN для передачи прав не нужен."
+    },
+    {
+      "id": "sql-security-014",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Аналитику нужно читать из `customers` только столбцы `name` и `city`, но не `email` и `phone`. Какие варианты решают задачу?",
+      "options": [
+        "`GRANT SELECT (name, city) ON customers TO analyst;`",
+        "`GRANT SELECT ON customers TO analyst;`, затем `REVOKE SELECT (email, phone) ON customers FROM analyst;`",
+        "Создать представление `SELECT name, city FROM customers` и выдать SELECT только на него",
+        "`GRANT USAGE ON customers (name, city) TO analyst;`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "Права можно выдавать на отдельные столбцы (тогда `SELECT *` упадёт, а явный список столбцов сработает), а представление показывает только нужные столбцы. Право SELECT на всю таблицу покрывает все столбцы, и отзыв прав на отдельные столбцы его не отменяет. USAGE к таблицам не применяется."
+    },
+    {
+      "id": "sql-security-015",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Кто что увидит при `SELECT * FROM docs`?",
+      "code": "ALTER TABLE docs ENABLE ROW LEVEL SECURITY;\n-- политик на таблице нет\nGRANT SELECT ON docs TO app;",
+      "options": [
+        "Все роли — все строки, пока не создана хотя бы одна политика",
+        "Роль app получит ошибку `permission denied`",
+        "Владелец таблицы — все строки, роль app — ни одной строки",
+        "Все роли, включая владельца, — ни одной строки"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "При включённом RLS и отсутствии подходящих политик действует запрет по умолчанию: запрос не падает, но не видит строк. Владелец таблицы, суперпользователи и роли с BYPASSRLS политики обходят. Чтобы ограничить и владельца, нужно `ALTER TABLE docs FORCE ROW LEVEL SECURITY`."
+    },
+    {
+      "id": "sql-security-016",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Почему для функций с `SECURITY DEFINER` рекомендуют явно задавать безопасный `search_path` (например, `SET search_path = app, pg_temp`)?",
+      "options": [
+        "Без search_path функция не сможет обращаться к таблицам других схем",
+        "Иначе вызывающий может создать в доступной ему схеме объект с тем же именем, и функция выполнит его код с правами владельца",
+        "search_path ускоряет поиск объектов и кэширование плана",
+        "Без search_path функция с SECURITY DEFINER выполняется с правами вызывающего"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Такая функция работает с правами владельца, но неквалифицированные имена разрешает по search_path текущего сеанса. Злоумышленник подкладывает свою таблицу, функцию или оператор в схему, которая просматривается раньше нужной. Поэтому задают фиксированный search_path с `pg_temp` в конце или указывают схемы у всех имён."
+    },
+    {
+      "id": "sql-security-017",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что получит reporter?",
+      "code": "-- владелец таблицы orders и представления v_orders — роль admin\nCREATE VIEW v_orders AS\n  SELECT id, amount FROM orders;\nGRANT SELECT ON v_orders TO reporter;\n\n-- выполняет reporter, у которого нет прав на orders\nSELECT * FROM v_orders;",
+      "options": [
+        "Ошибку `permission denied for table orders`",
+        "Пустой результат",
+        "Ошибку: представление нельзя читать без прав на все его таблицы",
+        "Строки представления: доступ к orders проверяется от имени владельца представления"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "По умолчанию права на таблицы внутри представления проверяются у его владельца, поэтому представления служат слоем доступа. С PostgreSQL 15 можно создать представление `WITH (security_invoker = true)` — тогда проверяются права вызывающего, и reporter получит ошибку."
+    },
+    {
+      "id": "sql-security-018",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Защищён ли этот код от SQL-инъекции?",
+      "code": "CREATE FUNCTION find_user(p_name text)\nRETURNS SETOF users LANGUAGE plpgsql AS $$\nBEGIN\n  RETURN QUERY EXECUTE\n    'SELECT * FROM users WHERE name = ''' || p_name || '''';\nEND $$;\n\n-- приложение вызывает функцию с параметром:\n-- SELECT * FROM find_user($1);",
+      "options": [
+        "Нет: внутри функции значение склеивается с текстом запроса, и `EXECUTE` выполнит внедрённый код",
+        "Да: приложение передаёт значение параметром, этого достаточно",
+        "Да: PL/pgSQL автоматически экранирует строки в EXECUTE",
+        "Нет, но только если функция объявлена с SECURITY DEFINER"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Параметр защищает лишь вызов `find_user($1)`, а внутри функции новый SQL собирается конкатенацией. Правильно — `EXECUTE 'SELECT * FROM users WHERE name = $1' USING p_name` или `format('%L', p_name)`, а здесь динамический SQL и вовсе не нужен."
+    },
+    {
+      "id": "sql-security-019",
+      "topic": "security",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие средства позволяют записывать в журнал выполненные запросы SELECT?",
+      "options": [
+        "Параметр `log_statement = 'all'`",
+        "Расширение pgaudit",
+        "Триггер `AFTER SELECT` на таблице",
+        "Триггер `BEFORE INSERT OR UPDATE OR DELETE`, пишущий в таблицу аудита"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "`log_statement` пишет текст всех запросов в журнал сервера, а pgaudit даёт структурированный аудит по классам операций и объектам. Триггеров на SELECT в PostgreSQL нет: триггеры срабатывают на INSERT, UPDATE, DELETE и TRUNCATE и годятся для истории изменений, но не для аудита чтения."
+    },
+    {
+      "id": "sql-security-020",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Сможет ли reader читать `app.invoices`?",
+      "code": "-- выполняет admin\nALTER DEFAULT PRIVILEGES IN SCHEMA app\n  GRANT SELECT ON TABLES TO reader;\n\n-- позже выполняет роль migrator (не admin)\nCREATE TABLE app.invoices (id int);",
+      "options": [
+        "Да: права по умолчанию задаются для схемы и действуют для любого создателя таблиц",
+        "Да, если migrator — член роли admin",
+        "Нет: права по умолчанию применяются только к объектам, которые создаёт admin; нужно `ALTER DEFAULT PRIVILEGES FOR ROLE migrator ...`",
+        "Нет: ALTER DEFAULT PRIVILEGES действует только на таблицы, созданные до выполнения команды"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Права по умолчанию привязаны к роли, которая создаёт объект; без `FOR ROLE` это роль, выполнившая команду. Таблицу создал migrator (членство в admin этого не меняет, пока не выполнен `SET ROLE admin`), поэтому правило admin не сработало. Типичная ошибка в миграциях — настраивать права по умолчанию под одной ролью, а создавать таблицы под другой."
+    },
+    {
+      "id": "sql-security-021",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения верны для роли app (она не владелец таблицы)?",
+      "code": "ALTER TABLE docs ENABLE ROW LEVEL SECURITY;\nCREATE POLICY tenant_isolation ON docs\n  FOR ALL TO app\n  USING (tenant_id = current_setting('app.tenant_id')::int);",
+      "options": [
+        "SELECT вернёт только строки, у которых tenant_id равен значению `app.tenant_id`",
+        "INSERT строки с чужим tenant_id будет отклонён: без WITH CHECK выражение USING проверяется и для новых строк",
+        "UPDATE может сменить tenant_id строки на чужой, потому что WITH CHECK не задан",
+        "Если параметр `app.tenant_id` в сеансе не задан, политика пропустит все строки"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "USING фильтрует существующие строки (что можно видеть, изменять и удалять), WITH CHECK проверяет строки, получившиеся после INSERT или UPDATE. Если у политики FOR ALL задан только USING, это выражение используется и как WITH CHECK, поэтому вставить или перенести строку к другому арендатору нельзя. Незаданный параметр приводит к ошибке в `current_setting`, а не к отключению фильтра."
+    },
+    {
+      "id": "sql-security-022",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт?",
+      "code": "PREPARE list_users(text) AS\n  SELECT id, name, created_at FROM users ORDER BY $1;\n\nEXECUTE list_users('created_at');",
+      "options": [
+        "Строки отсортируются по created_at",
+        "Запрос выполнится, но сортировки по created_at не будет: все строки сортируются по одной и той же строке 'created_at'",
+        "Ошибка: в ORDER BY нельзя использовать параметр",
+        "Строки отсортируются по третьему столбцу"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Параметр — всегда значение, а не имя столбца, поэтому `ORDER BY $1` сортирует по константе, и порядок строк не определён. Столбец сортировки выбирают по белому списку (например, через `CASE` или сопоставление в коде приложения) и подставляют как идентификатор."
+    },
+    {
+      "id": "sql-security-023",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Создана функция `reset_password(user_id int, new_pass text)` с `SECURITY DEFINER`. Как сделать так, чтобы её могла вызвать только роль admin?",
+      "options": [
+        "Достаточно `GRANT EXECUTE ON FUNCTION reset_password(int, text) TO admin;`",
+        "Достаточно `REVOKE EXECUTE ON FUNCTION reset_password(int, text) FROM app;` для роли приложения",
+        "Ничего делать не нужно: функцию с SECURITY DEFINER может вызвать только её владелец",
+        "`REVOKE EXECUTE ON FUNCTION reset_password(int, text) FROM PUBLIC;` и `GRANT EXECUTE ON FUNCTION reset_password(int, text) TO admin;`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "При создании функции право EXECUTE по умолчанию выдаётся PUBLIC, то есть всем. Отзыв у отдельной роли не поможет — она сохранит право через PUBLIC. Отзывать лучше в той же транзакции, что и создание, или заранее через `ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`."
+    },
+    {
+      "id": "sql-security-024",
+      "topic": "security",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Переменные `tbl` (имя таблицы) и `v` (значение) приходят от пользователя. Какие варианты в PL/pgSQL защищены от SQL-инъекции?",
+      "options": [
+        "`EXECUTE format('SELECT * FROM %I WHERE name = %L', tbl, v);`",
+        "`EXECUTE 'SELECT * FROM ' || tbl || ' WHERE name = $1' USING v;`",
+        "`EXECUTE 'SELECT * FROM ' || quote_ident(tbl) || ' WHERE name = $1' USING v;`",
+        "`EXECUTE format('SELECT * FROM %s WHERE name = %L', tbl, v);`",
+        "`EXECUTE format('SELECT * FROM %I WHERE name = ''%s''', tbl, v);`"
+      ],
+      "correct": [
+        0,
+        2
+      ],
+      "explanation": "`%I` и `quote_ident` при необходимости заключают идентификатор в двойные кавычки и удваивают кавычки внутри, а `%L` и `USING` безопасно передают значения. `%s` вставляет текст как есть, поэтому ни имя таблицы, ни значение в самодельных кавычках не защищены. Даже при правильном квотировании имя таблицы стоит сверять с белым списком: `%I` не мешает прочитать любую доступную роли таблицу."
+    },
+    {
+      "id": "sql-analytics-001",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт `SELECT date_trunc('week', timestamp '2024-03-17 15:00');` (17 марта 2024 — воскресенье)?",
+      "options": [
+        "2024-03-17 00:00:00",
+        "2024-03-18 00:00:00",
+        "2024-03-11 00:00:00",
+        "2024-03-10 00:00:00"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`date_trunc('week', ...)` обрезает до понедельника: неделя считается по ISO 8601. Воскресенье — последний день недели, поэтому результат — понедельник 11 марта."
+    },
+    {
+      "id": "sql-analytics-002",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица orders:\n id | promo_code\n----+-----------\n  1 | SPRING\n  2 | NULL\n  3 | WINTER\n  4 | NULL\n\nSELECT COUNT(promo_code) / COUNT(*) AS promo_share\nFROM orders;",
+      "options": [
+        "0",
+        "0.5",
+        "0.50",
+        "1"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`COUNT(promo_code)` пропускает NULL и даёт 2, `COUNT(*)` считает все строки — 4. Оба значения bigint, поэтому деление целочисленное: 2 / 4 = 0. Для доли нужно привести одно из чисел: `COUNT(promo_code)::numeric / COUNT(*)`."
+    },
+    {
+      "id": "sql-analytics-003",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Таблица `events(user_id, ts timestamp)`. Какой запрос считает DAU — число уникальных активных пользователей за каждый день?",
+      "options": [
+        "SELECT ts::date AS day, COUNT(user_id) AS dau\nFROM events\nGROUP BY ts::date;",
+        "SELECT ts AS day, COUNT(DISTINCT user_id) AS dau\nFROM events\nGROUP BY ts;",
+        "SELECT ts::date AS day, COUNT(DISTINCT user_id) AS dau\nFROM events;",
+        "SELECT ts::date AS day, COUNT(DISTINCT user_id) AS dau\nFROM events\nGROUP BY ts::date;"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Нужно сгруппировать по дню, а не по точному времени, и считать уникальных пользователей: `COUNT(user_id)` посчитает события. Без GROUP BY запрос упадёт, потому что `ts` не агрегирован. MAU считается так же, только группировка по `date_trunc('month', ts)`."
+    },
+    {
+      "id": "sql-analytics-004",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Сколько строк вернёт `SELECT generate_series(date '2024-02-27', date '2024-03-01', interval '1 day');`?",
+      "options": [
+        "3",
+        "4",
+        "5",
+        "Ошибка: generate_series не работает с датами"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Для дат вызывается вариант generate_series для временных меток с шагом interval, обе границы включаются. 2024 год високосный, поэтому получатся 27, 28, 29 февраля и 1 марта. Результат имеет тип timestamptz, поэтому его обычно приводят к date."
+    },
+    {
+      "id": "sql-analytics-005",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Столбец `created_at` имеет тип timestamp. Запрос `SELECT COUNT(*) FROM orders WHERE created_at BETWEEN '2024-01-01' AND '2024-01-31'` должен посчитать заказы за январь. В чём проблема?",
+      "options": [
+        "Не попадут заказы 1 января: BETWEEN не включает левую границу",
+        "Не попадут заказы 31 января позже полуночи: граница '2024-01-31' означает 2024-01-31 00:00:00",
+        "Запрос упадёт: строку нельзя сравнивать с timestamp",
+        "Проблемы нет: для временных меток BETWEEN сравнивает только дату"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "BETWEEN включает обе границы, но строка '2024-01-31' приводится к началу суток. Надёжный вариант — полуоткрытый интервал `created_at >= '2024-01-01' AND created_at < '2024-02-01'`: он не зависит от точности времени и использует индекс."
+    },
+    {
+      "id": "sql-analytics-006",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что вернёт запрос (значения diff по порядку)?",
+      "code": "Таблица monthly:\n month      | revenue\n------------+--------\n 2024-01-01 |     100\n 2024-02-01 |     120\n 2024-03-01 |      90\n\nSELECT month,\n       revenue - LAG(revenue) OVER (ORDER BY month) AS diff\nFROM monthly\nORDER BY month;",
+      "options": [
+        "0, 20, -30",
+        "20, -30, NULL",
+        "100, 20, -30",
+        "NULL, 20, -30"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "LAG берёт значение из предыдущей строки окна. У первого месяца предыдущего нет, LAG возвращает NULL, и разность тоже NULL. Процент MoM считают как `(revenue - LAG(revenue) OVER w) * 100.0 / LAG(revenue) OVER w`."
+    },
+    {
+      "id": "sql-analytics-007",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как посчитать медиану столбца amount в PostgreSQL?",
+      "options": [
+        "`percentile_cont(0.5) WITHIN GROUP (ORDER BY amount)`",
+        "`MEDIAN(amount)`",
+        "`AVG(amount) WITHIN GROUP (ORDER BY amount)`",
+        "`percentile_cont(amount, 0.5)`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Функции MEDIAN в PostgreSQL нет (она есть, например, в Oracle). Медиана — это упорядоченная агрегатная функция percentile_cont с долей 0.5; при чётном числе значений она берёт среднее двух центральных."
+    },
+    {
+      "id": "sql-analytics-008",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем `timestamptz` (timestamp with time zone) отличается от `timestamp` в PostgreSQL?",
+      "options": [
+        "timestamptz хранит значение вместе с исходным часовым поясом, например +03 или Europe/Moscow",
+        "timestamptz занимает больше места и хранит время с точностью до наносекунд",
+        "timestamptz хранит момент времени в UTC и при выводе переводит его в часовой пояс сеанса; сам пояс не сохраняется",
+        "Ничем: это синонимы"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "При вводе значение с указанным смещением переводится в UTC, при выводе — в часовой пояс из параметра TimeZone. Исходный пояс теряется. Оба типа занимают 8 байт и хранят время с точностью до микросекунды. Для реальных событий обычно выбирают timestamptz."
+    },
+    {
+      "id": "sql-analytics-009",
+      "topic": "analytics",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие выражения вернут первое число месяца (2024-03-01 как дату или временную метку) для `d date = '2024-03-17'`?",
+      "options": [
+        "`date_trunc('month', d)`",
+        "`d - interval '1 month'`",
+        "`d - (EXTRACT(day FROM d)::int - 1)`",
+        "`make_date(EXTRACT(year FROM d)::int, EXTRACT(month FROM d)::int, 1)`",
+        "`d - 30`"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "`date_trunc` обрезает до начала месяца, вычитание (день − 1) из даты даёт 1-е число, `make_date` собирает дату из частей. `d - interval '1 month'` даст 17 февраля, а `d - 30` — 16 февраля."
+    },
+    {
+      "id": "sql-analytics-010",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт `SELECT date '2024-01-31' + interval '1 month';`?",
+      "options": [
+        "2024-03-02 00:00:00",
+        "2024-03-01 00:00:00",
+        "2024-02-28 00:00:00",
+        "2024-02-29 00:00:00"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Сумма date и interval имеет тип timestamp. Если в целевом месяце нет такого дня, PostgreSQL берёт последний день месяца; 2024 год високосный, поэтому 29 февраля. Из-за этого `d + interval '1 month' - interval '1 month'` не всегда равно d."
+    },
+    {
+      "id": "sql-analytics-011",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица sales:\n day        | amount\n------------+-------\n 2024-05-01 |     10\n 2024-05-01 |      5\n 2024-05-03 |      7\n\nSELECT d::date AS day, COALESCE(SUM(s.amount), 0) AS total\nFROM generate_series('2024-05-01'::date, '2024-05-03', '1 day') d\nLEFT JOIN sales s ON s.day = d::date\nGROUP BY d\nORDER BY d;",
+      "options": [
+        "2024-05-01 → 15, 2024-05-02 → 0, 2024-05-03 → 7",
+        "2024-05-01 → 15, 2024-05-03 → 7",
+        "2024-05-01 → 15, 2024-05-02 → NULL, 2024-05-03 → 7",
+        "2024-05-01 → 10, 2024-05-01 → 5, 2024-05-02 → 0, 2024-05-03 → 7"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "generate_series строит календарь без пропусков, LEFT JOIN сохраняет дни без продаж, а GROUP BY суммирует строки одного дня. Для пустого дня SUM возвращает NULL, и COALESCE заменяет его на 0."
+    },
+    {
+      "id": "sql-analytics-012",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица events:\n user_id | event\n---------+---------\n       1 | view\n       1 | view\n       1 | cart\n       1 | purchase\n       2 | view\n       2 | cart\n       3 | view\n       4 | purchase\n\nSELECT COUNT(DISTINCT user_id) FILTER (WHERE event = 'view')     AS views,\n       COUNT(DISTINCT user_id) FILTER (WHERE event = 'cart')     AS carts,\n       COUNT(DISTINCT user_id) FILTER (WHERE event = 'purchase') AS buys\nFROM events;",
+      "options": [
+        "views = 4, carts = 2, buys = 2",
+        "views = 3, carts = 2, buys = 1",
+        "views = 3, carts = 2, buys = 2",
+        "Ошибка: FILTER нельзя сочетать с DISTINCT"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "FILTER ограничивает строки для каждого агрегата отдельно, DISTINCT убирает повтор просмотра у пользователя 1. Пользователь 4 попал в buys без просмотра — для строгой воронки сначала собирают флаги шагов по каждому пользователю (например, `bool_or`), а потом считают тех, кто прошёл все предыдущие шаги."
+    },
+    {
+      "id": "sql-analytics-013",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос (значения ma по порядку)?",
+      "code": "Таблица t:\n day | x\n-----+----\n   1 |  3\n   2 |  6\n   3 |  9\n   4 | 12\n\nSELECT day,\n       AVG(x) OVER (ORDER BY day\n                    ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS ma\nFROM t\nORDER BY day;",
+      "options": [
+        "NULL, NULL, 6, 9",
+        "3, 4.5, 6, 9",
+        "3, 4.5, 6, 7.5",
+        "4.5, 6, 9, 10.5"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Окно содержит текущую строку и две предыдущие, а в начале ряда — сколько есть: (3), (3, 6), (3, 6, 9), (6, 9, 12). Чтобы не показывать неполные окна, дополнительно проверяют `COUNT(*) OVER` с той же рамкой."
+    },
+    {
+      "id": "sql-analytics-014",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Столбец `ts` имеет тип timestamp. Какие условия отберут все события за 15 января 2024?",
+      "options": [
+        "`ts >= '2024-01-15' AND ts < '2024-01-16'`",
+        "`ts::date = '2024-01-15'`",
+        "`ts BETWEEN '2024-01-15' AND '2024-01-15'`",
+        "`date_trunc('day', ts) = '2024-01-15'`",
+        "`ts = '2024-01-15'`"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Полуоткрытый интервал — лучший вариант: он может использовать обычный индекс по ts. Приведение к date и date_trunc тоже дают верный результат, но обычный индекс по ts уже не используют. BETWEEN с одинаковыми границами и равенство совпадут только с моментом 00:00:00."
+    },
+    {
+      "id": "sql-analytics-015",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Сеанс работает с `TimeZone = 'UTC'`. Что вернёт `SELECT (timestamptz '2024-03-10 23:30:00+00' AT TIME ZONE 'Europe/Moscow')::date;`?",
+      "options": [
+        "2024-03-10",
+        "2024-03-09",
+        "Ошибка: AT TIME ZONE нельзя применять к timestamptz",
+        "2024-03-11"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Для timestamptz выражение AT TIME ZONE возвращает timestamp — местное время в указанном поясе: 23:30 UTC — это 02:30 11 марта по Москве (UTC+3). Без него `ts::date` берёт дату в поясе сеанса, и ночные события попадают в другие сутки отчёта."
+    },
+    {
+      "id": "sql-analytics-016",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Запрос должен вернуть по два самых дорогих товара в каждой категории. Что произойдёт?",
+      "code": "SELECT category, name, price,\n       ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC) AS rn\nFROM products\nWHERE rn <= 2;",
+      "options": [
+        "Ошибка: столбец rn не существует — WHERE вычисляется раньше оконных функций и SELECT",
+        "Вернутся два самых дорогих товара в каждой категории",
+        "Вернутся два самых дорогих товара среди всех категорий",
+        "Вернутся все товары: условие на rn игнорируется"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Псевдонимы из SELECT и оконные функции в WHERE недоступны. Нумерацию выносят в подзапрос или CTE и фильтруют снаружи. При равных ценах ROW_NUMBER выберет произвольно, а DENSE_RANK вернёт все товары с одинаковой ценой."
+    },
+    {
+      "id": "sql-analytics-017",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица events (id уникален, остальные столбцы могут повторяться):\n id | user_id | event | ts\n----+---------+-------+------\n  1 |       1 | login | 10:00\n  2 |       1 | login | 10:00\n  3 |       1 | login | 10:05\n  4 |       2 | login | 10:00\n  5 |       2 | login | 10:00\n\nSELECT id\nFROM (\n  SELECT id,\n         ROW_NUMBER() OVER (PARTITION BY user_id, event, ts ORDER BY id) AS rn\n  FROM events\n) s\nWHERE rn = 1\nORDER BY id;",
+      "options": [
+        "1, 4",
+        "2, 3, 5",
+        "1, 3, 4",
+        "1, 2, 3, 4, 5"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "PARTITION BY по всем «смысловым» столбцам собирает дубликаты в одну группу, а `rn = 1` оставляет из каждой группы строку с наименьшим id. Групп три: (1, login, 10:00), (1, login, 10:05) и (2, login, 10:00)."
+    },
+    {
+      "id": "sql-analytics-018",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Запрос вычисляет номер месяца активности относительно месяца регистрации (c — когорта, a — месяц активности). Что он вернёт?",
+      "code": "SELECT (date_part('year', a) - date_part('year', c)) * 12\n     + (date_part('month', a) - date_part('month', c)) AS month_n\nFROM (VALUES (date '2023-11-01', date '2024-02-01')) v(c, a);",
+      "options": [
+        "92",
+        "3",
+        "-9",
+        "Ошибка: date_part не работает с типом date"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "(2024 − 2023) · 12 + (2 − 11) = 3. Простое вычитание `a - c` для date дало бы 92 — число дней, которое нельзя точно перевести в месяцы. По такому номеру строят retention-матрицу: когорта × month_n → `COUNT(DISTINCT user_id)`."
+    },
+    {
+      "id": "sql-analytics-019",
+      "topic": "analytics",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Календарь дней соединён с заказами: `FROM generate_series(...) d LEFT JOIN orders o ON o.created_at::date = d::date GROUP BY d`. Какие выражения дадут 0 для дней без заказов?",
+      "options": [
+        "`COUNT(o.id)`",
+        "`COUNT(*)`",
+        "`COALESCE(COUNT(*), 0)`",
+        "`COUNT(DISTINCT o.id)`",
+        "`SUM(CASE WHEN o.id IS NOT NULL THEN 1 ELSE 0 END)`"
+      ],
+      "correct": [
+        0,
+        3,
+        4
+      ],
+      "explanation": "Для дня без заказов LEFT JOIN оставляет одну строку с NULL во всех столбцах o. `COUNT(*)` посчитает её и вернёт 1, а COALESCE не поможет: COUNT никогда не возвращает NULL. `COUNT(столбец)` и CASE по `o.id IS NOT NULL` такие строки пропускают."
+    },
+    {
+      "id": "sql-analytics-020",
+      "topic": "analytics",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Таблица `monthly(month date, revenue)` содержит строки только за месяцы, в которые были продажи. Для сравнения год к году используют `LAG(revenue, 12) OVER (ORDER BY month)`. Какие утверждения верны?",
+      "options": [
+        "Результат корректен, только если в ряду нет пропущенных месяцев",
+        "Для первых 12 строк функция вернёт NULL",
+        "LAG сам найдёт строку с `month - interval '1 year'`, даже если между ними есть пропуски",
+        "Надёжнее соединить таблицу саму с собой по `prev.month = cur.month - interval '1 year'` или сначала дополнить ряд всеми месяцами через generate_series",
+        "Если строк меньше 13, запрос завершится ошибкой"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "LAG отступает на 12 строк, а не на 12 месяцев: при пропуске месяца сравнение сдвинется на другой год. Если строки со смещением нет, возвращается NULL (или значение по умолчанию из третьего аргумента), ошибки не будет."
+    },
+    {
+      "id": "sql-analytics-021",
+      "topic": "analytics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY x) AS p_cont,\n       percentile_disc(0.5) WITHIN GROUP (ORDER BY x) AS p_disc\nFROM (VALUES (1), (2), (3), (10)) v(x);",
+      "options": [
+        "p_cont = 2.5, p_disc = 3",
+        "p_cont = 4, p_disc = 2",
+        "p_cont = 2.5, p_disc = 2",
+        "p_cont = 2.5, p_disc = 2.5"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "percentile_cont интерполирует между двумя центральными значениями: (2 + 3) / 2 = 2.5. percentile_disc возвращает первое значение, накопленная доля которого не меньше 0.5: у 2 она равна 2/4 = 0.5. Среднее (4) из-за выброса 10 сильно отличается от медианы."
+    },
+    {
+      "id": "sql-analytics-022",
+      "topic": "analytics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос (значения session_id по порядку, все клики в один день)?",
+      "code": "Таблица clicks (ts — timestamp):\n user_id | ts\n---------+------\n       1 | 10:00\n       1 | 10:20\n       1 | 11:00\n       1 | 11:10\n\nSELECT ts,\n       SUM(is_new) OVER (PARTITION BY user_id ORDER BY ts) AS session_id\nFROM (\n  SELECT user_id, ts,\n         CASE WHEN ts - LAG(ts) OVER (PARTITION BY user_id ORDER BY ts)\n                   <= interval '30 minutes'\n              THEN 0 ELSE 1 END AS is_new\n  FROM clicks\n) t\nORDER BY ts;",
+      "options": [
+        "0, 0, 1, 1",
+        "1, 2, 3, 4",
+        "1, 1, 1, 1",
+        "1, 1, 2, 2"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Для первого клика LAG даёт NULL, сравнение тоже NULL, и CASE уходит в ELSE 1 — первая сессия начинается с 1. Разрыв 10:20 → 11:00 больше 30 минут, поэтому начинается новая сессия. Нарастающая сумма флагов «новая сессия» и есть номер сессии."
+    },
+    {
+      "id": "sql-analytics-023",
+      "topic": "analytics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что вернёт запрос?",
+      "code": "Таблица checks:\n day        | status\n------------+-------\n 2024-06-01 | up\n 2024-06-02 | up\n 2024-06-03 | down\n 2024-06-04 | down\n 2024-06-05 | up\n\nSELECT status, MIN(day) AS from_day, MAX(day) AS to_day\nFROM (\n  SELECT day, status, SUM(chg) OVER (ORDER BY day) AS grp\n  FROM (\n    SELECT day, status,\n           CASE WHEN status = LAG(status) OVER (ORDER BY day)\n                THEN 0 ELSE 1 END AS chg\n    FROM checks\n  ) a\n) b\nGROUP BY status, grp\nORDER BY from_day;",
+      "options": [
+        "(up, 06-01, 06-02), (down, 06-03, 06-04), (up, 06-05, 06-05)",
+        "(up, 06-01, 06-05), (down, 06-03, 06-04)",
+        "(up, 06-01, 06-02), (down, 06-03, 06-04)",
+        "По одной строке на каждый день"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Флаг chg равен 1 при смене статуса (и в первой строке, где LAG даёт NULL), а нарастающая сумма флагов нумерует «острова»: 1, 1, 2, 2, 3. Группировка по status и grp разделяет два отрезка со статусом up, а группировка только по status склеила бы их."
+    },
+    {
+      "id": "sql-analytics-024",
+      "topic": "analytics",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Сеанс работает с `TimeZone = 'Europe/Berlin'`, переход на летнее время — 31 марта 2024 в 02:00. Что вернут `timestamptz '2024-03-30 12:00' + interval '1 day'` и `timestamptz '2024-03-30 12:00' + interval '24 hours'`?",
+      "options": [
+        "Оба выражения — 2024-03-31 12:00:00+02",
+        "2024-03-31 12:00:00+02 и 2024-03-31 13:00:00+02",
+        "Оба выражения — 2024-03-31 13:00:00+02",
+        "2024-03-31 11:00:00+02 и 2024-03-31 12:00:00+02"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "interval '1 day' прибавляет календарные сутки в поясе сеанса: местное время 12:00 сохраняется, хотя прошло 23 часа. interval '24 hours' прибавляет ровно 24 часа абсолютного времени, и из-за перевода часов получается 13:00."
+    }
+  ]
+}

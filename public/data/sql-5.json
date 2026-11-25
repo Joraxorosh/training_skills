@@ -227,7 +227,7 @@
       "topic": "postgres",
       "difficulty": "medium",
       "type": "multiple",
-      "question": "Какие выражения вернут true?",
+      "question": "Какие выражения с массивами вернут true?",
       "options": [
         "ARRAY[1,2] @> ARRAY[2,5]",
         "ARRAY[1,2,3] @> ARRAY[3,1]",
@@ -353,7 +353,7 @@
       "topic": "postgres",
       "difficulty": "medium",
       "type": "multiple",
-      "question": "Какие выражения вернут true?",
+      "question": "Какие выражения с jsonb вернут true?",
       "options": [
         "'{\"a\": {\"b\": 1}}'::jsonb ? 'b'",
         "'{\"a\": 1, \"b\": [1, 2]}'::jsonb @> '{\"b\": [2]}'",

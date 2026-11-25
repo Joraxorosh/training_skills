@@ -22,8 +22,9 @@ const MIME = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
 };
-const COMPRESSIBLE = new Set(['.html', '.js', '.css', '.json', '.webmanifest', '.svg', '.txt']);
+const COMPRESSIBLE = new Set(['.html', '.js', '.css', '.json', '.webmanifest', '.svg', '.txt', '.md']);
 
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',

@@ -1,0 +1,869 @@
+{
+  "topics": [
+    {
+      "id": "gitops",
+      "title": "Helm, GitOps и Argo CD"
+    },
+    {
+      "id": "messaging",
+      "title": "Очереди и брокеры сообщений (Kafka, RabbitMQ, Redis)"
+    }
+  ],
+  "questions": [
+    {
+      "id": "devops-gitops-001",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое Helm chart?",
+      "options": [
+        "Образ контейнера, который Helm собирает из Dockerfile и публикует в registry",
+        "Графическая панель в кластере для просмотра состояния всех установленных релизов",
+        "Пакет шаблонов Kubernetes-манифестов с метаданными (`Chart.yaml`) и значениями по умолчанию (`values.yaml`)",
+        "Плагин kubectl, генерирующий RBAC-политики для namespace по готовому шаблону"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Chart — это каталог (или `.tgz`-архив) с `Chart.yaml`, `values.yaml` и шаблонами в `templates/`. Helm рендерит шаблоны с подставленными значениями и устанавливает результат в кластер как релиз."
+    },
+    {
+      "id": "devops-gitops-002",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что делает эта команда?",
+      "code": "helm upgrade --install myapp ./chart -n prod",
+      "options": [
+        "Обновляет релиз `myapp`, а если его ещё нет — устанавливает его",
+        "Устанавливает новый релиз и падает с ошибкой, если `myapp` уже существует",
+        "Обновляет сам бинарник Helm до последней версии и затем ставит чарт",
+        "Только рендерит шаблоны и выводит манифесты, ничего не применяя в кластер"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "`--install` делает `upgrade` идемпотентным: при отсутствии релиза он будет установлен. Поэтому `helm upgrade --install` — стандартная команда для CI/CD, где не хочется различать первый и последующие деплои."
+    },
+    {
+      "id": "devops-gitops-003",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как в Helm откатить релиз на одну из предыдущих ревизий?",
+      "options": [
+        "`helm revert <release> [revision]`",
+        "`helm undo <release> --last`",
+        "`helm downgrade <release> [revision]`",
+        "`helm rollback <release> [revision]`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`helm rollback` применяет конфигурацию указанной ревизии (номера видны в `helm history`), а без номера — предыдущей. Откат сам создаёт новую ревизию, история не переписывается."
+    },
+    {
+      "id": "devops-gitops-004",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чему будет равно `replicaCount` в отрендеренных манифестах?",
+      "code": "# chart/values.yaml\nreplicaCount: 1\n\n# prod.yaml\nreplicaCount: 3\n\n$ helm install app ./chart -f prod.yaml --set replicaCount=5",
+      "options": [
+        "3",
+        "5",
+        "1",
+        "Ошибка: конфликт значений из разных источников"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Приоритет значений: `values.yaml` чарта < файлы `-f` (последний побеждает) < `--set`. Поэтому `--set replicaCount=5` перекрывает и `prod.yaml`, и значение по умолчанию."
+    },
+    {
+      "id": "devops-gitops-005",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие утверждения соответствуют принципам GitOps (OpenGitOps)?",
+      "options": [
+        "Желаемое состояние системы описано декларативно",
+        "Желаемое состояние хранится версионированно и неизменяемо (например, в Git)",
+        "Агенты непрерывно сверяют фактическое состояние с желаемым и устраняют расхождения",
+        "Срочные изменения в прод вносятся через `kubectl edit`, а в Git попадают позже",
+        "Каждое окружение обязано храниться в отдельном Git-репозитории"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Четыре принципа OpenGitOps: декларативность, версионированное неизменяемое хранение, автоматическое вытягивание (pull) и непрерывная сверка (reconciliation). Ручные правки в обход Git нарушают модель, а структура репозиториев (моно- или мульти-) — выбор команды, а не требование."
+    },
+    {
+      "id": "devops-gitops-006",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое drift в контексте GitOps?",
+      "options": [
+        "Задержка между коммитом в репозиторий и стартом CI-пайплайна сборки образа",
+        "Расхождение фактического состояния кластера с желаемым состоянием, описанным в Git",
+        "Постепенное устаревание версий Helm-чартов, на которые ссылается репозиторий",
+        "Перемещение подов между нодами кластера при нехватке ресурсов на них"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Drift возникает, когда кто-то меняет ресурсы вручную или их меняет другой контроллер. GitOps-агент (Argo CD, Flux) обнаруживает его при сверке и показывает OutOfSync либо автоматически возвращает состояние из Git."
+    },
+    {
+      "id": "devops-gitops-007",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем pull-модель GitOps (Argo CD, Flux) отличается от классического push-деплоя из CI?",
+      "options": [
+        "CI-сервер отправляет манифесты в кластер по расписанию, а не по каждому коммиту",
+        "Инженеры делают `git pull` прямо на нодах кластера и применяют манифесты вручную",
+        "Кластер выгружает свои живые манифесты в Git, а CI проверяет их линтером",
+        "Агент внутри кластера сам забирает изменения из Git, и CI не нужны креды для доступа к кластеру"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "В pull-модели контроллер в кластере опрашивает Git (или получает webhook) и применяет изменения сам. Креды кластера не покидают его, а сверка идёт непрерывно, а не только в момент деплоя."
+    },
+    {
+      "id": "devops-gitops-008",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем Kustomize принципиально отличается от Helm?",
+      "options": [
+        "Kustomize накладывает патчи (overlays) на обычный YAML без шаблонизатора, а Helm рендерит Go-шаблоны со значениями",
+        "Kustomize — шаблонизатор на Jinja2, а Helm использует патчи поверх обычного YAML",
+        "Kustomize хранит релизы и ревизии в кластере, а Helm только рендерит YAML",
+        "Kustomize работает только внутри Argo CD, а Helm — только через `kubectl`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Kustomize строит итоговые манифесты из `base` и `overlays` через патчи и встроен в kubectl (`kubectl apply -k`). Понятия релиза и истории ревизий у него нет — это особенность Helm."
+    },
+    {
+      "id": "devops-gitops-009",
+      "topic": "gitops",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что описывает ресурс `Application` в Argo CD?",
+      "options": [
+        "Docker-образ приложения и параметры его сборки в CI-пайплайне",
+        "Пользователей веб-интерфейса Argo CD и их роли в проекте",
+        "Источник (репозиторий, путь или чарт, ревизия), назначение (кластер, namespace) и политику синхронизации",
+        "Замену стандартного `Deployment`, которую Argo CD создаёт вместо него"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`Application` — CRD Argo CD, связывающий «что деплоить» (`spec.source`/`sources`) с «куда» (`spec.destination`). Там же задаётся `syncPolicy`: ручная или автоматическая синхронизация, prune, selfHeal."
+    },
+    {
+      "id": "devops-gitops-010",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Кто-то вручную выполнил `kubectl scale deploy/api --replicas=10`, а в Git указано `replicas: 3`. Что сделает Argo CD с такой политикой?",
+      "code": "spec:\n  syncPolicy:\n    automated:\n      prune: true\n      selfHeal: true",
+      "options": [
+        "Закоммитит новое значение реплик обратно в Git",
+        "Ничего: selfHeal срабатывает только при новом коммите",
+        "Удалит Deployment целиком, так как включён `prune`",
+        "Обнаружит drift и вернёт 3 реплики из Git"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`selfHeal: true` заставляет Argo CD автоматически синхронизировать приложение при расхождении живого состояния с Git, даже без новых коммитов. `prune` же отвечает за удаление ресурсов, которые исчезли из Git, а не за откат правок."
+    },
+    {
+      "id": "devops-gitops-011",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что даёт эта аннотация ресурсу в приложении Argo CD?",
+      "code": "metadata:\n  annotations:\n    argocd.argoproj.io/sync-wave: \"-1\"",
+      "options": [
+        "Ресурс исключается из автоматической синхронизации приложения",
+        "Ресурс применяется раньше ресурсов с большей волной (по умолчанию волна 0)",
+        "Ресурс синхронизируется с задержкой в одну минуту после остальных",
+        "Ресурс применяется последним, после всех остальных ресурсов"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Sync waves упорядочивают применение по возрастанию номера; Argo CD дожидается healthy-состояния ресурсов текущей волны перед следующей. Отрицательная волна удобна для namespace, CRD, секретов и миграций."
+    },
+    {
+      "id": "devops-gitops-012",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как поведёт себя Job с миграциями БД, помеченный такими аннотациями?",
+      "code": "metadata:\n  annotations:\n    \"helm.sh/hook\": pre-upgrade\n    \"helm.sh/hook-delete-policy\": before-hook-creation,hook-succeeded",
+      "options": [
+        "Запустится перед применением ресурсов при `helm upgrade`; Helm дождётся его завершения и удалит при успехе",
+        "Запустится после `helm upgrade` параллельно с новыми подами приложения и останется в кластере",
+        "Будет создан один раз при `helm install` и при последующих upgrade больше не запустится",
+        "Выполнится только при `helm rollback` на предыдущую ревизию релиза"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Хук `pre-upgrade` выполняется до обновления ресурсов релиза, и для Job Helm ждёт его завершения; при провале upgrade прерывается. `hook-succeeded` удаляет Job после успеха, `before-hook-creation` — удаляет старый перед созданием нового."
+    },
+    {
+      "id": "devops-gitops-013",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как в Helm 3 объявить зависимость чарта от чарта `postgresql`?",
+      "options": [
+        "Только в файле `requirements.yaml` — другого способа Helm 3 не поддерживает",
+        "Аннотацией `helm.sh/depends-on: postgresql` в файле `values.yaml`",
+        "Секцией `dependencies` в `Chart.yaml` и затем `helm dependency update`",
+        "Скопировать шаблоны в `templates/` — подчарты в Helm 3 не поддерживаются"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "В чартах `apiVersion: v2` зависимости описываются в `Chart.yaml` (имя, версия, репозиторий, `condition`). `helm dependency update` скачивает их в `charts/` и пишет `Chart.lock`; `requirements.yaml` — наследие Helm 2."
+    },
+    {
+      "id": "devops-gitops-014",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как работает Bitnami Sealed Secrets?",
+      "options": [
+        "Секрет хранится в Git в base64, что считается достаточной защитой для приватного репозитория",
+        "`kubeseal` загружает секрет в Vault, а в Git кладёт только ссылку на путь в хранилище",
+        "`kubeseal` шифрует секрет публичным ключом контроллера; расшифровать `SealedSecret` в `Secret` может только контроллер в кластере",
+        "Контроллер шифрует секреты в etcd, а в Git они остаются открытым текстом"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Шифрование асимметричное: зашифровать может любой, у кого есть публичный сертификат, а приватный ключ есть только у контроллера. Поэтому `SealedSecret` безопасно коммитить, а base64 в обычном `Secret` — это кодирование, а не шифрование."
+    },
+    {
+      "id": "devops-gitops-015",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие подходы позволяют не хранить секреты в Git открытым текстом при GitOps?",
+      "options": [
+        "Хранить обычный `Secret` в base64 в приватном репозитории",
+        "SOPS — шифрование значений в YAML ключами KMS, age или PGP",
+        "Положить секреты в `ConfigMap` с отдельным RBAC на чтение",
+        "External Secrets Operator — синхронизация из Vault или облачного Secrets Manager в `Secret`",
+        "Sealed Secrets — асимметрично зашифрованный ресурс `SealedSecret`"
+      ],
+      "correct": [
+        1,
+        3,
+        4
+      ],
+      "explanation": "SOPS (поддерживается Flux нативно и Argo CD через плагины), Sealed Secrets и External Secrets Operator — стандартные решения. Base64 — не шифрование, а `ConfigMap` вообще не предназначен для секретов."
+    },
+    {
+      "id": "devops-gitops-016",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как обычно реализуют продвижение (promotion) версии из staging в prod в GitOps?",
+      "options": [
+        "Командой `argocd app sync prod --from staging`, копирующей живое состояние",
+        "Перезапуском пайплайна сборки с флагом prod, чтобы пересобрать образ для prod",
+        "Ручным `kubectl apply` в prod после успешной проверки на staging",
+        "Изменением в Git (PR), которое обновляет тег образа или версию чарта в конфигурации prod"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Источник истины — Git, поэтому promotion — это коммит или PR в конфигурацию целевого окружения с тем же уже проверенным артефактом. Автоматизировать это помогают Argo CD Image Updater, Flux image automation или Kargo."
+    },
+    {
+      "id": "devops-gitops-017",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какие объекты Flux v2 отвечают за источник манифестов и их применение в кластер?",
+      "options": [
+        "`GitRepository` (source-controller) и `Kustomization` (kustomize-controller)",
+        "`Application` и `AppProject`, управляемые application-controller",
+        "`SourceRepo` и `ReconcilePolicy`, управляемые flux-operator",
+        "`HelmChart` и `SyncPolicy`, управляемые helm-controller"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Flux разделён на контроллеры: source-controller тянет `GitRepository`/`OCIRepository`/`HelmRepository`, kustomize-controller применяет `Kustomization`, helm-controller управляет `HelmRelease`. `Application`/`AppProject` — объекты Argo CD."
+    },
+    {
+      "id": "devops-gitops-018",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какая команда покажет итоговые манифесты чарта, ничего не устанавливая в кластер?",
+      "options": [
+        "`helm get manifest myapp -f values-prod.yaml`",
+        "`helm template myapp ./chart -f values-prod.yaml`",
+        "`helm show chart ./chart -f values-prod.yaml`",
+        "`helm status myapp --render -f values-prod.yaml`"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "`helm template` рендерит чарт локально. `helm get manifest` показывает манифесты уже установленного релиза, а `helm show chart` выводит содержимое `Chart.yaml`."
+    },
+    {
+      "id": "devops-gitops-019",
+      "topic": "gitops",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Какие утверждения о Helm 3 верны?",
+      "options": [
+        "Серверного компонента Tiller нет — Helm действует с правами из kubeconfig",
+        "Данные релиза по умолчанию хранятся в `Secret` в namespace релиза",
+        "Релизы хранятся в `ConfigMap` в namespace `kube-system`",
+        "При upgrade используется трёхстороннее слияние (three-way merge)",
+        "Имя релиза должно быть уникально во всём кластере"
+      ],
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "В Helm 3 удалён Tiller, релизы хранятся в Secret (`sh.helm.release.v1.<имя>.v<N>`) в namespace релиза, поэтому имена уникальны в пределах namespace. Three-way merge учитывает старый манифест, новый и живое состояние."
+    },
+    {
+      "id": "devops-gitops-020",
+      "topic": "gitops",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт, когда Rollout дойдёт до шага `pause: {}`?",
+      "code": "strategy:\n  canary:\n    steps:\n      - setWeight: 20\n      - pause: {duration: 10m}\n      - setWeight: 50\n      - pause: {}\n      - setWeight: 100",
+      "options": [
+        "Пауза продлится столько же, сколько предыдущая, — 10 минут",
+        "Шаг будет пропущен, потому что длительность не указана",
+        "Rollout автоматически откатится, если не получит метрик анализа",
+        "Rollout остановится бессрочно до ручного продвижения (`kubectl argo rollouts promote`)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "В Argo Rollouts `pause` без `duration` — бессрочная пауза: rollout ждёт `promote` от человека или внешней автоматизации. Автоматический откат по метрикам задаётся отдельно через `analysis`/`AnalysisTemplate`."
+    },
+    {
+      "id": "devops-gitops-021",
+      "topic": "gitops",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "В Git у Deployment указано `replicas: 3`, HPA масштабирует его до 8, а Argo CD с selfHeal постоянно возвращает 3. Как правильно решить проблему?",
+      "options": [
+        "Убрать `replicas` из манифеста (или игнорировать поле через `ignoreDifferences`), оставив количество реплик HPA",
+        "Отключить `prune` в syncPolicy, чтобы Argo CD перестал трогать поле реплик",
+        "Назначить HPA меньшую sync-wave, чем у Deployment, чтобы он применялся первым",
+        "Задать в HPA `minReplicas: 3`, чтобы значения в Git и в кластере совпали"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Поле `spec.replicas` управляется HPA, и два «владельца» конфликтуют. Его не указывают в манифесте (тогда Argo CD не сравнивает его) или исключают через `ignoreDifferences` с `RespectIgnoreDifferences=true`."
+    },
+    {
+      "id": "devops-gitops-022",
+      "topic": "gitops",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Как работает стратегия `blueGreen` в Argo Rollouts?",
+      "options": [
+        "Трафик постепенно переводится по процентам через последовательность шагов `setWeight`",
+        "Старые поды заменяются по одному, как в RollingUpdate с `maxSurge: 0`",
+        "Новая версия поднимается рядом со старой за `previewService`; после promote `activeService` переключается на новый ReplicaSet",
+        "Создаётся новый namespace, и Ingress переключается между двумя namespace"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Rollouts управляет селекторами сервисов: `previewService` указывает на новую версию для проверки, а при promote `activeService` переключается на неё целиком. Старый ReplicaSet удерживается `scaleDownDelaySeconds` для быстрого отката. Пошаговые веса — это canary."
+    },
+    {
+      "id": "devops-gitops-023",
+      "topic": "gitops",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Какие утверждения об `ApplicationSet` в Argo CD верны?",
+      "options": [
+        "ApplicationSet заменяет sync waves и задаёт порядок применения ресурсов внутри приложения",
+        "Генерирует множество `Application` по шаблону из генераторов (list, cluster, git, matrix и др.)",
+        "Генератор `git` может создавать по `Application` на каждую директорию репозитория",
+        "ApplicationSet поддерживает только Helm-чарты и не работает с Kustomize",
+        "Генератор `cluster` создаёт `Application` для каждого зарегистрированного в Argo CD кластера"
+      ],
+      "correct": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "ApplicationSet — контроллер-шаблонизатор для `Application`, удобный для мультикластера и монорепо. Порядок ресурсов внутри приложения по-прежнему задают sync waves и хуки, а тип источника (Helm, Kustomize, plain YAML) не ограничен."
+    },
+    {
+      "id": "devops-gitops-024",
+      "topic": "gitops",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "CI-раннер убили посреди `helm upgrade`, и теперь каждый upgrade падает с ошибкой ниже. Что делать?",
+      "code": "Error: UPGRADE FAILED: another operation (install/upgrade/rollback) is in progress",
+      "options": [
+        "Подождать сутки — Helm снимет блокировку релиза по встроенному TTL",
+        "Сделать `helm rollback` на последнюю успешную ревизию, чтобы снять статус `pending-upgrade`",
+        "Выполнить `helm repo update`, чтобы сбросить локальный кэш релизов",
+        "Добавить `--force` к `helm upgrade` — он игнорирует статус релиза"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Прерванная операция оставляет последнюю ревизию в статусе `pending-upgrade`, и Helm блокирует новые операции. Откат на рабочую ревизию (или, в крайнем случае, удаление Secret зависшей ревизии) снимает блокировку; `--force` лишь пересоздаёт ресурсы и не помогает."
+    },
+    {
+      "id": "devops-messaging-001",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем модель очереди (point-to-point) отличается от pub/sub?",
+      "options": [
+        "В очереди сообщения хранятся бессрочно, в pub/sub удаляются сразу после отправки",
+        "В очереди каждое сообщение обрабатывает один из потребителей, в pub/sub его получает каждый подписчик",
+        "Очередь работает только синхронно, а pub/sub — только асинхронно",
+        "В очередь может писать только один продюсер, в pub/sub — несколько"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Очередь распределяет работу между конкурирующими потребителями (competing consumers), а pub/sub рассылает копию события каждому подписчику. В Kafka обе модели выражаются через consumer groups: внутри группы — очередь, между группами — pub/sub."
+    },
+    {
+      "id": "devops-messaging-002",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Какую гарантию порядка сообщений даёт Kafka?",
+      "options": [
+        "Глобальный порядок внутри топика при любом числе партиций",
+        "Порядок между всеми топиками одного кластера",
+        "Никакой: даже внутри партиции порядок не гарантирован",
+        "Порядок сохраняется только внутри одной партиции"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Партиция — это упорядоченный append-only лог, а между партициями порядок не определён. Поэтому связанные события (например, одного заказа) отправляют с одинаковым ключом, чтобы они попали в одну партицию."
+    },
+    {
+      "id": "devops-messaging-003",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что такое offset в Kafka?",
+      "options": [
+        "Порядковый номер сообщения в партиции, по которому consumer отслеживает позицию чтения",
+        "Смещение часов между продюсером и брокером для синхронизации времени",
+        "Номер брокера-лидера, на котором хранится данная партиция",
+        "Глобально уникальный идентификатор сообщения во всём кластере"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Offset уникален только в пределах партиции. Consumer group коммитит offset во внутренний топик `__consumer_offsets` и после рестарта продолжает чтение с него."
+    },
+    {
+      "id": "devops-messaging-004",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "В топике 4 партиции, в обычной consumer group (не share group) запущено 6 потребителей. Сколько потребителей будут простаивать?",
+      "options": [
+        "0",
+        "4",
+        "2",
+        "Ни одного — каждую партицию прочитают полтора потребителя"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "В классической consumer group партиция назначается не более чем одному потребителю группы, поэтому лишние потребители простаивают. Параллелизм группы ограничен числом партиций (share groups из KIP-932 — отдельная, очередеподобная модель)."
+    },
+    {
+      "id": "devops-messaging-005",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Как маршрутизирует сообщения exchange типа `fanout` в RabbitMQ?",
+      "options": [
+        "Отправляет в очередь, чей binding key точно совпадает с routing key",
+        "Отправляет в очереди, чей шаблон с `*` и `#` подходит к routing key",
+        "Копирует сообщение во все привязанные очереди, игнорируя routing key",
+        "Маршрутизирует по заголовкам сообщения вместо routing key"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "`fanout` — широковещательная рассылка во все связанные очереди. Точное совпадение ключа — это `direct`, шаблоны с `*`/`#` — `topic`, маршрутизация по заголовкам — `headers`."
+    },
+    {
+      "id": "devops-messaging-006",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Consumer сначала обрабатывает сообщение, а затем коммитит offset. Какую семантику доставки это даёт?",
+      "code": "for msg in consumer:\n    process(msg)\n    consumer.commit()",
+      "options": [
+        "At-least-once: при падении между обработкой и коммитом сообщение обработается повторно",
+        "At-most-once: сообщение может потеряться, но никогда не обработается дважды",
+        "Exactly-once: Kafka гарантирует её при любом порядке обработки и коммита",
+        "Best-effort: брокер не хранит позицию consumer'а, и порядок не важен"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Если процесс упадёт после `process`, но до `commit`, после рестарта то же сообщение будет прочитано снова. Коммит до обработки дал бы at-most-once — возможна потеря без повторов."
+    },
+    {
+      "id": "devops-messaging-007",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "multiple",
+      "question": "Какие приёмы помогают сделать consumer идемпотентным?",
+      "options": [
+        "Хранить ID обработанных сообщений и пропускать повторы",
+        "Увеличить число партиций топика",
+        "Использовать upsert или уникальный ключ в БД вместо слепого insert",
+        "Передавать idempotency key во внешний платёжный API",
+        "Включить `autoAck`, чтобы брокер не доставлял сообщение повторно"
+      ],
+      "correct": [
+        0,
+        2,
+        3
+      ],
+      "explanation": "При at-least-once повторы неизбежны, поэтому обработка должна давать тот же результат при повторе: дедупликация по ID, upsert, idempotency key во внешних вызовах. Число партиций на это не влияет, а `autoAck` лишь меняет повторы на возможную потерю."
+    },
+    {
+      "id": "devops-messaging-008",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Что показывает consumer lag в Kafka?",
+      "options": [
+        "Сетевую задержку между consumer'ом и брокером в миллисекундах",
+        "Время, которое сообщение провело в буфере продюсера до отправки",
+        "Число сообщений, отклонённых брокером из-за превышения размера",
+        "Разницу между последним offset партиции и закоммиченным offset группы"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Lag — сколько сообщений группа ещё не обработала. Растущий lag означает, что потребители не успевают; его мониторят через `kafka-consumer-groups.sh`, Burrow или kafka-exporter и алертят на тренд."
+    },
+    {
+      "id": "devops-messaging-009",
+      "topic": "messaging",
+      "difficulty": "easy",
+      "type": "single",
+      "question": "Чем Redis Pub/Sub отличается от Redis Streams?",
+      "options": [
+        "Pub/Sub сохраняет сообщения на диск, а Streams держат их только в оперативной памяти",
+        "Pub/Sub не хранит сообщения и офлайн-подписчик их теряет; Streams хранят лог и поддерживают consumer groups с ack",
+        "Streams работают только в Redis Cluster, а Pub/Sub — только на одиночном узле",
+        "Pub/Sub поддерживает consumer groups с ack, а Streams — только широковещательную рассылку"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Pub/Sub — fire-and-forget: сообщение получают только подключённые сейчас подписчики. Streams (`XADD`, `XREADGROUP`, `XACK`) хранят записи, позволяют перечитывать историю и отслеживать неподтверждённые сообщения (PEL)."
+    },
+    {
+      "id": "devops-messaging-010",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Как интерпретировать такой вывод?",
+      "code": "$ kafka-consumer-groups.sh --bootstrap-server kafka:9092 --describe --group billing\nGROUP    TOPIC     PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG\nbilling  payments  0          1500            1520            20\nbilling  payments  1          980             4980            4000",
+      "options": [
+        "Партиция 1 сильно отстаёт: вероятен перекос ключей или медленный/зависший потребитель этой партиции",
+        "Партиция 0 потеряла 20 сообщений, которые нужно переотправить продюсером",
+        "Группа читает партиции в неверном порядке, нужно сбросить offset в 0",
+        "Брокер партиции 1 недоступен, поэтому LOG-END-OFFSET больше текущего"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "LAG = LOG-END-OFFSET − CURRENT-OFFSET. Небольшой lag на партиции 0 нормален, а 4000 на партиции 1 указывает на проблему у её потребителя или на «горячий» ключ, из-за которого в одну партицию пишется непропорционально много."
+    },
+    {
+      "id": "devops-messaging-011",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что означает эта настройка продюсера Kafka?",
+      "code": "acks=all",
+      "options": [
+        "Запись подтверждается после записи на все реплики, включая отставшие вне ISR",
+        "Продюсер ждёт подтверждения прочтения от всех consumer group топика",
+        "Лидер подтверждает запись сразу после её приёма, не дожидаясь реплик",
+        "Лидер подтверждает запись только после того, как её получили все реплики из ISR"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "`acks=all` (`-1`) ждёт все in-sync реплики, а `min.insync.replicas` задаёт минимальный размер ISR, при котором запись вообще разрешена. С Kafka 3.0 `acks=all` и `enable.idempotence=true` — значения по умолчанию."
+    },
+    {
+      "id": "devops-messaging-012",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Топик с RF=3, `min.insync.replicas=2`, продюсер с `acks=all`. Какие утверждения верны?",
+      "options": [
+        "При падении одного брокера топик становится доступен только на чтение",
+        "Запись проходит, пока в ISR не меньше двух реплик",
+        "При падении одного брокера запись продолжается",
+        "Подтверждённое сообщение гарантированно переживёт потерю любых двух брокеров",
+        "При падении двух брокеров продюсер получит `NotEnoughReplicas`, но чтение может продолжаться"
+      ],
+      "correct": [
+        1,
+        2,
+        4
+      ],
+      "explanation": "С одним упавшим брокером в ISR остаются 2 реплики — условие выполнено. С двумя упавшими ISR сокращается до 1, и запись с `acks=all` отклоняется. Подтверждённое сообщение лежит минимум на 2 репликах, поэтому потеря двух брокеров может его уничтожить."
+    },
+    {
+      "id": "devops-messaging-013",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Что делает эта команда?",
+      "code": "kafka-configs.sh --bootstrap-server kafka:9092 --alter \\\n  --entity-type topics --entity-name user-profiles \\\n  --add-config cleanup.policy=compact",
+      "options": [
+        "Включает сжатие сообщений алгоритмом gzip или zstd для экономии дискового пространства",
+        "Включает compaction: для каждого ключа сохраняется как минимум последнее значение, старые записи с тем же ключом удаляются",
+        "Включает удаление целых сегментов, когда сообщения становятся старше `retention.ms`",
+        "Включает объединение мелких сообщений в батчи при записи продюсером в этот топик"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Compacted-топик работает как журнал последних состояний по ключу (changelog), например для профилей или KTable. Запись с `null`-значением (tombstone) удаляет ключ. Сжатие на уровне байтов — это `compression.type`, а удаление по времени — `cleanup.policy=delete`."
+    },
+    {
+      "id": "devops-messaging-014",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какой routing key попадёт в очередь `audit`?",
+      "code": "exchange: events (type=topic)\nbinding:  queue=audit  key=order.*.created",
+      "options": [
+        "`order.eu.created`",
+        "`order.eu.de.created`",
+        "`order.created`",
+        "`order.eu.updated`"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "В topic exchange `*` заменяет ровно одно слово, а `#` — ноль или больше слов. Поэтому подходит только ключ с одним словом между `order` и `created`; для произвольной вложенности нужен `order.#.created`."
+    },
+    {
+      "id": "devops-messaging-015",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем в RabbitMQ задают для consumer'а `basic.qos` (prefetch count)?",
+      "options": [
+        "Чтобы брокер заранее загружал сообщения очереди с диска в оперативную память",
+        "Чтобы ограничить максимальную длину очереди в сообщениях и отбрасывать лишние",
+        "Чтобы ограничить число неподтверждённых сообщений у одного consumer'а и распределять нагрузку равномернее",
+        "Чтобы consumer автоматически подтверждал сообщения пачками по заданному числу"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Без prefetch брокер отдаёт сообщения push-ом без ограничения, и один медленный consumer может набрать тысячи неподтверждённых сообщений. Prefetch задаёт окно in-flight сообщений и работает только с ручными ack."
+    },
+    {
+      "id": "devops-messaging-016",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Очередь объявлена с такими аргументами. Когда сообщение из неё попадёт в exchange `dlx`?",
+      "code": "x-dead-letter-exchange: dlx\nx-message-ttl: 30000",
+      "options": [
+        "Только когда consumer отключился, не успев подтвердить полученное сообщение",
+        "После каждого успешного `ack` — для аудита всех обработанных сообщений",
+        "Когда exchange не нашёл для сообщения ни одной подходящей очереди",
+        "При `reject`/`nack` с `requeue=false`, истечении TTL в 30 с или переполнении по `x-max-length`"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Dead-lettering срабатывает при отказе без повторной постановки, истечении TTL и вытеснении при переполнении (а для quorum-очередей — ещё и при превышении `delivery-limit`). Неподтверждённые сообщения отключившегося consumer'а возвращаются в очередь, а немаршрутизируемые уходят в alternate exchange."
+    },
+    {
+      "id": "devops-messaging-017",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Какую проблему решает паттерн Transactional Outbox?",
+      "options": [
+        "Переполнение очереди брокера: лишние сообщения временно сохраняются в outbox на диске продюсера",
+        "Порядок сообщений между партициями: outbox сортирует события перед отправкой в топик",
+        "Атомарность изменения в БД и публикации события: событие пишется в таблицу outbox в той же транзакции, а затем отдельно отправляется в брокер",
+        "Дубликаты на стороне consumer'а: outbox гарантирует exactly-once без идемпотентной обработки"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Без outbox «записать в БД и отправить в Kafka» — dual write: одна операция может пройти, а другая нет. Outbox-relay (polling или CDC, например Debezium) публикует события at-least-once, поэтому потребители всё равно должны быть идемпотентными."
+    },
+    {
+      "id": "devops-messaging-018",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "multiple",
+      "question": "Продюсеры пишут быстрее, чем consumer'ы успевают обрабатывать. Какие меры помогают справиться с этим (backpressure)?",
+      "options": [
+        "Горизонтально масштабировать consumer'ов (в Kafka — в пределах числа партиций)",
+        "Ограничить prefetch и размер батча, полагаясь на flow control брокера",
+        "Включить `autoAck`, чтобы consumer обрабатывал сообщения быстрее",
+        "Уменьшить число партиций топика, чтобы снизить нагрузку на брокер",
+        "Ограничить длину очереди (`x-max-length`) с `overflow=reject-publish`, чтобы продюсер получал отказ"
+      ],
+      "correct": [
+        0,
+        1,
+        4
+      ],
+      "explanation": "Нагрузку либо поглощают (больше потребителей), либо замедляют источник (flow control, отказ в публикации при переполнении). `autoAck` лишь переносит перегрузку в память consumer'а с риском потерь, а меньше партиций — меньше параллелизма."
+    },
+    {
+      "id": "devops-messaging-019",
+      "topic": "messaging",
+      "difficulty": "medium",
+      "type": "single",
+      "question": "Зачем здесь передавать `customerId` в качестве ключа сообщения?",
+      "code": "producer.send(new ProducerRecord<>(\"orders\", order.getCustomerId(), payload));",
+      "options": [
+        "Ключ шифрует payload, и прочитать сообщение сможет только consumer с тем же ключом",
+        "Ключ указывает, какой именно consumer группы обязан обработать это сообщение",
+        "Ключ нужен брокеру для дедупликации повторных отправок одного и того же сообщения",
+        "Сообщения с одинаковым ключом попадают в одну партицию, поэтому события одного клиента читаются по порядку"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Партиционер по умолчанию вычисляет партицию по хешу ключа (murmur2), так что все события клиента идут в одну партицию и сохраняют порядок. Дедупликацию ретраев обеспечивает идемпотентный продюсер (producer id + sequence), а не ключ."
+    },
+    {
+      "id": "devops-messaging-020",
+      "topic": "messaging",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что на самом деле обеспечивают идемпотентный продюсер и транзакции Kafka (exactly-once semantics)?",
+      "options": [
+        "Exactly-once для цепочки read-process-write внутри Kafka; внешние побочные эффекты всё равно требуют идемпотентности",
+        "Exactly-once доставку в любую внешнюю систему (БД, HTTP API) без доработки consumer'а",
+        "Только дедупликацию сообщений на стороне consumer'а по ключу сообщения",
+        "Гарантию, что одно сообщение не будет прочитано двумя разными consumer group"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Транзакции атомарно записывают выходные сообщения и коммит offset'ов, а consumer'ы с `isolation.level=read_committed` не видят прерванных транзакций. Как только обработка пишет во внешнюю систему, гарантия заканчивается на границе Kafka."
+    },
+    {
+      "id": "devops-messaging-021",
+      "topic": "messaging",
+      "difficulty": "hard",
+      "type": "multiple",
+      "question": "Что может вызывать частые ребалансировки consumer group в Kafka?",
+      "options": [
+        "Слишком большое значение `retention.ms` у читаемого топика",
+        "Обработка одного батча дольше `max.poll.interval.ms`",
+        "Отсутствие heartbeat'ов дольше `session.timeout.ms`, например из-за долгих GC-пауз",
+        "Частые рестарты подов при деплое без static membership (`group.instance.id`)",
+        "Использование `acks=all` на стороне продюсеров топика"
+      ],
+      "correct": [
+        1,
+        2,
+        3
+      ],
+      "explanation": "Ребалансировка запускается при изменении состава группы: consumer считается выбывшим, если долго не вызывает `poll()` или не шлёт heartbeat, а рестарты без `group.instance.id` выглядят как выход и вход. Retention и настройки продюсера на состав группы не влияют."
+    },
+    {
+      "id": "devops-messaging-022",
+      "topic": "messaging",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что произойдёт при `unclean.leader.election.enable=true`, если все реплики из ISR партиции стали недоступны?",
+      "options": [
+        "Партиция останется недоступной, пока не вернётся хотя бы одна реплика из ISR",
+        "Kafka восстановит недостающие сообщения из буферов продюсеров после выбора нового лидера",
+        "Лидерство перейдёт к реплике consumer'а с наибольшим закоммиченным offset",
+        "Лидером может стать реплика вне ISR: партиция снова доступна, но часть подтверждённых сообщений может быть потеряна"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Unclean election жертвует надёжностью ради доступности: отставшая реплика не содержит последних записей. По умолчанию опция выключена — тогда партиция ждёт возвращения реплики из ISR."
+    },
+    {
+      "id": "devops-messaging-023",
+      "topic": "messaging",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Что верно о quorum-очередях RabbitMQ (актуально для 4.x)?",
+      "options": [
+        "Хранят сообщения только в памяти и не переживают рестарт узла кластера",
+        "Реплицируются асинхронно, поэтому подтверждённое сообщение теряется при падении лидера",
+        "Реплицируются по протоколу Raft и заменили классические зеркальные очереди, удалённые в RabbitMQ 4.0",
+        "Работают только с exchange типа `fanout` и не поддерживают routing key"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Quorum-очереди подтверждают публикацию после записи на большинство реплик и переживают отказ меньшинства узлов. Classic mirrored queues были устаревшими с 3.9 и полностью удалены в 4.0; для лог-сценариев есть ещё Streams."
+    },
+    {
+      "id": "devops-messaging-024",
+      "topic": "messaging",
+      "difficulty": "hard",
+      "type": "single",
+      "question": "Какой риск несёт такая конфигурация продюсера Kafka?",
+      "code": "enable.idempotence=false\nacks=all\nretries=2147483647\nmax.in.flight.requests.per.connection=5",
+      "options": [
+        "Продюсер заблокируется, пока не получит пять подтверждений подряд от брокера",
+        "При ретрае батча порядок сообщений в партиции может нарушиться и появятся дубликаты",
+        "Брокер отклонит все запросы, так как лимит in-flight без идемпотентности больше 1",
+        "Сообщения будут распределяться по партициям случайно, игнорируя ключ"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Если первый батч упал и ушёл в ретрай, а второй уже записан, порядок меняется; повторная отправка после потерянного ack даёт дубликат. Идемпотентный продюсер (по умолчанию с Kafka 3.0) нумерует батчи и сохраняет порядок без дублей при in-flight до 5."
+    }
+  ]
+}

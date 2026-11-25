@@ -495,6 +495,116 @@ details.review .body pre.code { margin: 8px 0; }
 
 .row-buttons { display: grid; gap: 10px; margin-top: 16px; }
 
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  margin: 0 0 16px;
+  background: var(--surface-2);
+  border-radius: 12px;
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 9px 8px;
+  border-radius: 9px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+}
+.tab[aria-current="page"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+/* ---------- Theory list ---------- */
+.theory-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: inherit;
+  text-decoration: none;
+  min-height: 60px;
+}
+.theory-row + .theory-row { border-top: 1px solid var(--border); }
+.theory-row:hover .name { color: var(--accent); }
+.theory-row .num {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.theory-row .grow { flex: 1; min-width: 0; }
+.theory-row .name { font-weight: 500; }
+.theory-row .sub { font-size: 12px; color: var(--muted); }
+.theory-row .bar { margin: 4px 0 0; height: 4px; }
+.theory-row .chev { color: var(--muted); font-size: 22px; line-height: 1; }
+
+/* ---------- Article ---------- */
+.article { font-size: 16px; line-height: 1.65; overflow-wrap: break-word; }
+.article h1 { font-size: 26px; line-height: 1.25; margin: 4px 0 14px; }
+.article h2 { font-size: 20px; line-height: 1.3; margin: 30px 0 10px; scroll-margin-top: 16px; }
+.article h3 { font-size: 17px; margin: 22px 0 8px; }
+.article p { margin: 0 0 12px; }
+.article ul, .article ol { margin: 0 0 14px; padding-left: 22px; }
+.article li { margin: 4px 0; }
+.article li::marker { color: var(--muted); }
+.article pre.code { margin: 4px 0 16px; }
+.article strong { font-weight: 650; }
+.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.toc .chip { border: 0; cursor: pointer; font: inherit; font-size: 13px; padding: 5px 11px; }
+.toc .chip:hover { color: var(--accent); }
+.callout {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 12px 12px 0;
+  font-size: 15px;
+}
+.callout p { margin: 0; }
+.callout p + p { margin-top: 8px; }
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 4px 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.table-wrap table { border-collapse: collapse; width: 100%; font-size: 14px; line-height: 1.45; }
+.table-wrap th, .table-wrap td { padding: 8px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+.table-wrap td { min-width: 6.5em; }
+.table-wrap th { background: var(--surface-2); font-weight: 600; white-space: nowrap; }
+.table-wrap tr:last-child td { border-bottom: 0; }
+.pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 24px; }
+.pager .btn { max-width: 48%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 38px; }
+
+.theory-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+.theory-link svg { width: 16px; height: 16px; }
+.breakdown .row-head a { color: inherit; text-decoration: none; }
+.breakdown .row-head a:hover { color: var(--accent); }
+
+/* ---------- Progress transfer ---------- */
+.transfer p { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
+.transfer-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.transfer-actions .btn { flex: 1 1 180px; }
+
 /* ---------- Toast ---------- */
 .toast {
   position: fixed;
@@ -512,6 +622,7 @@ details.review .body pre.code { margin: 8px 0; }
 }
 
 @media (max-width: 380px) {
+  .pager .btn { max-width: 100%; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .modes { grid-template-columns: 1fr; }
   .mode { min-height: 0; }

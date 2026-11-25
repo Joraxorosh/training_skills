@@ -1,7 +1,7 @@
 {
   "name": "Тренажёр скиллов",
   "short_name": "Тренажёр",
-  "description": "Тесты по DevOps, SQL и другим темам",
+  "description": "Тесты и теория по DevOps, SQL, Python и алгоритмам",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

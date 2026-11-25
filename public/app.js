@@ -155,6 +155,7 @@ const LETTERS = 'ABCDEFGHIJ';
 const ICONS = {
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>',
   theme: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
 };
 
@@ -197,6 +198,11 @@ function route() {
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   window.scrollTo(0, 0);
   if (parts[0] === 'course' && state.data[parts[1]]) return renderCourse(parts[1]);
+  if (parts[0] === 'theory' && state.data[parts[1]]) {
+    const topic = parts[2] && decodeURIComponent(parts[2]);
+    if (topic && state.data[parts[1]].topicTitle[topic]) return renderArticle(parts[1], topic);
+    return renderTheoryList(parts[1]);
+  }
   if (parts[0] === 'quiz') {
     if (state.quiz && !state.quiz.finished) return renderQuestion();
     if (state.quiz && state.quiz.finished) return go('/result');
@@ -247,7 +253,62 @@ function renderHome() {
     <p class="lead">Выберите курс, чтобы начать тренировку.</p>
     ${resume}
     <div class="stack">${cards}</div>
+
+    <h2 class="section">Прогресс</h2>
+    <div class="card transfer">
+      <p>Прогресс хранится в этом браузере. Чтобы перенести его на другое устройство (например, с компьютера на телефон), сохраните файл здесь и загрузите его там. Данные объединяются, ничего не теряется.</p>
+      <div class="transfer-actions">
+        <button class="btn small" data-action="export">Сохранить в файл</button>
+        <label class="btn small">Загрузить из файла<input type="file" accept="application/json,.json" data-action="import" hidden></label>
+      </div>
+    </div>
   `;
+}
+
+/* ================= Progress transfer ================= */
+
+function exportProgress() {
+  const payload = { app: 'skilltrainer', version: 1, exportedAt: new Date().toISOString(), data: db };
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'skilltrainer-progress-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Файл с прогрессом сохранён');
+}
+
+// Объединение: по каждому вопросу берём более свежую запись, историю склеиваем.
+function importProgress(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    let incoming;
+    try {
+      const parsed = JSON.parse(reader.result);
+      incoming = parsed && parsed.app === 'skilltrainer' ? parsed.data : null;
+    } catch { incoming = null; }
+    if (!incoming || !incoming.stats || typeof incoming.stats !== 'object') { toast('Это не файл прогресса тренажёра'); return; }
+    let added = 0;
+    for (const [id, st] of Object.entries(incoming.stats)) {
+      if (!st || typeof st !== 'object') continue;
+      const cur = db.stats[id];
+      if (!cur || (st.ts || 0) > (cur.ts || 0)) { db.stats[id] = st; added++; }
+    }
+    const seen = new Set(db.history.map((h) => h.courseId + ':' + h.ts));
+    for (const h of Array.isArray(incoming.history) ? incoming.history : []) {
+      if (h && !seen.has(h.courseId + ':' + h.ts)) db.history.push(h);
+    }
+    db.history.sort((a, b) => b.ts - a.ts);
+    db.history = db.history.slice(0, 50);
+    db.settings = Object.assign({}, incoming.settings, db.settings);
+    saveDb();
+    route();
+    toast(`Прогресс загружен: обновлено ${added} ${plural(added, 'вопрос', 'вопроса', 'вопросов')}`);
+  };
+  reader.onerror = () => toast('Не удалось прочитать файл');
+  reader.readAsText(file);
 }
 
 /* ================= Course ================= */
@@ -311,6 +372,7 @@ function renderCourse(courseId) {
       <div class="title">${esc(course.title)}</div>
       <button class="icon-btn" data-action="theme" aria-label="Сменить тему">${ICONS.theme}</button>
     </header>
+    ${courseTabs(courseId, 'train')}
 
     <div class="stats">
       <div class="stat"><b>${st.total}</b><span>вопросов</span></div>
@@ -374,6 +436,219 @@ function updateSetting(courseId, patch) {
   const y = window.scrollY;
   renderCourse(courseId);
   window.scrollTo(0, y);
+}
+
+/* ================= Theory ================= */
+
+const theoryCache = new Map(); // "course/topic" -> markdown | null
+
+function courseTabs(courseId, active) {
+  const tab = (id, href, label) =>
+    `<a class="tab" href="${href}" aria-current="${active === id ? 'page' : 'false'}">${label}</a>`;
+  return `<nav class="tabs">
+    ${tab('train', '#/course/' + esc(courseId), 'Тренировка')}
+    ${tab('theory', '#/theory/' + esc(courseId), 'Теория')}
+  </nav>`;
+}
+
+async function loadTheory(courseId, topicId) {
+  const key = courseId + '/' + topicId;
+  if (theoryCache.has(key)) return theoryCache.get(key);
+  let text = null;
+  try {
+    const res = await fetch(`data/theory/${encodeURIComponent(courseId)}/${encodeURIComponent(topicId)}.md`, { cache: 'no-cache' });
+    if (res.ok) text = await res.text();
+  } catch { /* офлайн и нет в кэше */ }
+  if (text !== null) theoryCache.set(key, text);
+  return text;
+}
+
+// Инлайн-разметка: `код` и **жирный**. Внутри кода ничего не трогаем.
+function mdInline(s) {
+  const codes = [];
+  const text = String(s).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
+  return esc(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\u0000(\d+)\u0000/g, (_, n) => `<code>${esc(codes[n])}</code>`);
+}
+
+// Небольшой Markdown: ##/###, абзацы, списки, ```код```, таблицы, > врезки.
+function renderMarkdown(src) {
+  const lines = String(src).replace(/\r\n?/g, '\n').split('\n');
+  const out = [];
+  const toc = [];
+  let para = [];
+  let list = null; // { tag, items: [] }
+
+  const flushPara = () => {
+    if (para.length) out.push(`<p>${mdInline(para.join(' '))}</p>`);
+    para = [];
+  };
+  const flushList = () => {
+    if (list) out.push(`<${list.tag}>${list.items.map((i) => `<li>${mdInline(i)}</li>`).join('')}</${list.tag}>`);
+    list = null;
+  };
+  const flush = () => { flushPara(); flushList(); };
+  // Ячейки таблицы: `|` внутри `кода` и экранированный `\|` не разделяют ячейки.
+  const cells = (row) => {
+    const body = row.trim().replace(/^\|/, '').replace(/\|$/, '');
+    const res = [];
+    let cur = '';
+    let inCode = false;
+    for (let k = 0; k < body.length; k++) {
+      const ch = body[k];
+      if (ch === '\\' && body[k + 1] === '|') { cur += '|'; k++; continue; }
+      if (ch === '`') inCode = !inCode;
+      if (ch === '|' && !inCode) { res.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    res.push(cur.trim());
+    return res;
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const t = line.trim();
+
+    if (t.startsWith('```')) {
+      flush();
+      const code = [];
+      for (i++; i < lines.length && !lines[i].trim().startsWith('```'); i++) code.push(lines[i]);
+      out.push(`<pre class="code">${esc(code.join('\n'))}</pre>`);
+      continue;
+    }
+    if (!t) { flush(); continue; }
+
+    const h = /^(#{1,4})\s+(.*)$/.exec(t);
+    if (h) {
+      flush();
+      const level = Math.min(Math.max(h[1].length, 2), 3);
+      if (level === 2) {
+        const id = 'sec-' + toc.length;
+        toc.push({ id, title: h[2].replace(/[`*]/g, '') });
+        out.push(`<h2 id="${id}">${mdInline(h[2])}</h2>`);
+      } else {
+        out.push(`<h3>${mdInline(h[2])}</h3>`);
+      }
+      continue;
+    }
+
+    if (t.startsWith('>')) {
+      flush();
+      const quote = [];
+      for (; i < lines.length && lines[i].trim().startsWith('>'); i++) quote.push(lines[i].trim().replace(/^>\s?/, ''));
+      i--;
+      const paras = quote.join('\n').split(/\n\s*\n/).map((p) => `<p>${mdInline(p.replace(/\n/g, ' '))}</p>`);
+      out.push(`<blockquote class="callout">${paras.join('')}</blockquote>`);
+      continue;
+    }
+
+    if (t.startsWith('|') && i + 1 < lines.length && /^\|?\s*:?-{2,}/.test(lines[i + 1].trim())) {
+      flush();
+      const head = cells(t);
+      const body = [];
+      for (i += 2; i < lines.length && lines[i].trim().startsWith('|'); i++) body.push(cells(lines[i]));
+      i--;
+      out.push(`<div class="table-wrap"><table><thead><tr>${head.map((c) => `<th>${mdInline(c)}</th>`).join('')}</tr></thead><tbody>${
+        body.map((r) => `<tr>${r.map((c) => `<td>${mdInline(c)}</td>`).join('')}</tr>`).join('')
+      }</tbody></table></div>`);
+      continue;
+    }
+
+    const li = /^([-*]|\d+[.)])\s+(.*)$/.exec(t);
+    if (li) {
+      flushPara();
+      const tag = /^\d/.test(li[1]) ? 'ol' : 'ul';
+      if (!list || list.tag !== tag) { flushList(); list = { tag, items: [] }; }
+      list.items.push(li[2]);
+      continue;
+    }
+
+    if (list && /^\s{2,}/.test(line)) { // продолжение пункта списка
+      list.items[list.items.length - 1] += ' ' + t;
+      continue;
+    }
+    flushList();
+    para.push(t);
+  }
+  flush();
+  return { html: out.join('\n'), toc };
+}
+
+function renderTheoryList(courseId) {
+  const course = state.courses.find((c) => c.id === courseId);
+  const data = state.data[courseId];
+  app.dataset.course = courseId;
+
+  const rows = data.topics.map((t, n) => {
+    const ts = topicStats(courseId, t.id);
+    return `<a class="theory-row" href="#/theory/${esc(courseId)}/${esc(t.id)}">
+      <span class="num">${n + 1}</span>
+      <div class="grow">
+        <div class="name">${esc(t.title)}</div>
+        <div class="sub">${ts.total} ${plural(ts.total, 'вопрос', 'вопроса', 'вопросов')} · освоено ${pct(ts.ok, ts.total)}%</div>
+        <div class="bar ok"><span style="width:${pct(ts.ok, ts.total)}%"></span></div>
+      </div>
+      <span class="chev">›</span>
+    </a>`;
+  }).join('');
+
+  app.innerHTML = `
+    <header class="topbar">
+      <a class="icon-btn" href="#/" aria-label="Назад">${ICONS.back}</a>
+      <div class="title">${esc(course.title)}</div>
+      <button class="icon-btn" data-action="theme" aria-label="Сменить тему">${ICONS.theme}</button>
+    </header>
+    ${courseTabs(courseId, 'theory')}
+    <p class="lead">Краткий конспект по каждой теме: ключевые понятия, примеры и частые вопросы с собеседований. После чтения закрепите тему тестом.</p>
+    <div class="card" style="padding:0">${rows}</div>
+  `;
+}
+
+async function renderArticle(courseId, topicId) {
+  const course = state.courses.find((c) => c.id === courseId);
+  const data = state.data[courseId];
+  const idx = data.topics.findIndex((t) => t.id === topicId);
+  const topic = data.topics[idx];
+  const prev = data.topics[idx - 1];
+  const next = data.topics[idx + 1];
+  const ts = topicStats(courseId, topicId);
+  app.dataset.course = courseId;
+  const routeKey = location.hash;
+
+  const shell = (body) => `
+    <header class="topbar">
+      <a class="icon-btn" href="#/theory/${esc(courseId)}" aria-label="К списку тем">${ICONS.back}</a>
+      <div class="title">${esc(course.title)} · теория</div>
+      <button class="icon-btn" data-action="theme" aria-label="Сменить тему">${ICONS.theme}</button>
+    </header>
+    <article class="article">
+      <h1>${esc(topic.title)}</h1>
+      ${body}
+    </article>
+    <nav class="pager">
+      ${prev ? `<a class="btn small" href="#/theory/${esc(courseId)}/${esc(prev.id)}">‹ ${esc(prev.title)}</a>` : '<span></span>'}
+      ${next ? `<a class="btn small" href="#/theory/${esc(courseId)}/${esc(next.id)}">${esc(next.title)} ›</a>` : ''}
+    </nav>
+    <div class="actionbar"><div class="inner">
+      <button class="btn primary" data-action="train-topic" data-value="${esc(topicId)}" ${ts.total ? '' : 'disabled'}>
+        ${ts.total ? 'Проверить себя по теме' : 'Вопросов по теме пока нет'}
+      </button>
+    </div></div>`;
+
+  app.innerHTML = shell('<div class="loading">Загрузка…</div>');
+  const text = await loadTheory(courseId, topicId);
+  if (location.hash !== routeKey) return; // пользователь уже ушёл на другую страницу
+
+  if (text === null) {
+    app.innerHTML = shell('<div class="empty">Конспект по этой теме пока не написан или недоступен офлайн.</div>');
+    return;
+  }
+  const { html, toc } = renderMarkdown(text);
+  const tocHtml = toc.length > 2
+    ? `<div class="toc">${toc.map((s) => `<button class="chip" data-action="toc" data-value="${s.id}">${esc(s.title)}</button>`).join('')}</div>`
+    : '';
+  app.innerHTML = shell(tocHtml + html);
 }
 
 /* ================= Quiz ================= */
@@ -457,6 +732,7 @@ function renderQuestion() {
     <div class="feedback ${ans.ok ? 'ok' : 'bad'}">
       <div class="verdict">${ans.ok ? 'Верно!' : ans.skipped ? 'Правильный ответ' : 'Неверно'}</div>
       ${q.explanation ? `<p>${rich(q.explanation)}</p>` : ''}
+      <a class="theory-link" href="#/theory/${esc(qz.courseId)}/${esc(q.topic)}">${ICONS.book}Теория по теме</a>
     </div>` : '';
 
   let actions;
@@ -602,7 +878,7 @@ function renderResult() {
   const breakdown = Object.entries(byTopic)
     .sort((a, b) => pct(a[1].ok, a[1].total) - pct(b[1].ok, b[1].total))
     .map(([topic, t]) => `<div class="row">
-      <div class="row-head"><span>${esc(data.topicTitle[topic] || topic)}</span><span>${t.ok} из ${t.total}</span></div>
+      <div class="row-head"><a href="#/theory/${esc(qz.courseId)}/${esc(topic)}">${esc(data.topicTitle[topic] || topic)}</a><span>${t.ok} из ${t.total}</span></div>
       <div class="bar ${pct(t.ok, t.total) >= 70 ? 'ok' : ''}"><span style="width:${pct(t.ok, t.total)}%"></span></div>
     </div>`).join('');
 
@@ -696,13 +972,28 @@ app.addEventListener('click', (e) => {
       break;
     }
     case 'again': startQuiz(state.quiz.courseId, state.quiz.settings); break;
+
+    case 'export': exportProgress(); break;
+    case 'train-topic': {
+      const s = courseSettings(courseId);
+      startQuiz(courseId, Object.assign({}, s, { mode: 'topics', topics: [el.dataset.value], difficulty: 'all' }));
+      break;
+    }
+    case 'toc': {
+      const target = document.getElementById(el.dataset.value);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      break;
+    }
   }
 });
 
 app.addEventListener('change', (e) => {
   const el = e.target;
   const courseId = app.dataset.course;
-  if (el.dataset.action === 'toggle') {
+  if (el.dataset.action === 'import') {
+    if (el.files && el.files[0]) importProgress(el.files[0]);
+    el.value = '';
+  } else if (el.dataset.action === 'toggle') {
     updateSetting(courseId, { [el.dataset.key]: el.checked });
   } else if (el.dataset.action === 'topic') {
     const s = courseSettings(courseId);
