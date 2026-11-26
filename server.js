@@ -6,6 +6,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { pipeline } = require('stream');
 const zlib = require('zlib');
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -39,15 +40,33 @@ function send(res, status, body, headers = {}) {
   res.end(body);
 }
 
+function etagMatches(header, etag) {
+  if (!header) return false;
+  if (header.trim() === '*') return true;
+  const bare = etag.replace(/^W\//, '');
+  return header.split(',').some((part) => {
+    const tag = part.trim();
+    return tag === etag || tag.replace(/^W\//, '') === bare;
+  });
+}
+
+function pickEncoding(ext, acceptEncoding) {
+  if (!COMPRESSIBLE.has(ext) || !acceptEncoding) return null;
+  if (/\bbr\b/i.test(acceptEncoding)) return 'br';
+  if (/\bgzip\b/i.test(acceptEncoding)) return 'gzip';
+  return null;
+}
+
 const server = http.createServer((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method Not Allowed', { Allow: 'GET, HEAD' });
 
   let pathname;
   try {
-    pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    pathname = decodeURIComponent(new URL(req.url || '/', 'http://localhost').pathname);
   } catch {
     return send(res, 400, 'Bad Request');
   }
+  if (pathname.includes('\0')) return send(res, 400, 'Bad Request');
 
   if (pathname === '/healthz') return send(res, 200, 'ok', { 'Cache-Control': 'no-store' });
   if (pathname.endsWith('/')) pathname += 'index.html';
@@ -59,7 +78,7 @@ const server = http.createServer((req, res) => {
     if (err || !stat.isFile()) return send(res, 404, 'Not Found');
 
     const ext = path.extname(file).toLowerCase();
-    const etag = `W/"${stat.size.toString(16)}-${stat.mtimeMs.toString(16)}"`;
+    const etag = `W/"${stat.size.toString(16)}-${Math.trunc(stat.mtimeMs).toString(16)}"`;
     const headers = {
       ...SECURITY_HEADERS,
       'Content-Type': MIME[ext] || 'application/octet-stream',
@@ -69,21 +88,29 @@ const server = http.createServer((req, res) => {
       Vary: 'Accept-Encoding',
     };
 
-    if (req.headers['if-none-match'] === etag) {
+    if (etagMatches(req.headers['if-none-match'], etag)) {
       res.writeHead(304, headers);
       return res.end();
     }
 
-    const gzip = COMPRESSIBLE.has(ext) && /\bgzip\b/.test(req.headers['accept-encoding'] || '');
-    if (gzip) headers['Content-Encoding'] = 'gzip';
+    const encoding = pickEncoding(ext, req.headers['accept-encoding']);
+    if (encoding) headers['Content-Encoding'] = encoding;
     else headers['Content-Length'] = stat.size;
 
     res.writeHead(200, headers);
     if (req.method === 'HEAD') return res.end();
 
     const stream = fs.createReadStream(file);
-    stream.on('error', () => res.destroy());
-    (gzip ? stream.pipe(zlib.createGzip()) : stream).pipe(res);
+    const onError = (streamErr) => {
+      if (streamErr && !res.destroyed) res.destroy();
+    };
+    if (encoding === 'br') {
+      pipeline(stream, zlib.createBrotliCompress({ params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 4 } }), res, onError);
+    } else if (encoding === 'gzip') {
+      pipeline(stream, zlib.createGzip(), res, onError);
+    } else {
+      pipeline(stream, res, onError);
+    }
   });
 });
 
