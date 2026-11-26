@@ -1,11 +1,13 @@
 {
   "name": "training-skills",
   "version": "1.0.0",
-  "description": "Тренажёр скиллов: тесты по DevOps, SQL и другим темам",
+  "description": "Тренажёр скиллов: тесты и теория по программированию, инфраструктуре, данным и Computer Science",
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "validate": "node scripts/validate.js"
+    "validate": "node scripts/validate.js",
+    "e2e": "node scripts/e2e.mjs",
+    "test": "node scripts/validate.js && node scripts/e2e.mjs"
   },
   "engines": {
     "node": ">=18"

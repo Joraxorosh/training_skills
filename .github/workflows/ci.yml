@@ -1,0 +1,28 @@
+name: Checks
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate question banks
+        run: npm run validate
+      - name: Fail if index.json is stale
+        run: git diff --exit-code -- public/data/index.json || (echo "::error::public/data/index.json устарел — выполните npm run validate и закоммитьте его" && exit 1)
+      - name: Browser end-to-end test
+        run: npm run e2e
