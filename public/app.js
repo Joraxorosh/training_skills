@@ -31,13 +31,27 @@ function writeJSON(key, value) {
   } catch { /* приватный режим / переполнение — работаем без сохранения */ }
 }
 
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const isPlainObject = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
+
 // db.stats[questionId] = { seen, correct, last: boolean, ts }
-const db = Object.assign({ stats: {}, settings: {}, history: [] }, readJSON(STORE_KEY, {}));
+const rawDb = readJSON(STORE_KEY, {});
+const db = {
+  stats: isPlainObject(rawDb && rawDb.stats) ? rawDb.stats : {},
+  settings: isPlainObject(rawDb && rawDb.settings) ? rawDb.settings : {},
+  history: Array.isArray(rawDb && rawDb.history) ? rawDb.history : [],
+};
 const saveDb = () => writeJSON(STORE_KEY, db);
 
-function courseSettings(courseId) {
-  const s = Object.assign({}, DEFAULT_SETTINGS, db.settings[courseId]);
-  if (!Array.isArray(s.topics)) s.topics = state.data[courseId].topics.map((t) => t.id);
+function courseSettings(courseId, st) {
+  const data = state.data[courseId];
+  const validTopicIds = new Set(data.topics.map((t) => t.id));
+  const s = Object.assign({}, DEFAULT_SETTINGS, isPlainObject(db.settings[courseId]) ? db.settings[courseId] : null);
+  if (!Array.isArray(s.topics)) s.topics = data.topics.map((t) => t.id);
+  else s.topics = s.topics.filter((id) => validTopicIds.has(id));
+  if (st) {
+    if ((s.mode === 'mistakes' && !st.mistakes) || (s.mode === 'new' && !st.unseen)) s.mode = 'mix';
+  }
   return s;
 }
 
@@ -50,7 +64,8 @@ function saveCourseSettings(courseId, settings) {
 
 const state = {
   courses: [],
-  data: {},      // courseId -> { topics, questions, byId, topicTitle }
+  courseById: new Map(),
+  data: {},      // courseId -> { topics, questions, byId, byTopic, topicTitle }
   quiz: null,    // текущая сессия
   selected: new Set(),
 };
@@ -62,24 +77,37 @@ async function fetchJSON(url) {
 }
 
 async function loadCourse(course) {
+  let failed = 0;
   const parts = await Promise.all(
     course.files.map((f) => fetchJSON('data/' + f).catch((err) => {
+      failed++;
       console.warn('Не удалось загрузить', f, err);
-      return { topics: [], questions: [] };
+      return null;
     }))
   );
   const topics = [];
   const questions = [];
   const seenTopics = new Set();
   for (const p of parts) {
+    if (!p) continue;
     for (const t of p.topics || []) {
       if (!seenTopics.has(t.id)) { seenTopics.add(t.id); topics.push(t); }
     }
     questions.push(...(p.questions || []));
   }
-  const byId = new Map(questions.map((q) => [q.id, q]));
+  if (!questions.length && failed) {
+    throw new Error('Не удалось загрузить вопросы курса. Проверьте подключение к сети.');
+  }
+  const byId = new Map();
+  const byTopic = new Map();
+  for (const q of questions) {
+    byId.set(q.id, q);
+    let bucket = byTopic.get(q.topic);
+    if (!bucket) { bucket = []; byTopic.set(q.topic, bucket); }
+    bucket.push(q);
+  }
   const topicTitle = Object.fromEntries(topics.map((t) => [t.id, t.title]));
-  state.data[course.id] = { topics, questions, byId, topicTitle };
+  state.data[course.id] = { topics, questions, byId, byTopic, topicTitle };
 }
 
 // Вопросы курса грузятся при первом входе в него. Для главной хватает index.json
@@ -87,18 +115,62 @@ async function loadCourse(course) {
 const courseLoads = new Map();
 function ensureCourse(courseId) {
   if (state.data[courseId]) return Promise.resolve();
+  const course = state.courseById.get(courseId);
+  if (!course) return Promise.reject(new Error(`Неизвестный курс: ${courseId}`));
   if (!courseLoads.has(courseId)) {
-    courseLoads.set(courseId, loadCourse(state.courses.find((c) => c.id === courseId)));
+    const p = loadCourse(course).catch((err) => {
+      courseLoads.delete(courseId);
+      throw err;
+    });
+    courseLoads.set(courseId, p);
   }
   return courseLoads.get(courseId);
 }
 
-const hasCourse = (id) => state.courses.some((c) => c.id === id);
+const hasCourse = (id) => state.courseById.has(id);
+
+function validateSession(saved) {
+  if (!isPlainObject(saved) || !hasCourse(saved.courseId) || !state.data[saved.courseId]) return null;
+  if (!Array.isArray(saved.items) || !saved.items.length) return null;
+  const data = state.data[saved.courseId];
+  const answers = isPlainObject(saved.answers) ? saved.answers : {};
+  const validItems = [];
+  for (const it of saved.items) {
+    if (!it || typeof it.id !== 'string') continue;
+    const q = data.byId.get(it.id);
+    if (!q) continue;
+    const optLen = q.options.length;
+    const validOrder = Array.isArray(it.order) && it.order.length === optLen &&
+      it.order.every((i) => Number.isInteger(i) && i >= 0 && i < optLen) &&
+      new Set(it.order).size === optLen;
+    validItems.push({ id: it.id, order: validOrder ? it.order : q.options.map((_, i) => i) });
+  }
+  if (!validItems.length) return null;
+  const rawIdx = Number.isInteger(saved.index) ? saved.index : 0;
+  const index = Math.min(Math.max(0, rawIdx), validItems.length - 1);
+  return {
+    courseId: saved.courseId,
+    courseTitle: typeof saved.courseTitle === 'string' ? saved.courseTitle : state.courseById.get(saved.courseId).title,
+    settings: Object.assign({}, DEFAULT_SETTINGS, isPlainObject(saved.settings) ? saved.settings : null),
+    instant: Boolean(saved.instant),
+    items: validItems,
+    index,
+    answers,
+    startedAt: Number.isFinite(saved.startedAt) ? saved.startedAt : Date.now(),
+    finishedAt: Number.isFinite(saved.finishedAt) ? saved.finishedAt : null,
+    finished: Boolean(saved.finished),
+  };
+}
 
 async function init() {
   try {
-    state.courses = await fetchJSON('data/courses.json');
-    state.index = await fetchJSON('data/index.json').catch(() => null);
+    const [courses, index] = await Promise.all([
+      fetchJSON('data/courses.json'),
+      fetchJSON('data/index.json').catch(() => null),
+    ]);
+    state.courses = courses;
+    state.courseById = new Map(courses.map((c) => [c.id, c]));
+    state.index = index;
     const complete = state.index && state.index.courses && state.courses.every((c) => state.index.courses[c.id]);
     if (!complete) { // индекса нет или он устарел — грузим всё сразу
       state.index = null;
@@ -106,8 +178,13 @@ async function init() {
     }
     const saved = readJSON(SESSION_KEY, null);
     if (saved && hasCourse(saved.courseId)) {
-      await ensureCourse(saved.courseId);
-      state.quiz = saved;
+      try {
+        await ensureCourse(saved.courseId);
+        state.quiz = validateSession(saved);
+        if (!state.quiz) writeJSON(SESSION_KEY, null);
+      } catch (err) {
+        console.warn('Не удалось восстановить сессию', err);
+      }
     }
   } catch (err) {
     console.error(err);
@@ -121,10 +198,9 @@ async function init() {
 
 const app = document.getElementById('app');
 
+const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ESC_MAP[c]);
 }
 
 // Экранирование + поддержка `inline code`
@@ -178,6 +254,8 @@ const CATEGORIES = [
   ['other', 'Другое'],
 ];
 
+const CATEGORY_IDS = new Set(CATEGORIES.map(([id]) => id));
+
 const DIFF_LABEL = { easy: 'Лёгкий', medium: 'Средний', hard: 'Сложный' };
 const LETTERS = 'ABCDEFGHIJ';
 
@@ -205,7 +283,7 @@ function courseStats(courseId) {
 }
 
 function topicStats(courseId, topicId) {
-  const qs = state.data[courseId].questions.filter((q) => q.topic === topicId);
+  const qs = state.data[courseId].byTopic.get(topicId) || [];
   let seen = 0, ok = 0;
   for (const q of qs) {
     const s = db.stats[q.id];
@@ -231,7 +309,21 @@ function route() {
   if ((parts[0] === 'course' || parts[0] === 'theory') && hasCourse(parts[1]) && !state.data[parts[1]]) {
     app.innerHTML = '<div class="loading">Загрузка курса…</div>';
     const key = location.hash;
-    ensureCourse(parts[1]).then(() => { if (location.hash === key) route(); });
+    ensureCourse(parts[1])
+      .then(() => { if (location.hash === key) route(); })
+      .catch((err) => {
+        if (location.hash !== key) return;
+        app.innerHTML = `
+          <header class="topbar">
+            <a class="icon-btn" href="#/" aria-label="Назад">${ICONS.back}</a>
+            <div class="title">${esc(state.courseById.get(parts[1]).title)}</div>
+            <button class="icon-btn" data-action="theme" aria-label="Сменить тему">${ICONS.theme}</button>
+          </header>
+          <div class="empty">
+            <p>${esc(err.message || 'Не удалось загрузить курс.')}</p>
+            <button class="btn small primary" data-action="retry-route">Повторить</button>
+          </div>`;
+      });
     return;
   }
   if (parts[0] === 'course' && state.data[parts[1]]) return renderCourse(parts[1]);
@@ -281,7 +373,8 @@ function renderHome() {
       </div>
     </a>`;
   };
-  const groups = CATEGORIES.map(([id, title]) => [title, state.courses.filter((c) => (c.category || 'other') === id)])
+  const catOf = (c) => (CATEGORY_IDS.has(c.category) ? c.category : 'other');
+  const groups = CATEGORIES.map(([id, title]) => [title, state.courses.filter((c) => catOf(c) === id)])
     .filter(([, list]) => list.length);
   const cards = groups.map(([title, list]) => `
     <h2 class="section">${esc(title)}</h2>
@@ -331,20 +424,43 @@ function importProgress(file) {
       const parsed = JSON.parse(reader.result);
       incoming = parsed && parsed.app === 'skilltrainer' ? parsed.data : null;
     } catch { incoming = null; }
-    if (!incoming || !incoming.stats || typeof incoming.stats !== 'object') { toast('Это не файл прогресса тренажёра'); return; }
+    if (!incoming || !isPlainObject(incoming.stats)) { toast('Это не файл прогресса тренажёра'); return; }
     let added = 0;
     for (const [id, st] of Object.entries(incoming.stats)) {
-      if (!st || typeof st !== 'object') continue;
+      if (UNSAFE_KEYS.has(id) || !isPlainObject(st)) continue;
+      const seen = Number(st.seen);
+      const correct = Number(st.correct);
+      const ts = Number(st.ts) || 0;
+      if (!Number.isFinite(seen) || seen < 0 || !Number.isFinite(correct) || correct < 0) continue;
       const cur = db.stats[id];
-      if (!cur || (st.ts || 0) > (cur.ts || 0)) { db.stats[id] = st; added++; }
+      if (!cur || ts > (Number(cur.ts) || 0)) {
+        db.stats[id] = { seen: Math.trunc(seen), correct: Math.min(Math.trunc(correct), Math.trunc(seen)), last: Boolean(st.last), ts };
+        added++;
+      }
     }
-    const seen = new Set(db.history.map((h) => h.courseId + ':' + h.ts));
+    const seenHist = new Set(db.history.map((h) => h.courseId + ':' + h.ts));
     for (const h of Array.isArray(incoming.history) ? incoming.history : []) {
-      if (h && !seen.has(h.courseId + ':' + h.ts)) db.history.push(h);
+      if (!isPlainObject(h) || typeof h.courseId !== 'string' || !Number.isFinite(Number(h.ts))) continue;
+      const key = h.courseId + ':' + h.ts;
+      if (!seenHist.has(key)) {
+        seenHist.add(key);
+        db.history.push({
+          courseId: h.courseId,
+          ts: Number(h.ts),
+          total: Math.max(0, Math.trunc(Number(h.total) || 0)),
+          ok: Math.max(0, Math.trunc(Number(h.ok) || 0)),
+        });
+      }
     }
-    db.history.sort((a, b) => b.ts - a.ts);
+    db.history.sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
     db.history = db.history.slice(0, 50);
-    db.settings = Object.assign({}, incoming.settings, db.settings);
+    if (isPlainObject(incoming.settings)) {
+      for (const [cid, val] of Object.entries(incoming.settings)) {
+        if (!UNSAFE_KEYS.has(cid) && isPlainObject(val) && !(cid in db.settings)) {
+          db.settings[cid] = val;
+        }
+      }
+    }
     saveDb();
     route();
     toast(`Прогресс загружен: обновлено ${added} ${plural(added, 'вопрос', 'вопроса', 'вопросов')}`);
@@ -356,11 +472,14 @@ function importProgress(file) {
 /* ================= Course ================= */
 
 function buildPool(courseId, settings) {
-  const { questions } = state.data[courseId];
+  const { questions, byTopic } = state.data[courseId];
   let pool = questions;
   if (settings.mode === 'topics') {
-    const set = new Set(settings.topics);
-    pool = pool.filter((q) => set.has(q.topic));
+    pool = [];
+    for (const topicId of settings.topics) {
+      const bucket = byTopic.get(topicId);
+      if (bucket) pool.push(...bucket);
+    }
   } else if (settings.mode === 'mistakes') {
     pool = pool.filter((q) => db.stats[q.id] && db.stats[q.id].last === false);
   } else if (settings.mode === 'new') {
@@ -371,10 +490,10 @@ function buildPool(courseId, settings) {
 }
 
 function renderCourse(courseId) {
-  const course = state.courses.find((c) => c.id === courseId);
+  const course = state.courseById.get(courseId);
   const data = state.data[courseId];
   const st = courseStats(courseId);
-  const s = courseSettings(courseId);
+  const s = courseSettings(courseId, st);
 
   const pool = buildPool(courseId, s);
   const willAsk = s.count ? Math.min(s.count, pool.length) : pool.length;
@@ -473,7 +592,7 @@ function renderCourse(courseId) {
 }
 
 function updateSetting(courseId, patch) {
-  const s = Object.assign(courseSettings(courseId), patch);
+  const s = Object.assign(courseSettings(courseId, courseStats(courseId)), patch);
   saveCourseSettings(courseId, s);
   const y = window.scrollY;
   renderCourse(courseId);
@@ -482,7 +601,7 @@ function updateSetting(courseId, patch) {
 
 /* ================= Theory ================= */
 
-const theoryCache = new Map(); // "course/topic" -> markdown | null
+const theoryCache = new Map(); // "course/topic" -> { html, toc }
 
 function courseTabs(courseId, active) {
   const tab = (id, href, label) =>
@@ -501,8 +620,10 @@ async function loadTheory(courseId, topicId) {
     const res = await fetch(`data/theory/${encodeURIComponent(courseId)}/${encodeURIComponent(topicId)}.md`, { cache: 'no-cache' });
     if (res.ok) text = await res.text();
   } catch { /* офлайн и нет в кэше */ }
-  if (text !== null) theoryCache.set(key, text);
-  return text;
+  if (text === null) return null;
+  const rendered = renderMarkdown(text);
+  theoryCache.set(key, rendered);
+  return rendered;
 }
 
 // Инлайн-разметка: `код` и **жирный**. Внутри кода ничего не трогаем.
@@ -567,7 +688,7 @@ function renderMarkdown(src) {
       const level = Math.min(Math.max(h[1].length, 2), 3);
       if (level === 2) {
         const id = 'sec-' + toc.length;
-        toc.push({ id, title: h[2].replace(/[`*]/g, '') });
+        toc.push({ id, title: h[2].replace(/\*\*(.+?)\*\*/g, '$1').replace(/`/g, '') });
         out.push(`<h2 id="${id}">${mdInline(h[2])}</h2>`);
       } else {
         out.push(`<h3>${mdInline(h[2])}</h3>`);
@@ -618,7 +739,7 @@ function renderMarkdown(src) {
 }
 
 function renderTheoryList(courseId) {
-  const course = state.courses.find((c) => c.id === courseId);
+  const course = state.courseById.get(courseId);
   const data = state.data[courseId];
   app.dataset.course = courseId;
 
@@ -648,7 +769,7 @@ function renderTheoryList(courseId) {
 }
 
 async function renderArticle(courseId, topicId) {
-  const course = state.courses.find((c) => c.id === courseId);
+  const course = state.courseById.get(courseId);
   const data = state.data[courseId];
   const idx = data.topics.findIndex((t) => t.id === topicId);
   const topic = data.topics[idx];
@@ -679,14 +800,14 @@ async function renderArticle(courseId, topicId) {
     </div></div>`;
 
   app.innerHTML = shell('<div class="loading">Загрузка…</div>');
-  const text = await loadTheory(courseId, topicId);
+  const rendered = await loadTheory(courseId, topicId);
   if (location.hash !== routeKey) return; // пользователь уже ушёл на другую страницу
 
-  if (text === null) {
+  if (rendered === null) {
     app.innerHTML = shell('<div class="empty">Конспект по этой теме пока не написан или недоступен офлайн.</div>');
     return;
   }
-  const { html, toc } = renderMarkdown(text);
+  const { html, toc } = rendered;
   const tocHtml = toc.length > 2
     ? `<div class="toc">${toc.map((s) => `<button class="chip" data-action="toc" data-value="${s.id}">${esc(s.title)}</button>`).join('')}</div>`
     : '';
@@ -696,7 +817,7 @@ async function renderArticle(courseId, topicId) {
 /* ================= Quiz ================= */
 
 function startQuiz(courseId, settings, fixedIds) {
-  const course = state.courses.find((c) => c.id === courseId);
+  const course = state.courseById.get(courseId);
   const data = state.data[courseId];
   let pool;
   if (fixedIds) {
@@ -734,15 +855,24 @@ function persistQuiz() {
 
 function currentQuestion() {
   const qz = state.quiz;
+  if (!qz || !Array.isArray(qz.items)) return { item: null, q: null };
   const item = qz.items[qz.index];
-  return { item, q: state.data[qz.courseId].byId.get(item.id) };
+  if (!item) return { item: null, q: null };
+  return { item, q: state.data[qz.courseId].byId.get(item.id) || null };
 }
 
 function renderQuestion() {
   const qz = state.quiz;
   const { item, q } = currentQuestion();
-  if (!q) { // вопрос удалили из банка — пропускаем
-    qz.items.splice(qz.index, 1);
+  if (!item || !q) { // вопрос удалили из банка — пропускаем
+    if (item) qz.items.splice(qz.index, 1);
+    persistQuiz();
+    if (!qz.items.length) {
+      const cid = qz.courseId;
+      state.quiz = null;
+      persistQuiz();
+      return go('/course/' + cid);
+    }
     if (qz.index >= qz.items.length) return finishQuiz();
     return renderQuestion();
   }
@@ -758,14 +888,15 @@ function renderQuestion() {
 
   const options = item.order.map((orig, pos) => {
     let cls = 'option' + (multi ? ' multi' : '');
+    const isSel = selected.has(orig);
     if (revealed) {
-      if (correctSet.has(orig) && selected.has(orig)) cls += ' correct';
+      if (correctSet.has(orig) && isSel) cls += ' correct';
       else if (correctSet.has(orig)) cls += multi ? ' missed' : ' correct';
-      else if (selected.has(orig)) cls += ' wrong';
-    } else if (selected.has(orig)) {
+      else if (isSel) cls += ' wrong';
+    } else if (isSel) {
       cls += ' selected';
     }
-    return `<button class="${cls}" data-action="pick" data-value="${orig}" ${revealed ? 'disabled' : ''}>
+    return `<button class="${cls}" data-action="pick" data-value="${orig}" aria-pressed="${isSel}" ${revealed ? 'disabled' : ''}>
       <span class="letter">${LETTERS[pos]}</span>${optionHtml(q.options[orig])}
     </button>`;
   }).join('');
@@ -817,6 +948,7 @@ function renderQuestion() {
 
 function pickOption(orig) {
   const { item, q } = currentQuestion();
+  if (!item || !q) return;
   if (state.quiz.answers[item.id] && state.quiz.instant) return;
   const multi = q.type === 'multiple' || q.correct.length > 1;
   if (multi) {
@@ -825,15 +957,25 @@ function pickOption(orig) {
   } else {
     state.selected = new Set([orig]);
   }
-  const y = window.scrollY;
-  renderQuestion();
-  window.scrollTo(0, y);
+  // Обновляем DOM точечно без полной перерисовки — сохраняем фокус и позицию прокрутки.
+  const buttons = app.querySelectorAll('.option[data-action="pick"]');
+  if (buttons.length) {
+    for (const btn of buttons) {
+      const on = state.selected.has(Number(btn.dataset.value));
+      btn.classList.toggle('selected', on);
+      btn.setAttribute('aria-pressed', String(on));
+    }
+    const submitBtn = app.querySelector('[data-action="submit"]');
+    if (submitBtn) submitBtn.disabled = state.selected.size === 0;
+  } else {
+    renderQuestion();
+  }
 }
 
 function submitAnswer(skipped) {
   const qz = state.quiz;
   const { item, q } = currentQuestion();
-  if (qz.answers[item.id]) return;
+  if (!item || !q || qz.answers[item.id]) return;
   const selected = skipped ? [] : [...state.selected];
   if (!skipped && !selected.length) return;
   const correct = new Set(q.correct);
@@ -898,14 +1040,20 @@ function quitQuiz() {
 
 /* ================= Result ================= */
 
+function formatDuration(ms) {
+  const secs = Math.max(1, Math.round((Number.isFinite(ms) ? ms : 0) / 1000));
+  if (secs < 60) return `${secs} сек`;
+  return `${Math.round(secs / 60)} мин`;
+}
+
 function renderResult() {
   const qz = state.quiz;
   const data = state.data[qz.courseId];
-  const total = qz.items.length;
   const results = qz.items.map((it) => ({ it, q: data.byId.get(it.id), a: qz.answers[it.id] })).filter((r) => r.q);
+  const total = results.length;
   const ok = results.filter((r) => r.a && r.a.ok).length;
   const score = pct(ok, total);
-  const mins = Math.max(1, Math.round((qz.finishedAt - qz.startedAt) / 60000));
+  const duration = formatDuration(qz.finishedAt - qz.startedAt);
   const wrong = results.filter((r) => !r.a || !r.a.ok);
 
   const verdict = score >= 90 ? 'Отлично!' : score >= 70 ? 'Хороший результат' : score >= 50 ? 'Неплохо, есть что подтянуть' : 'Стоит повторить материал';
@@ -924,17 +1072,21 @@ function renderResult() {
       <div class="bar ${pct(t.ok, t.total) >= 70 ? 'ok' : ''}"><span style="width:${pct(t.ok, t.total)}%"></span></div>
     </div>`).join('');
 
-  const answerText = (q, idxs) => idxs.length
-    ? idxs.map((i) => (q.options[i].includes('\n') ? `<pre class="code">${esc(q.options[i])}</pre>` : rich(q.options[i]))).join('; ')
-    : '—';
+  const answerText = (q, idxs) => {
+    const parts = (Array.isArray(idxs) ? idxs : [])
+      .map((i) => q.options[i])
+      .filter((opt) => typeof opt === 'string')
+      .map((opt) => (opt.includes('\n') ? `<pre class="code">${esc(opt)}</pre>` : rich(opt)));
+    return parts.length ? parts.join('; ') : '—';
+  };
   const review = results.map((r) => {
     const good = r.a && r.a.ok;
     return `<details class="review">
       <summary><span class="mark ${good ? 'ok' : 'bad'}">${good ? '✓' : '✗'}</span><span>${rich(r.q.question)}</span></summary>
       <div class="body">
         ${r.q.code ? `<pre class="code">${esc(r.q.code)}</pre>` : ''}
-        ${good ? '' : `<p class="ans-bad">Ваш ответ: ${r.a && !r.a.skipped ? answerText(r.q, r.a.selected) : 'пропущен'}</p>`}
-        <p class="ans-ok">Правильно: ${answerText(r.q, r.q.correct)}</p>
+        ${good ? '' : `<div class="ans-row ans-bad">Ваш ответ: ${r.a && !r.a.skipped ? answerText(r.q, r.a.selected) : 'пропущен'}</div>`}
+        <div class="ans-row ans-ok">Правильно: ${answerText(r.q, r.q.correct)}</div>
         ${r.q.explanation ? `<p>${rich(r.q.explanation)}</p>` : ''}
       </div>
     </details>`;
@@ -949,7 +1101,7 @@ function renderResult() {
     <div class="card result-hero">
       <div class="ring" style="--p:${score};--c:${color}"><b>${score}%</b></div>
       <h2>${verdict}</h2>
-      <p>${ok} из ${total} верно · ${mins} мин</p>
+      <p>${ok} из ${total} верно · ${duration}</p>
     </div>
 
     ${breakdown ? `<h2 class="section">По темам</h2><div class="card breakdown" style="padding:0">${breakdown}</div>` : ''}
@@ -976,6 +1128,7 @@ app.addEventListener('click', (e) => {
   switch (action) {
     case 'theme': toggleTheme(); break;
     case 'resume': go('/quiz'); break;
+    case 'retry-route': route(); break;
 
     case 'mode': updateSetting(courseId, { mode: el.dataset.value }); break;
     case 'set': {
@@ -990,13 +1143,19 @@ app.addEventListener('click', (e) => {
     case 'reset-course': {
       if (!confirm('Сбросить весь прогресс по этому курсу?')) break;
       for (const q of state.data[courseId].questions) delete db.stats[q.id];
+      if (state.quiz && state.quiz.courseId === courseId) {
+        state.quiz = null;
+        persistQuiz();
+      }
       saveDb();
-      updateSetting(courseId, {});
+      const s = courseSettings(courseId, courseStats(courseId));
+      saveCourseSettings(courseId, s);
+      renderCourse(courseId);
       toast('Прогресс сброшен');
       break;
     }
     case 'start': {
-      const s = courseSettings(courseId);
+      const s = courseSettings(courseId, courseStats(courseId));
       startQuiz(courseId, s);
       break;
     }
@@ -1046,12 +1205,19 @@ app.addEventListener('change', (e) => {
   }
 });
 
-// Клавиатура: 1–9 / A–J — выбор варианта, Enter — ответить/далее
+// Клавиатура: 1–9, 0 / A–J — выбор варианта, Enter — ответить/далее
 document.addEventListener('keydown', (e) => {
   if (!location.hash.startsWith('#/quiz') || !state.quiz || state.quiz.finished) return;
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+  const tag = e.target && e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
   const { item } = currentQuestion();
+  if (!item) return;
   if (e.key === 'Enter') {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'A' || (active.tagName === 'BUTTON' && active.dataset.action && active.dataset.action !== 'pick'))) {
+      return; // даём сработать фокусированной ссылке или кнопке (Выйти / Не знаю / Далее)
+    }
     e.preventDefault();
     const answered = state.quiz.answers[item.id];
     if (answered && state.quiz.instant) nextQuestion();
@@ -1060,7 +1226,9 @@ document.addEventListener('keydown', (e) => {
   }
   let pos = -1;
   if (/^[1-9]$/.test(e.key)) pos = Number(e.key) - 1;
+  else if (e.key === '0') pos = 9;
   else if (/^[a-j]$/i.test(e.key)) pos = LETTERS.indexOf(e.key.toUpperCase());
+  else if (/^Key[A-J]$/.test(e.code)) pos = LETTERS.indexOf(e.code.slice(3));
   if (pos >= 0 && pos < item.order.length) pickOption(item.order[pos]);
 });
 

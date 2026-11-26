@@ -111,7 +111,6 @@ public/
   index.html, app.js, styles.css   — SPA без сборки
   sw.js, manifest.webmanifest      — PWA
   data/
-    courses.json                   — список курсов
     courses.json                   — список курсов (category: infra | data | lang | cs)
     <курс>-N.json                  — вопросы курса
     theory/<курс>/<тема>.md        — статьи вкладки «Теория»

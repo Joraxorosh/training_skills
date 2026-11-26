@@ -96,7 +96,7 @@ function checkFile(file, ctx) {
     const norm = String(q.question).trim().toLowerCase() + '|' + (q.code || '');
     if (texts.has(norm)) warn(where, 'повторяющийся текст вопроса');
     texts.add(norm);
-    checkQuestion(q, where, new Set([...local, ...ctx.topics.keys()]));
+    checkQuestion(q, where, ctx.topics);
     ctx.perTopic[q.topic] = (ctx.perTopic[q.topic] || 0) + 1;
   }
   checkAnswerPositions(file, data.questions || []);
@@ -122,6 +122,9 @@ if (args.length) {
     seenCourses.add(course.id);
     for (const key of ['id', 'title', 'description', 'badge', 'color']) {
       if (!course[key]) fail(`courses.json ${course.id || '?'}`, `нет поля ${key}`);
+    }
+    if (!Array.isArray(course.files) || !course.files.length) {
+      fail(`courses.json ${course.id || '?'}`, 'нет файлов вопросов (files)');
     }
     const ctx = { topics: new Map(), allIds, perTopic: {}, total: 0, ids: [] };
     for (const file of course.files || []) checkFile(file, ctx);
