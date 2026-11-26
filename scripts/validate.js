@@ -80,7 +80,6 @@ function checkLengthBias(label, questions) {
 function checkFile(file, ctx) {
   const data = readJson(path.join(DATA, file), file);
   if (!data) return;
-  const local = new Set((data.topics || []).map((t) => t.id));
   for (const t of data.topics || []) {
     if (!t.id || !t.title) fail(file, 'у темы нет id или title');
     ctx.topics.set(t.id, t.title);
